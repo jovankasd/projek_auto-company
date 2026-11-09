@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Middleware\CheckRole;
+use App\Http\Middleware\EnsureUserIsActive;
 use App\Http\Middleware\SecurityHeaders;
+use Illuminate\Contracts\Auth\Middleware\AuthenticatesRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -13,9 +15,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        $middleware->web(append: [
-            SecurityHeaders::class,
-        ]);
+        $middleware->web(
+            prepend: [SecurityHeaders::class],
+            append: [EnsureUserIsActive::class],
+        );
+
+        $middleware->prependToPriorityList(
+            AuthenticatesRequests::class,
+            EnsureUserIsActive::class,
+        );
 
         $middleware->alias([
             'role' => CheckRole::class,

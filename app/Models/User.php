@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 /**
  * @property int $id
@@ -29,6 +30,10 @@ class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, SoftDeletes;
+
+    protected $attributes = [
+        'is_active' => true,
+    ];
 
     protected $fillable = [
         'name',
@@ -109,6 +114,25 @@ class User extends Authenticatable
     public function isOwner(): bool
     {
         return $this->role === UserRole::Owner;
+    }
+
+    public function revokeAccess(): void
+    {
+        $this->forceFill([
+            'remember_token' => null,
+        ])->saveQuietly();
+
+        if (config('session.driver') === 'database') {
+            /** @var string|null $connection */
+            $connection = config('session.connection');
+            /** @var string $table */
+            $table = config('session.table', 'sessions');
+
+            DB::connection($connection)
+                ->table($table)
+                ->where('user_id', $this->getKey())
+                ->delete();
+        }
     }
 
     public function getRedirectRoute(): string
