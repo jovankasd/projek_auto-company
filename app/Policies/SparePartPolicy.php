@@ -19,22 +19,22 @@ class SparePartPolicy
 
     public function create(User $user): bool
     {
-        return $user->isSales() || $user->isSuperAdmin() || $user->isMekanik();
+        return $user->isSales() || $user->isSuperAdmin();
     }
 
     public function update(User $user, SparePart $sparePart): bool
     {
-        return $user->isSales() || $user->isSuperAdmin() || $user->isMekanik();
+        return $user->isSales() || $user->isSuperAdmin();
     }
 
     public function delete(User $user, SparePart $sparePart): bool
     {
-        return $user->isSales() || $user->isSuperAdmin() || $user->isMekanik();
+        return $user->isSales() || $user->isSuperAdmin();
     }
 
     public function restore(User $user, SparePart $sparePart): bool
     {
-        return $user->isSales() || $user->isSuperAdmin() || $user->isMekanik();
+        return $user->isSales() || $user->isSuperAdmin();
     }
 
     public function forceDelete(User $user, SparePart $sparePart): bool

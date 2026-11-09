@@ -22,7 +22,7 @@
             </div>
 
             <!-- Quick Action for Mechanic / Admin -->
-            @if(auth()->user()->isMekanik() || auth()->user()->isSuperAdmin())
+            @can('updateStatus', $service)
                 <div class="flex flex-wrap items-center gap-2">
                     @if($service->status->value === 'confirmed')
                         <form method="POST" action="{{ route('services.update-status', $service) }}">
@@ -37,9 +37,11 @@
                     @endif
 
                     @if($service->status->value === 'in_progress')
-                        <button type="button" @click="itemModalOpen = true" class="px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition">
+                        @can('addItem', $service)
+                            <button type="button" @click="itemModalOpen = true" class="px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition">
                             + Tambah Onderdil / Jasa
                         </button>
+                        @endcan
                         <form method="POST" action="{{ route('services.update-status', $service) }}" onsubmit="return confirm('Konfirmasi pengerjaan telah selesai?')">
                             @csrf
                             @method('PATCH')
@@ -51,7 +53,7 @@
                         </form>
                     @endif
                 </div>
-            @endif
+            @endcan
         </div>
 
         <!-- Vehicle & Service Meta Card -->
@@ -126,9 +128,9 @@
                                 <th class="py-3 px-6 text-center">Jumlah</th>
                                 <th class="py-3 px-6 text-right">Harga Satuan</th>
                                 <th class="py-3 px-6 text-right">Subtotal</th>
-                                @if(auth()->user()->isMekanik() || auth()->user()->isSuperAdmin())
+                                @can('removeItem', $service)
                                     <th class="py-3 px-6 text-right">Aksi</th>
-                                @endif
+                                @endcan
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 text-sm">
@@ -154,7 +156,7 @@
                                     <td class="py-3.5 px-6 text-right font-mono font-bold text-slate-900">
                                         Rp{{ number_format($item->subtotal, 0, ',', '.') }}
                                     </td>
-                                    @if(auth()->user()->isMekanik() || auth()->user()->isSuperAdmin())
+                                    @can('removeItem', $service)
                                         <td class="py-3.5 px-6 text-right">
                                             @if($service->status->value !== 'completed' && $service->status->value !== 'cancelled')
                                                 <form method="POST" action="{{ route('services.remove-item', ['service' => $service, 'item' => $item]) }}" onsubmit="return confirm('Hapus item ini?')">
@@ -164,7 +166,7 @@
                                                 </form>
                                             @endif
                                         </td>
-                                    @endif
+                                    @endcan
                                 </tr>
                             @endforeach
                         </tbody>
@@ -172,9 +174,9 @@
                             <tr class="bg-slate-50 font-bold text-sm">
                                 <td colspan="4" class="py-4 px-6 text-right uppercase tracking-wider text-slate-600">Total Keseluruhan</td>
                                 <td class="py-4 px-6 text-right font-mono text-base text-slate-900">Rp{{ number_format($service->total_cost, 0, ',', '.') }}</td>
-                                @if(auth()->user()->isMekanik() || auth()->user()->isSuperAdmin())
+                                @can('removeItem', $service)
                                     <td></td>
-                                @endif
+                                @endcan
                             </tr>
                         </tfoot>
                     </table>

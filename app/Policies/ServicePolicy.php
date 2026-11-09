@@ -29,17 +29,41 @@ class ServicePolicy
 
     public function updateStatus(User $user, Service $service): bool
     {
-        return $user->isMekanik() || $user->isSuperAdmin();
+        if ($user->isSuperAdmin()) {
+            return true;
+        }
+
+        if ($user->isMekanik()) {
+            return $service->assigned_mechanic_id === $user->id;
+        }
+
+        return false;
     }
 
     public function addItem(User $user, Service $service): bool
     {
-        return $user->isMekanik() || $user->isSuperAdmin();
+        if ($user->isSuperAdmin()) {
+            return true;
+        }
+
+        if ($user->isMekanik()) {
+            return $service->assigned_mechanic_id === $user->id;
+        }
+
+        return false;
     }
 
     public function removeItem(User $user, Service $service): bool
     {
-        return $user->isMekanik() || $user->isSuperAdmin();
+        if ($user->isSuperAdmin()) {
+            return true;
+        }
+
+        if ($user->isMekanik()) {
+            return $service->assigned_mechanic_id === $user->id;
+        }
+
+        return false;
     }
 
     public function assignMechanic(User $user, Service $service): bool

@@ -35,6 +35,8 @@ class TestDriveController extends Controller
             return redirect()->route('login')->with('info', 'Silakan masuk untuk melanjutkan. Data Anda sudah kami simpan.');
         }
 
+        $this->authorize('create', TestDrive::class);
+
         $validated = $request->validated();
 
         // 2. Round-robin sales assignment

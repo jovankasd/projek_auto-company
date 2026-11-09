@@ -146,19 +146,23 @@
                                 </td>
                                 <td class="py-4 px-6 text-right space-x-1.5">
                                     @if($td->status->value === 'requested')
-                                        <form method="POST" action="{{ route('test-drives.approve', $td) }}" class="inline">
-                                            @csrf
-                                            @method('PATCH')
-                                            <button type="submit" class="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-700 transition">
-                                                Approve
-                                            </button>
-                                        </form>
+                                        @can('approve', $td)
+                                            <form method="POST" action="{{ route('test-drives.approve', $td) }}" class="inline">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit" class="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-700 transition">
+                                                    Approve
+                                                </button>
+                                            </form>
+                                        @endcan
 
-                                        <button type="button" 
-                                                @click="openReject({{ $td->toJson() }})"
-                                                class="px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 rounded-lg text-xs font-bold hover:bg-red-100 transition">
-                                            Reject
-                                        </button>
+                                        @can('reject', $td)
+                                            <button type="button" 
+                                                    @click="openReject({{ $td->toJson() }})"
+                                                    class="px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 rounded-lg text-xs font-bold hover:bg-red-100 transition">
+                                                Reject
+                                            </button>
+                                        @endcan
                                     @else
                                         <span class="text-xs text-slate-400 italic">Selesai diproses</span>
                                     @endif
@@ -199,16 +203,20 @@
                                 Hubungi WA
                             </a>
                             @if($td->status->value === 'requested')
-                                <form method="POST" action="{{ route('test-drives.approve', $td) }}" class="flex-1">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="submit" class="w-full py-2 bg-emerald-600 text-white text-xs font-bold rounded-xl">
-                                        Approve
+                                @can('approve', $td)
+                                    <form method="POST" action="{{ route('test-drives.approve', $td) }}" class="flex-1">
+                                        @csrf
+                                        @method('PATCH')
+                                        <button type="submit" class="w-full py-2 bg-emerald-600 text-white text-xs font-bold rounded-xl">
+                                            Approve
+                                        </button>
+                                    </form>
+                                @endcan
+                                @can('reject', $td)
+                                    <button type="button" @click="openReject({{ $td->toJson() }})" class="flex-1 py-2 bg-red-50 text-red-600 border border-red-200 text-xs font-bold rounded-xl">
+                                        Reject
                                     </button>
-                                </form>
-                                <button type="button" @click="openReject({{ $td->toJson() }})" class="flex-1 py-2 bg-red-50 text-red-600 border border-red-200 text-xs font-bold rounded-xl">
-                                    Reject
-                                </button>
+                                @endcan
                             @endif
                         </div>
                     </div>

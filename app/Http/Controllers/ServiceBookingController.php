@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Notifications\ServiceBookingCreatedNotification;
 use App\Services\BookingSlotValidator;
 use App\Services\TicketNumberGenerator;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Carbon;
@@ -19,6 +20,8 @@ use Illuminate\Validation\ValidationException;
 
 class ServiceBookingController extends Controller
 {
+    use AuthorizesRequests;
+
     public function __construct(
         private BookingSlotValidator $slotValidator,
         private TicketNumberGenerator $ticketGenerator,
@@ -40,6 +43,8 @@ class ServiceBookingController extends Controller
 
             return redirect()->route('login')->with('info', 'Silakan masuk untuk melanjutkan. Data Anda sudah kami simpan.');
         }
+
+        $this->authorize('create', Service::class);
 
         $validated = $request->validated();
 

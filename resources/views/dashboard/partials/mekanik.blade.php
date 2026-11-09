@@ -47,7 +47,7 @@
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 </svg>
-                <span>Kelola Gudang Suku Cadang</span>
+                <span>Lihat Katalog Suku Cadang</span>
             </a>
         </div>
     </div>
@@ -267,31 +267,37 @@
                                     </span>
                                 </td>
                                 <td class="py-4 px-6 text-right space-x-1.5 whitespace-nowrap">
-                                    @if(in_array($service->status?->value ?? (string)$service->status, ['pending', 'confirmed']))
-                                        <form method="POST" action="{{ route('services.update-status', $service) }}" class="inline">
-                                            @csrf
-                                            @method('PATCH')
-                                            <input type="hidden" name="status" value="in_progress">
-                                            <button type="submit" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-xs transition">
-                                                Mulai Servis
-                                            </button>
-                                        </form>
-                                    @endif
+                                    @can('updateStatus', $service)
+                                        @if(in_array($service->status?->value ?? (string)$service->status, ['pending', 'confirmed']))
+                                            <form method="POST" action="{{ route('services.update-status', $service) }}" class="inline">
+                                                @csrf
+                                                @method('PATCH')
+                                                <input type="hidden" name="status" value="in_progress">
+                                                <button type="submit" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-xs transition">
+                                                    Mulai Servis
+                                                </button>
+                                            </form>
+                                        @endif
+                                    @endcan
 
                                     @if(($service->status?->value ?? (string)$service->status) === 'in_progress')
-                                        <button type="button" 
-                                                @click="openAddItem({{ $service->toJson() }})"
-                                                class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-extrabold rounded-xl shadow-xs transition">
-                                            + Tambah Item
-                                        </button>
-                                        <form method="POST" action="{{ route('services.update-status', $service) }}" class="inline" onsubmit="return confirm('Apakah servis unit ini telah selesai?')">
-                                            @csrf
-                                            @method('PATCH')
-                                            <input type="hidden" name="status" value="completed">
-                                            <button type="submit" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs transition">
-                                                Selesai
+                                        @can('addItem', $service)
+                                            <button type="button" 
+                                                    @click="openAddItem({{ $service->toJson() }})"
+                                                    class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-extrabold rounded-xl shadow-xs transition">
+                                                + Tambah Item
                                             </button>
-                                        </form>
+                                        @endcan
+                                        @can('updateStatus', $service)
+                                            <form method="POST" action="{{ route('services.update-status', $service) }}" class="inline" onsubmit="return confirm('Apakah servis unit ini telah selesai?')">
+                                                @csrf
+                                                @method('PATCH')
+                                                <input type="hidden" name="status" value="completed">
+                                                <button type="submit" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-xs transition">
+                                                    Selesai
+                                                </button>
+                                            </form>
+                                        @endcan
                                     @endif
 
                                     <a href="{{ route('services.show', $service) }}" class="px-3 py-1.5 border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl transition">
