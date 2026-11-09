@@ -36,6 +36,7 @@ npm run build
 copy .env.example .env
 php artisan key:generate
 php artisan migrate:fresh --seed
+php artisan db:seed --class=DemoSeeder
 php artisan storage:link
 ```
 
@@ -155,8 +156,8 @@ DB_PASSWORD=
 Jika setelah mencoba berbagai fitur Anda ingin mengembalikan seluruh data (stok suku cadang, status servis, jadwal test drive, akun) kembali bersih seperti semula:
 
 ```powershell
-# Menghapus semua tabel, membuat ulang tabel, dan mengisi data seeder awal
-php artisan migrate:fresh --seed
+# Menghapus semua tabel, membuat ulang tabel, dan mengisi data seeder demo lokal
+php artisan migrate:fresh --seeder=DemoSeeder
 
 # Membersihkan cache aplikasi agar data terbaru langsung tampil
 php artisan cache:clear

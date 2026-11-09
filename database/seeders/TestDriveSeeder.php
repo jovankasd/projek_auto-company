@@ -13,25 +13,30 @@ class TestDriveSeeder extends Seeder
 {
     public function run(): void
     {
-        $customer = User::where('role', UserRole::Customer)->first();
-        $sales = User::where('role', UserRole::Sales)->first();
-
-        if (! $customer || ! $sales) {
+        if (! app()->environment(['local', 'testing']) || in_array(config('app.env'), ['production', 'staging'], true)) {
             return;
         }
 
-        $mustang = Car::where('slug', 'ford-mustang-gt-2024')->first();
-        $bmw = Car::where('slug', 'bmw-m4-competition-2024')->first();
-        $alphard = Car::where('slug', 'toyota-alphard-2024')->first() ?? Car::first();
-        $tesla = Car::where('slug', 'tesla-model-3-highland-2024')->first() ?? Car::first();
-        $raptor = Car::where('slug', 'ford-ranger-raptor-2024')->first() ?? Car::first();
+        $customer = User::where('role', UserRole::Customer)->first();
+        $sales = User::where('role', UserRole::Sales)->first();
+        $fallbackCar = Car::first();
+
+        if (! $customer || ! $sales || ! $fallbackCar) {
+            return;
+        }
+
+        $mustang = Car::where('slug', 'ford-mustang-gt-2024')->first() ?? $fallbackCar;
+        $bmw = Car::where('slug', 'bmw-m4-competition-2024')->first() ?? $fallbackCar;
+        $alphard = Car::where('slug', 'toyota-alphard-2024')->first() ?? $fallbackCar;
+        $tesla = Car::where('slug', 'tesla-model-3-2024')->first() ?? $fallbackCar;
+        $raptor = Car::where('slug', 'ford-ranger-raptor-2024')->first() ?? $fallbackCar;
 
         $testDrivesData = [
             [
                 'customer_id' => $customer->id,
-                'car_id' => $mustang?->id,
+                'car_id' => $mustang->id,
                 'sales_id' => $sales->id,
-                'preferred_date' => now()->addDays(1)->setHour(10)->setMinute(0),
+                'preferred_date' => now()->addDays(1)->setTime(10, 0),
                 'driver_license_id' => '3171012345678901',
                 'pickup_location' => 'XYZ Motors Showroom Pusat',
                 'status' => TestDriveStatus::Requested,
@@ -39,9 +44,9 @@ class TestDriveSeeder extends Seeder
             ],
             [
                 'customer_id' => $customer->id,
-                'car_id' => $bmw?->id,
+                'car_id' => $bmw->id,
                 'sales_id' => $sales->id,
-                'preferred_date' => now()->addDays(2)->setHour(14)->setMinute(0),
+                'preferred_date' => now()->addDays(2)->setTime(14, 0),
                 'driver_license_id' => '3171012345678902',
                 'pickup_location' => 'Kantor Customer (Kuningan, Jaksel)',
                 'status' => TestDriveStatus::Approved,
@@ -50,21 +55,21 @@ class TestDriveSeeder extends Seeder
             ],
             [
                 'customer_id' => $customer->id,
-                'car_id' => $tesla?->id,
+                'car_id' => $tesla->id,
                 'sales_id' => $sales->id,
-                'preferred_date' => now()->subDays(3)->setHour(11)->setMinute(0),
+                'preferred_date' => now()->subDays(3)->setTime(11, 0),
                 'driver_license_id' => '3171012345678903',
                 'pickup_location' => 'XYZ Motors Showroom Pusat',
                 'status' => TestDriveStatus::Completed,
                 'approved_at' => now()->subDays(4),
-                'completed_at' => now()->subDays(3)->setHour(12)->setMinute(0),
+                'completed_at' => now()->subDays(3)->setTime(12, 0),
                 'sales_notes' => 'Test drive sukses 45 menit, customer sedang mempertimbangkan opsi kredit.',
             ],
             [
                 'customer_id' => $customer->id,
-                'car_id' => $raptor?->id,
+                'car_id' => $raptor->id,
                 'sales_id' => $sales->id,
-                'preferred_date' => now()->subDays(1)->setHour(15)->setMinute(0),
+                'preferred_date' => now()->subDays(1)->setTime(15, 0),
                 'driver_license_id' => '3171012345678904',
                 'pickup_location' => 'XYZ Motors Showroom Pusat',
                 'status' => TestDriveStatus::Rejected,
@@ -73,9 +78,9 @@ class TestDriveSeeder extends Seeder
             ],
             [
                 'customer_id' => $customer->id,
-                'car_id' => $alphard?->id,
+                'car_id' => $alphard->id,
                 'sales_id' => $sales->id,
-                'preferred_date' => now()->addDays(5)->setHour(16)->setMinute(0),
+                'preferred_date' => now()->addDays(5)->setTime(16, 0),
                 'driver_license_id' => '3171012345678905',
                 'pickup_location' => 'Rumah Customer (Pondok Indah)',
                 'status' => TestDriveStatus::Requested,
@@ -85,11 +90,7 @@ class TestDriveSeeder extends Seeder
 
         foreach ($testDrivesData as $data) {
             TestDrive::firstOrCreate(
-                [
-                    'customer_id' => $data['customer_id'],
-                    'car_id' => $data['car_id'],
-                    'preferred_date' => $data['preferred_date'],
-                ],
+                ['driver_license_id' => $data['driver_license_id']],
                 $data
             );
         }

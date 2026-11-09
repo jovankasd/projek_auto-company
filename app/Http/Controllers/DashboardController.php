@@ -13,7 +13,6 @@ use App\Models\Setting;
 use App\Models\SparePart;
 use App\Models\TestDrive;
 use App\Models\User;
-use Database\Seeders\SparePartSeeder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -119,13 +118,6 @@ class DashboardController extends Controller
 
         // Ambil suku cadang mobil (sparepart) visual untuk perbaikan
         $spareParts = SparePart::available()->ordered()->get();
-        if ($spareParts->isEmpty() && SparePart::count() === 0) {
-            try {
-                (new SparePartSeeder)->run();
-                $spareParts = SparePart::available()->ordered()->get();
-            } catch (\Throwable $e) {
-            }
-        }
 
         // Ambil tiket servis aktif untuk pilihan modal pasang sparepart
         $activeServicesList = Service::whereIn('status', [ServiceStatus::Confirmed, ServiceStatus::InProgress])
