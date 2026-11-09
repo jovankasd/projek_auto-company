@@ -44,6 +44,7 @@
                             </option>
                         @endforeach
                     </select>
+                    @error('role') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
                 </div>
 
                 <div>
@@ -56,10 +57,12 @@
 
             <div class="pt-2">
                 <label class="flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" name="is_active" value="1" {{ old('is_active', '1') ? 'checked' : '' }} 
+                    <input type="hidden" name="is_active" value="0">
+                    <input type="checkbox" name="is_active" value="1" @checked((bool) old('is_active', true)) 
                            class="rounded border-slate-300 text-slate-900 focus:ring-slate-900 w-4 h-4">
                     <span class="text-sm font-bold text-slate-800">Akun Langsung Aktif</span>
                 </label>
+                @error('is_active') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
             </div>
 
             <div class="flex items-center justify-end gap-3 pt-4 border-t border-slate-100">

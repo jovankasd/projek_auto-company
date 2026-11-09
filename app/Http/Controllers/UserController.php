@@ -72,7 +72,7 @@ class UserController extends Controller
             'phone_number' => $validated['phone_number'],
             'role' => $validated['role'],
             'password' => Hash::make($validated['password']),
-            'is_active' => $request->boolean('is_active', true),
+            'is_active' => (bool) ($validated['is_active'] ?? true),
             'email_verified_at' => now(),
         ]);
 
@@ -103,19 +103,41 @@ class UserController extends Controller
             'is_active' => ['nullable', 'boolean'],
         ]);
 
+        $isActive = $request->boolean('is_active');
+        $currentRoleValue = $user->role instanceof UserRole ? $user->role->value : (string) $user->role;
+
+        if ($user->id === $request->user()?->id) {
+            if (! $isActive) {
+                return back()->withInput()->withErrors([
+                    'is_active' => 'Anda tidak dapat menonaktifkan akun Anda sendiri.',
+                ]);
+            }
+
+            if ((string) $validated['role'] !== $currentRoleValue) {
+                return back()->withInput()->withErrors([
+                    'role' => 'Anda tidak dapat mengubah peran akun Anda sendiri.',
+                ]);
+            }
+        }
+
         $userData = [
             'name' => $validated['name'],
             'email' => $validated['email'],
             'phone_number' => $validated['phone_number'],
             'role' => $validated['role'],
-            'is_active' => $request->boolean('is_active', true),
+            'is_active' => $isActive,
         ];
 
-        if (! empty($validated['password'])) {
+        $passwordChanged = ! empty($validated['password']);
+        if ($passwordChanged) {
             $userData['password'] = Hash::make($validated['password']);
         }
 
         $user->update($userData);
+
+        if (! $user->is_active || ($passwordChanged && $user->id !== $request->user()?->id)) {
+            $user->revokeAccess();
+        }
 
         return redirect()->route('users.index')->with('success', "Data pengguna {$user->name} berhasil diperbarui.");
     }
@@ -129,6 +151,8 @@ class UserController extends Controller
         }
 
         $name = $user->name;
+        $user->forceFill(['is_active' => false])->saveQuietly();
+        $user->revokeAccess();
         $user->delete();
 
         return redirect()->route('users.index')->with('success', "Pengguna {$name} berhasil dinonaktifkan/dihapus.");
