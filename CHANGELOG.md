@@ -4,6 +4,23 @@ Semua perubahan besar, fitur baru, perbaikan, dan pembaruan arsitektural pada pl
 
 ---
 
+## [Unreleased]
+
+### Keamanan (Security Hardening - Audit Perbaikan 2026-11-09)
+- **01. Hilangkan Kredensial Demo dari UI dan Seeder Produksi** ([PR #1](https://github.com/jovankasd/projek_auto-company/pull/1)):
+  - Menghapus kartu kredensial demo, teks kata sandi default `password`, dan autofill JavaScript dari halaman login publik (`resources/views/auth/login.blade.php`).
+  - Memisahkan data demo ke seeder terpisah `DemoSeeder` (`php artisan db:seed --class=DemoSeeder`).
+  - Menjadikan `UserSeeder` dan seluruh seeder katalog/layanan idempoten (`firstOrCreate` / `updateOrCreate`) tanpa mereset kata sandi atau mengaktifkan kembali akun nonaktif di lingkungan produksi.
+  - Penambahan 16 feature test di `DemoCredentialsSecurityTest.php`.
+- **02. Tegakkan Status Akun Aktif di Login dan Sesi** ([PR #2](https://github.com/jovankasd/projek_auto-company/pull/2)):
+  - Autentikasi `LoginRequest` memverifikasi status aktif via `Auth::attemptWhen()` konstan-waktu dengan pesan generik `auth.failed` untuk mencegah kebocoran informasi.
+  - Penambahan global middleware `EnsureUserIsActive` pada grup `web` untuk mendeteksi penonaktifan akun secara *real-time*, memutus sesi aktif, meregenerasi token CSRF, serta mengembalikan 403 Forbidden untuk permintaan JSON.
+  - Penambahan method `User::revokeAccess()` untuk mengosongkan `remember_token` dan membersihkan baris sesi aktif di database saat akun dinonaktifkan, dihapus, atau kata sandi diubah.
+  - Proteksi mandiri Super Admin dari deaktivasi akun diri sendiri atau demosi peran di `UserController`.
+  - Penambahan 18 feature test komprehensif di `ActiveAccountEnforcementTest.php` (278 assertions).
+
+---
+
 ## [1.0.0] - 2026-11-09
 
 ### Ditambahkan (Dokumentasi, ADR & Rilis Repositori)
