@@ -1,0 +1,23 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    paths:
+        - app
+
+    level: 6
+
+    treatPhpDocTypesAsCertain: false
+    reportUnmatchedIgnoredErrors: false
+
+    ignoreErrors:
+        - '#Unsafe usage of new static#'
+        - '#does not specify its types: TRelatedModel#'
+        - '#does not specify its types: TModel#'
+        - '#does not specify its types: TFactory#'
+        - '#has no value type specified in iterable type#'
+        - '#does not specify its types: TGet, TSet#'
+        - '#Parameter \#1 \$user of class Illuminate\\Auth\\Events\\Verified constructor#'
+
+    excludePaths:
+        - app/Http/Middleware/HandleInertiaRequests.php (?)
