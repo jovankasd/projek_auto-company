@@ -15,6 +15,10 @@ class ServiceSeeder extends Seeder
 {
     public function run(ServiceCostCalculator $costCalculator): void
     {
+        if (! app()->environment(['local', 'testing']) || in_array(config('app.env'), ['production', 'staging'], true)) {
+            return;
+        }
+
         $customer = User::where('role', UserRole::Customer)->first();
         $mekanik1 = User::where('email', 'mekanik1@xyzmotors.id')->first();
         $mekanik2 = User::where('email', 'mekanik2@xyzmotors.id')->first();
@@ -61,7 +65,7 @@ class ServiceSeeder extends Seeder
                 'service_date' => now()->startOfDay()->addHours(11),
                 'slot_hour' => 11,
                 'complaint_notes' => 'Pemeriksaan performa sistem pengereman dan scan komputer diagnostik.',
-                'assigned_mechanic_id' => $mekanik2->id,
+                'assigned_mechanic_id' => $mekanik2?->id ?? $mekanik1->id,
                 'status' => ServiceStatus::Confirmed,
                 'confirmed_at' => now()->subHours(4),
                 'items' => [
@@ -173,7 +177,7 @@ class ServiceSeeder extends Seeder
                 'service_date' => now()->subDays(6)->addHours(10),
                 'slot_hour' => 10,
                 'complaint_notes' => 'Penggantian kanvas rem depan dan belakang.',
-                'assigned_mechanic_id' => $mekanik2->id,
+                'assigned_mechanic_id' => $mekanik2?->id ?? $mekanik1->id,
                 'status' => ServiceStatus::Completed,
                 'started_at' => now()->subDays(6)->addHours(10),
                 'completed_at' => now()->subDays(6)->addHours(13),

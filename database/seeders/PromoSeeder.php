@@ -11,6 +11,10 @@ class PromoSeeder extends Seeder
 {
     public function run(): void
     {
+        if (! app()->environment(['local', 'testing']) || in_array(config('app.env'), ['production', 'staging'], true)) {
+            return;
+        }
+
         $mustang = Car::where('slug', 'ford-mustang-gt-2024')->first();
         $bmw = Car::where('slug', 'bmw-m4-competition-2024')->first();
 

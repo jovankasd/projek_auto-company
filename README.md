@@ -41,6 +41,8 @@ Aplikasi ini dapat dijalankan melalui **`php artisan serve`**, **Laragon**, maup
 4. **Migrasi & isi data awal (seeder)**
    ```bash
    php artisan migrate:fresh --seed
+   # Opsional untuk pengembangan lokal: isi akun & katalog demo melalui DemoSeeder
+   php artisan db:seed --class=DemoSeeder
    php artisan storage:link
    ```
 5. **Build aset frontend & jalankan server pengembangan**
@@ -72,7 +74,7 @@ Aplikasi ini dapat dijalankan melalui **`php artisan serve`**, **Laragon**, maup
 ### 1. Showroom 2.5D & Katalog Mobil Interaktif
 - Eksplorasi katalog mobil (`SUV`, `Sedan`, `Sports`, `EV`, `MPV`) dengan animasi slider Swiper + GSAP dan filter kategori.
 - Spesifikasi teknis terperinci (daya kuda, torsi, akselerasi, transmisi) serta tampilan kartu promo aktif dengan kode voucher.
-- Pengisian data katalog awal dilakukan melalui seeder (`CarSeeder` / `php artisan migrate:fresh --seed`).
+- Pengisian data katalog demo lokal dilakukan melalui `DemoSeeder` (`CarSeeder` / `php artisan db:seed --class=DemoSeeder`).
 
 ### 2. Katalog & Manajemen Sparepart Mobil
 - Klasifikasi 10 kategori suku cadang: **Mesin**, **Rem**, **Suspensi**, **Kelistrikan**, **Bodi**, **Interior**, **Transmisi**, **Knalpot**, **Pendingin**, dan **Aksesoris**.
@@ -120,7 +122,7 @@ Ringkasan desain sistem dan catatan keputusan teknis tersedia di direktori `docs
 
 ## Akun Demo Lokal (Seeded Users)
 
-> **Catatan Keamanan:** Akun bawaan di bawah ini disediakan oleh `UserSeeder` **hanya untuk lingkungan pengembangan/demo lokal**. Jangan gunakan kata sandi bawaan ini pada server produksi publik.
+> **Catatan Keamanan:** Akun bawaan di bawah ini disediakan oleh `UserSeeder` (melalui `DemoSeeder`) **hanya untuk lingkungan pengembangan/demo lokal**. Jangan gunakan kata sandi bawaan ini pada server produksi publik.
 
 Semua akun demo menggunakan kata sandi: **`password`**
 

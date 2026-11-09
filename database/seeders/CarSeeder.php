@@ -10,6 +10,10 @@ class CarSeeder extends Seeder
 {
     public function run(): void
     {
+        if (! app()->environment(['local', 'testing']) || in_array(config('app.env'), ['production', 'staging'], true)) {
+            return;
+        }
+
         $cars = [
             [
                 'slug' => 'ford-mustang-gt-2024',
