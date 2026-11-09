@@ -18,6 +18,16 @@ Semua perubahan besar, fitur baru, perbaikan, dan pembaruan arsitektural pada pl
   - Penambahan method `User::revokeAccess()` untuk mengosongkan `remember_token` dan membersihkan baris sesi aktif di database saat akun dinonaktifkan, dihapus, atau kata sandi diubah.
   - Proteksi mandiri Super Admin dari deaktivasi akun diri sendiri atau demosi peran di `UserController`.
   - Penambahan 18 feature test komprehensif di `ActiveAccountEnforcementTest.php` (278 assertions).
+- **03. Lindungi Foto SIM Test Drive** ([PR #3](https://github.com/jovankasd/projek_auto-company/pull/3)):
+  - Mengalihkan penyimpanan unggahan foto SIM baru dari disk publik ke disk privat bawaan (`local` / `storage/app/private/licenses`).
+  - Menyediakan endpoint terotorisasi `GET /dashboard/test-drives/{id}/license-image` (`TestDriveController@showLicenseImage`) yang dilindungi `TestDrivePolicy@viewDriverLicense` (hanya Super Admin, Sales yang ditugaskan via `sales_id`, dan Customer pemilik pengajuan).
+  - Menerapkan response header aman anti-sniffing dan anti-caching (`X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Cache-Control: private, no-cache, no-store, must-revalidate`).
+  - Menambahkan sanitasi path traversal (`..`) dan penanganan normalisasi prefix legacy `public/`.
+  - Mengganti tautan publik di antarmuka Sales (`sales.blade.php`) dan riwayat Customer (`my.blade.php`) ke endpoint terotorisasi dengan pengecekan `@can('viewDriverLicense', $td)` dan `rel="noopener noreferrer"`.
+  - Menyediakan Artisan command migrasi berkas lama `test-drives:protect-license-photos` dengan verifikasi integritas cryptographic checksum SHA-256, opsi `--dry-run`, dan proteksi konfirmasi sebelum penghapusan berkas publik.
+  - Memperbarui konfigurasi Nginx produksi (`docs/nginx/xyz-motors.conf`) untuk memblokir akses langsung publik ke `/storage/licenses`.
+  - Dokumentasi arsitektur di `docs/decisions/0006-protect-driver-license-images-in-private-storage.md`.
+  - Penambahan 18 feature test komprehensif di `TestDriveLicenseSecurityTest.php` (54 assertions).
 
 ---
 

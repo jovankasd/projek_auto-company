@@ -12,7 +12,9 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\Response;
 
 class TestDriveController extends Controller
 {
@@ -43,10 +45,10 @@ class TestDriveController extends Controller
             return $user->assignedTestDrives()->count();
         })->first();
 
-        // 3. Driver license image upload
+        // 3. Driver license image upload (tersimpan di disk privat 'local')
         $imagePath = null;
         if ($request->hasFile('driver_license_image')) {
-            $imagePath = $request->file('driver_license_image')->store('licenses', 'public');
+            $imagePath = $request->file('driver_license_image')->store('licenses', 'local');
         }
 
         // 4. Create Test Drive record
@@ -159,5 +161,49 @@ class TestDriveController extends Controller
         }
 
         return back()->with('success', $message);
+    }
+
+    /**
+     * Tampilkan berkas foto SIM secara aman dari disk privat untuk pihak yang berwenang.
+     */
+    public function showLicenseImage(TestDrive $testDrive): Response
+    {
+        $this->authorize('viewDriverLicense', $testDrive);
+
+        if (! $testDrive->driver_license_image) {
+            abort(404, 'Foto SIM tidak ditemukan untuk pengajuan test drive ini.');
+        }
+
+        $path = $testDrive->driver_license_image;
+        $normalized = ltrim(str_replace('\\', '/', $path), '/');
+
+        // Normalisasikan prefix legacy 'public/' bila tersimpan di database
+        if (str_starts_with($normalized, 'public/')) {
+            $normalized = substr($normalized, 7);
+        }
+
+        // Cegah path traversal dan batasi direktori yang sah
+        if (str_contains($normalized, '..') || ! str_starts_with($normalized, 'licenses/')) {
+            abort(404, 'Berkas foto SIM tidak valid.');
+        }
+
+        $headers = [
+            'X-Content-Type-Options' => 'nosniff',
+            'X-Frame-Options' => 'DENY',
+            'Cache-Control' => 'private, no-cache, no-store, must-revalidate',
+            'Pragma' => 'no-cache',
+            'Expires' => '0',
+        ];
+
+        if (Storage::disk('local')->exists($normalized)) {
+            return Storage::disk('local')->response($normalized, basename($normalized), $headers);
+        }
+
+        // Fallback untuk berkas lama di storage publik sebelum prosedur migrasi dijalankan
+        if (Storage::disk('public')->exists($normalized)) {
+            return Storage::disk('public')->response($normalized, basename($normalized), $headers);
+        }
+
+        abort(404, 'Berkas foto SIM tidak ditemukan di penyimpanan.');
     }
 }

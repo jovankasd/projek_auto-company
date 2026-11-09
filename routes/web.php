@@ -31,6 +31,7 @@ Route::middleware(['auth', 'verified'])->prefix('dashboard')->group(function () 
     Route::get('my-services', [ServiceController::class, 'myServices'])->name('services.my');
     Route::get('my-services/{service}', [ServiceController::class, 'track'])->name('services.track');
     Route::get('my-test-drives', [TestDriveController::class, 'myTestDrives'])->name('test-drives.my');
+    Route::get('test-drives/{testDrive}/license-image', [TestDriveController::class, 'showLicenseImage'])->name('test-drives.license-image');
     Route::get('services/{service}', [ServiceController::class, 'show'])->name('services.show');
     Route::get('services/{service}/status-stream', [ServiceController::class, 'statusStream'])->name('services.status-stream');
 

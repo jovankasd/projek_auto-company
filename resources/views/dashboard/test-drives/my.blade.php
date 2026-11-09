@@ -51,7 +51,13 @@
                                         <p class="text-xs text-slate-500 font-mono">Pukul {{ $td->preferred_date->format('H:i') }} WIB</p>
                                     </td>
                                     <td class="py-4 px-6 text-xs text-slate-700">
-                                        {{ $td->pickup_location ?? 'Showroom Pusat Dealer Pro' }}
+                                        <p class="font-medium text-slate-900">{{ $td->pickup_location ?? 'Showroom Pusat Dealer Pro' }}</p>
+                                        <p class="text-[11px] text-slate-500 font-mono mt-1">SIM: {{ $td->driver_license_id }}</p>
+                                        @if($td->driver_license_image)
+                                            <a href="{{ route('test-drives.license-image', $td) }}" target="_blank" rel="noopener noreferrer" class="text-[11px] text-blue-600 hover:underline inline-block mt-0.5">
+                                                Lihat Foto SIM &nearr;
+                                            </a>
+                                        @endif
                                     </td>
                                     <td class="py-4 px-6">
                                         @if($td->sales)
@@ -88,6 +94,14 @@
                             </div>
                             <p class="text-xs text-slate-600">Jadwal: {{ $td->preferred_date->translatedFormat('d M Y, H:i') }} WIB</p>
                             <p class="text-xs text-slate-500">Lokasi: {{ $td->pickup_location ?? 'Showroom Pusat' }}</p>
+                            <div class="flex items-center justify-between text-xs">
+                                <span class="font-mono text-slate-600">SIM: {{ $td->driver_license_id }}</span>
+                                @if($td->driver_license_image)
+                                    <a href="{{ route('test-drives.license-image', $td) }}" target="_blank" rel="noopener noreferrer" class="text-[11px] text-blue-600 hover:underline">
+                                        Lihat Foto SIM &nearr;
+                                    </a>
+                                @endif
+                            </div>
                             @if($td->sales)
                                 <p class="text-xs text-slate-600">Sales: <span class="font-bold">{{ $td->sales->name }}</span> ({{ $td->sales->phone_number }})</p>
                             @endif

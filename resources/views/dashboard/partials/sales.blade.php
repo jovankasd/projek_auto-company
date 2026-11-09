@@ -128,9 +128,13 @@
                                 <td class="py-4 px-6">
                                     <span class="font-mono text-xs font-semibold text-slate-700 block">{{ $td->driver_license_id }}</span>
                                     @if($td->driver_license_image)
-                                        <a href="{{ asset('storage/' . $td->driver_license_image) }}" target="_blank" class="text-[11px] text-blue-600 hover:underline mt-0.5 inline-block">
-                                            Lihat Foto SIM &nearr;
-                                        </a>
+                                        @can('viewDriverLicense', $td)
+                                            <a href="{{ route('test-drives.license-image', $td) }}" target="_blank" rel="noopener noreferrer" class="text-[11px] text-blue-600 hover:underline mt-0.5 inline-block">
+                                                Lihat Foto SIM &nearr;
+                                            </a>
+                                        @else
+                                            <span class="text-[11px] text-slate-400 italic" title="Perlu penetapan sales untuk mengakses foto SIM">Foto SIM dilindungi</span>
+                                        @endcan
                                     @else
                                         <span class="text-[11px] text-slate-400 italic">Tanpa unggahan foto</span>
                                     @endif
@@ -192,7 +196,18 @@
                         <p class="font-extrabold text-base text-slate-900">{{ $td->car->brand }} {{ $td->car->model_name }}</p>
                         <p class="text-xs text-slate-500">Jadwal: {{ $td->preferred_date->translatedFormat('d M Y, H:i') }} WIB</p>
                         <p class="text-xs text-slate-500">Lokasi: {{ $td->pickup_location ?? 'Showroom Pusat' }}</p>
-                        <p class="text-xs font-mono text-slate-600">SIM: {{ $td->driver_license_id }}</p>
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="font-mono text-slate-600">SIM: {{ $td->driver_license_id }}</span>
+                            @if($td->driver_license_image)
+                                @can('viewDriverLicense', $td)
+                                    <a href="{{ route('test-drives.license-image', $td) }}" target="_blank" rel="noopener noreferrer" class="text-[11px] text-blue-600 hover:underline">
+                                        Lihat Foto SIM &nearr;
+                                    </a>
+                                @else
+                                    <span class="text-[11px] text-slate-400 italic">Foto SIM dilindungi</span>
+                                @endcan
+                            @endif
+                        </div>
 
                         <div class="pt-2 flex flex-wrap gap-2">
                             <a href="{{ $waUrl }}" target="_blank" class="flex-1 py-2 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-xl text-center">
