@@ -35,6 +35,8 @@ class TestDriveController extends Controller
             return redirect()->route('login')->with('info', 'Silakan masuk untuk melanjutkan. Data Anda sudah kami simpan.');
         }
 
+        $this->authorize('create', TestDrive::class);
+
         $validated = $request->validated();
 
         // 2. Round-robin sales assignment
@@ -86,6 +88,25 @@ class TestDriveController extends Controller
     }
 
     /**
+     * Tampilkan detail pengajuan test drive terotorisasi.
+     */
+    public function show(Request $request, TestDrive $testDrive): View|JsonResponse
+    {
+        $this->authorize('view', $testDrive);
+
+        $testDrive->loadMissing(['customer', 'car', 'sales']);
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'data' => $testDrive,
+            ]);
+        }
+
+        return view('dashboard.test-drives.show', compact('testDrive'));
+    }
+
+    /**
      * Tampilkan riwayat pengajuan test drive milik customer yang login.
      */
     public function myTestDrives(Request $request): View
@@ -101,7 +122,7 @@ class TestDriveController extends Controller
     }
 
     /**
-     * Setujui pengajuan test drive oleh Sales atau Super Admin.
+     * Setujui pengajuan test drive oleh Sales pemilik atau Super Admin.
      */
     public function approve(Request $request, TestDrive $testDrive): JsonResponse|RedirectResponse
     {
@@ -149,6 +170,69 @@ class TestDriveController extends Controller
         ]);
 
         $message = "Test drive untuk {$testDrive->customer->name} telah ditolak.";
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'test_drive' => $testDrive->fresh(['car', 'customer', 'sales']),
+            ]);
+        }
+
+        return back()->with('success', $message);
+    }
+
+    /**
+     * Tandai sesi test drive telah selesai dilakukan.
+     */
+    public function complete(Request $request, TestDrive $testDrive): JsonResponse|RedirectResponse
+    {
+        $this->authorize('complete', $testDrive);
+
+        $validated = $request->validate([
+            'sales_notes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $testDrive->update([
+            'status' => TestDriveStatus::Completed,
+            'completed_at' => now(),
+            'sales_notes' => $validated['sales_notes'] ?? $testDrive->sales_notes,
+        ]);
+
+        $message = "Sesi test drive untuk {$testDrive->customer->name} telah berhasil diselesaikan.";
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'test_drive' => $testDrive->fresh(['car', 'customer', 'sales']),
+            ]);
+        }
+
+        return back()->with('success', $message);
+    }
+
+    /**
+     * Batalkan pengajuan test drive oleh customer pemilik, sales pemilik, atau Super Admin.
+     */
+    public function cancel(Request $request, TestDrive $testDrive): JsonResponse|RedirectResponse
+    {
+        $this->authorize('cancel', $testDrive);
+
+        $validated = $request->validate([
+            'cancellation_reason' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $canceller = auth()->user();
+        $reason = $validated['cancellation_reason']
+            ?? ('Dibatalkan oleh '.($canceller && $canceller->isCustomer() ? 'pelanggan' : 'tim sales').'.');
+
+        $testDrive->update([
+            'status' => TestDriveStatus::Cancelled,
+            'rejection_reason' => $reason,
+        ]);
+
+        $message = 'Pengajuan test drive berhasil dibatalkan.';
 
         if ($request->wantsJson()) {
             return response()->json([

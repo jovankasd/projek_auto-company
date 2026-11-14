@@ -11,6 +11,7 @@ Direktori ini menyimpan catatan keputusan arsitektur (*Architecture Decision Rec
 | [ADR-003](0003-service-state-machine-and-booking-guards.md) | Mesin Status Servis, Validasi Kuota Slot, dan Generator Tiket Atomik | Accepted | 2026-10-01 |
 | [ADR-004](0004-observer-and-queued-multi-channel-notifications.md) | Observer & Event-Driven Queued Multi-Channel Notifications | Accepted | 2026-10-01 |
 | [ADR-005](0005-polling-live-tracking-over-websockets.md) | Live Tracking Berbasis HTTP Polling dengan Jalur Upgrade WebSocket | Accepted | 2026-10-01 |
+| [ADR-006](0006-test-drive-state-machine-and-sales-ownership.md) | Mesin Status Test Drive, Hak Akses Kepemilikan Sales, dan Aksi Siklus Lengkap | Accepted | 2026-11-14 |
 
 ## Aturan Pemeliharaan ADR
 

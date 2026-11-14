@@ -1,33 +1,44 @@
 <div class="space-y-8" x-data="{ 
     rejectModalOpen: false, 
+    cancelModalOpen: false,
     selectedTestDrive: null,
     rejectionReason: '',
+    cancellationReason: '',
     openReject(td) {
         this.selectedTestDrive = td;
         this.rejectionReason = '';
         this.rejectModalOpen = true;
+    },
+    openCancel(td) {
+        this.selectedTestDrive = td;
+        this.cancellationReason = '';
+        this.cancelModalOpen = true;
     }
 }">
     <!-- Header Title -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
             <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">Manajemen Lead Test Drive</h1>
-            <p class="text-slate-500 text-sm mt-1">Kelola permohonan test drive pelanggan, lakukan approval, dan hubungi pelanggan via WhatsApp.</p>
+            <p class="text-slate-500 text-sm mt-1">Kelola permohonan test drive pelanggan, lakukan approval, proses penyelesaian, dan hubungi pelanggan.</p>
         </div>
 
         <!-- Filter Status -->
-        <div class="inline-flex p-1 rounded-2xl bg-white border border-slate-200 shadow-sm">
+        <div class="inline-flex flex-wrap p-1 rounded-2xl bg-white border border-slate-200 shadow-sm gap-1">
             <a href="{{ route('dashboard', ['status' => 'all']) }}" 
                class="px-4 py-2 rounded-xl text-xs font-bold transition {{ $statusFilter === 'all' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900' }}">
                 Semua
             </a>
             <a href="{{ route('dashboard', ['status' => 'requested']) }}" 
                class="px-4 py-2 rounded-xl text-xs font-bold transition {{ $statusFilter === 'requested' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900' }}">
-                Menunggu Approval
+                Menunggu
             </a>
             <a href="{{ route('dashboard', ['status' => 'approved']) }}" 
                class="px-4 py-2 rounded-xl text-xs font-bold transition {{ $statusFilter === 'approved' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900' }}">
                 Disetujui
+            </a>
+            <a href="{{ route('dashboard', ['status' => 'completed']) }}" 
+               class="px-4 py-2 rounded-xl text-xs font-bold transition {{ $statusFilter === 'completed' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900' }}">
+                Selesai
             </a>
         </div>
     </div>
@@ -101,7 +112,9 @@
                             @endphp
                             <tr class="hover:bg-slate-50/80 transition">
                                 <td class="py-4 px-6">
-                                    <p class="font-bold text-slate-900">{{ $td->customer->name }}</p>
+                                    <a href="{{ route('test-drives.show', $td) }}" class="font-bold text-slate-900 hover:text-blue-600 transition block">
+                                        {{ $td->customer->name }}
+                                    </a>
                                     <p class="text-xs text-slate-500 mt-0.5">{{ $td->customer->email }}</p>
                                     <div class="mt-1.5 flex items-center gap-2">
                                         <a href="{{ $waUrl }}" target="_blank" rel="noopener noreferrer" 
@@ -140,7 +153,7 @@
                                         <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
                                         {{ $td->status->label() }}
                                     </span>
-                                    @if($td->status->value === 'rejected' && $td->rejection_reason)
+                                    @if(in_array($td->status->value, ['rejected', 'cancelled']) && $td->rejection_reason)
                                         <p class="text-[11px] text-red-600 mt-1 max-w-xs italic">{{ $td->rejection_reason }}</p>
                                     @endif
                                 </td>
@@ -159,9 +172,31 @@
                                                 class="px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 rounded-lg text-xs font-bold hover:bg-red-100 transition">
                                             Reject
                                         </button>
-                                    @else
-                                        <span class="text-xs text-slate-400 italic">Selesai diproses</span>
+
+                                        <button type="button" 
+                                                @click="openCancel({{ $td->toJson() }})"
+                                                class="px-3 py-1.5 bg-slate-100 text-slate-600 border border-slate-200 rounded-lg text-xs font-bold hover:bg-slate-200 transition">
+                                            Batal
+                                        </button>
+                                    @elseif($td->status->value === 'approved')
+                                        <form method="POST" action="{{ route('test-drives.complete', $td) }}" class="inline" onsubmit="return confirm('Konfirmasi bahwa sesi test drive telah selesai?')">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" class="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-700 transition">
+                                                Selesai
+                                            </button>
+                                        </form>
+
+                                        <button type="button" 
+                                                @click="openCancel({{ $td->toJson() }})"
+                                                class="px-3 py-1.5 bg-slate-100 text-slate-600 border border-slate-200 rounded-lg text-xs font-bold hover:bg-slate-200 transition">
+                                            Batal
+                                        </button>
                                     @endif
+
+                                    <a href="{{ route('test-drives.show', $td) }}" class="px-2.5 py-1.5 bg-slate-50 text-slate-700 border border-slate-200 rounded-lg text-xs font-semibold hover:bg-slate-100 transition inline-block">
+                                        Detail &rarr;
+                                    </a>
                                 </td>
                             </tr>
                         @endforeach
@@ -184,7 +219,9 @@
                     @endphp
                     <div class="p-5 space-y-3">
                         <div class="flex items-center justify-between">
-                            <span class="font-bold text-slate-900 text-sm">{{ $td->customer->name }}</span>
+                            <a href="{{ route('test-drives.show', $td) }}" class="font-bold text-slate-900 text-sm hover:underline">
+                                {{ $td->customer->name }}
+                            </a>
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider border {{ $td->status->color() }}">
                                 {{ $td->status->label() }}
                             </span>
@@ -198,6 +235,9 @@
                             <a href="{{ $waUrl }}" target="_blank" class="flex-1 py-2 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-xl text-center">
                                 Hubungi WA
                             </a>
+                            <a href="{{ route('test-drives.show', $td) }}" class="py-2 px-3 bg-slate-100 text-slate-800 text-xs font-bold rounded-xl text-center">
+                                Detail
+                            </a>
                             @if($td->status->value === 'requested')
                                 <form method="POST" action="{{ route('test-drives.approve', $td) }}" class="flex-1">
                                     @csrf
@@ -208,6 +248,20 @@
                                 </form>
                                 <button type="button" @click="openReject({{ $td->toJson() }})" class="flex-1 py-2 bg-red-50 text-red-600 border border-red-200 text-xs font-bold rounded-xl">
                                     Reject
+                                </button>
+                                <button type="button" @click="openCancel({{ $td->toJson() }})" class="flex-1 py-2 bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold rounded-xl">
+                                    Batal
+                                </button>
+                            @elseif($td->status->value === 'approved')
+                                <form method="POST" action="{{ route('test-drives.complete', $td) }}" class="flex-1" onsubmit="return confirm('Selesaikan test drive?')">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit" class="w-full py-2 bg-emerald-600 text-white text-xs font-bold rounded-xl">
+                                        Selesai
+                                    </button>
+                                </form>
+                                <button type="button" @click="openCancel({{ $td->toJson() }})" class="flex-1 py-2 bg-slate-100 text-slate-700 border border-slate-200 text-xs font-bold rounded-xl">
+                                    Batal
                                 </button>
                             @endif
                         </div>
@@ -249,6 +303,39 @@
                     </button>
                     <button type="submit" class="px-4 py-2 rounded-xl text-xs font-bold bg-red-600 text-white hover:bg-red-700">
                         Konfirmasi Penolakan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Cancel Modal -->
+    <div x-show="cancelModalOpen" 
+         x-cloak
+         class="fixed inset-0 z-50 flex items-center justify-center p-4"
+         @keydown.escape.window="cancelModalOpen = false">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="cancelModalOpen = false"></div>
+        <div class="relative w-full max-w-md rounded-3xl bg-white border border-slate-200 shadow-2xl p-6 sm:p-8 overflow-hidden"
+             x-transition:enter="transition ease-out duration-300 transform"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100">
+            <h3 class="font-black text-lg text-slate-900">Batalkan Pengajuan Test Drive</h3>
+            <p class="text-xs text-slate-500 mt-1">Masukkan keterangan pembatalan untuk dicatat pada sistem.</p>
+
+            <form :action="selectedTestDrive ? '/dashboard/test-drives/' + selectedTestDrive.id + '/cancel' : '#'" method="POST" class="mt-4 space-y-4">
+                @csrf
+                @method('PATCH')
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Alasan Pembatalan</label>
+                    <textarea name="cancellation_reason" rows="3" placeholder="Contoh: Terjadi perubahan jadwal atau cuaca buruk..."
+                              class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none"></textarea>
+                </div>
+                <div class="flex items-center justify-end gap-3 pt-2">
+                    <button type="button" @click="cancelModalOpen = false" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100">
+                        Batal
+                    </button>
+                    <button type="submit" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-900 text-white hover:bg-slate-800">
+                        Konfirmasi Pembatalan
                     </button>
                 </div>
             </form>

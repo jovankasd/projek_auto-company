@@ -138,13 +138,8 @@ class DashboardController extends Controller
     {
         $statusFilter = $request->input('status', 'all');
 
-        $query = TestDrive::with(['customer', 'car', 'sales']);
-
-        // Sales melihat lead miliknya atau yang belum di-assign (kecuali Super Admin)
-        $query->where(function ($q) use ($user) {
-            $q->where('sales_id', $user->id)
-                ->orWhereNull('sales_id');
-        });
+        $query = TestDrive::with(['customer', 'car', 'sales'])
+            ->forSales($user->id);
 
         if ($statusFilter !== 'all') {
             $query->where('status', $statusFilter);
@@ -153,12 +148,12 @@ class DashboardController extends Controller
         $testDrives = $query->latest('preferred_date')->paginate(15)->withQueryString();
 
         $stats = [
-            'requested_leads' => TestDrive::where('sales_id', $user->id)->where('status', TestDriveStatus::Requested)->count(),
-            'approved_this_month' => TestDrive::where('sales_id', $user->id)
+            'requested_leads' => TestDrive::forSales($user->id)->where('status', TestDriveStatus::Requested)->count(),
+            'approved_this_month' => TestDrive::forSales($user->id)
                 ->where('status', TestDriveStatus::Approved)
                 ->whereBetween('approved_at', [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()])
                 ->count(),
-            'completed_leads' => TestDrive::where('sales_id', $user->id)->where('status', TestDriveStatus::Completed)->count(),
+            'completed_leads' => TestDrive::forSales($user->id)->where('status', TestDriveStatus::Completed)->count(),
             'available_cars' => Car::available()->count(),
         ];
 
