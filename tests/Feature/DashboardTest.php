@@ -238,11 +238,21 @@ class DashboardTest extends TestCase
             'total_cost' => 0,
         ]);
 
+        $part = SparePart::create([
+            'name' => 'Brake Pad OEM',
+            'slug' => 'brake-pad-oem',
+            'part_number' => 'BP-OEM-01',
+            'brand' => 'Brembo',
+            'category' => SparePartCategory::Brake,
+            'price' => 500000,
+            'stock_quantity' => 10,
+            'is_available' => true,
+        ]);
+
         $response = $this->actingAs($this->mekanik)->post(route('services.add-item', $service), [
             'item_type' => ServiceItemType::Part->value,
-            'name' => 'Brake Pad OEM',
+            'spare_part_id' => $part->id,
             'quantity' => 2,
-            'unit_price' => 500000,
         ]);
 
         $response->assertRedirect();

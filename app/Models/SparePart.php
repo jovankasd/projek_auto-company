@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class SparePart extends Model
@@ -35,6 +36,13 @@ class SparePart extends Model
             'is_featured' => 'boolean',
             'category' => SparePartCategory::class,
         ];
+    }
+
+    // --- Relasi ---
+
+    public function serviceItems(): HasMany
+    {
+        return $this->hasMany(ServiceItem::class);
     }
 
     // --- Scopes ---

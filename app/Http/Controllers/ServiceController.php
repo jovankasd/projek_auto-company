@@ -8,8 +8,9 @@ use App\Enums\UserRole;
 use App\Models\Service;
 use App\Models\ServiceItem;
 use App\Models\ServiceStatusLog;
+use App\Models\SparePart;
 use App\Models\User;
-use App\Services\ServiceCostCalculator;
+use App\Services\ServiceInventoryManager;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -51,8 +52,9 @@ class ServiceController extends Controller
         $this->authorize('view', $service);
 
         $service->load(['customer', 'mechanic', 'items.addedBy', 'statusLogs.changedBy']);
+        $spareParts = SparePart::available()->ordered()->get();
 
-        return view('dashboard.services.show', compact('service'));
+        return view('dashboard.services.show', compact('service', 'spareParts'));
     }
 
     /**
@@ -141,35 +143,47 @@ class ServiceController extends Controller
     /**
      * Tambah item suku cadang / jasa pada Work Order servis.
      */
-    public function addItem(Request $request, Service $service, ServiceCostCalculator $calculator): JsonResponse|RedirectResponse
+    public function addItem(Request $request, Service $service, ServiceInventoryManager $inventoryManager): JsonResponse|RedirectResponse
     {
         $this->authorize('addItem', $service);
 
-        $validated = $request->validate([
+        if ($service->status->isTerminal()) {
+            $msg = 'Tidak dapat menambahkan item pada tiket servis yang telah selesai atau dibatalkan.';
+            if ($request->wantsJson()) {
+                return response()->json(['message' => $msg], 422);
+            }
+
+            return back()->with('error', $msg);
+        }
+
+        $isPart = $request->input('item_type') === ServiceItemType::Part->value || $request->filled('spare_part_id');
+
+        $rules = [
             'item_type' => ['required', Rule::enum(ServiceItemType::class)],
-            'name' => ['required', 'string', 'max:255'],
+            'spare_part_id' => ['nullable', 'integer', 'exists:spare_parts,id'],
             'part_number' => ['nullable', 'string', 'max:100'],
-            'quantity' => ['required', 'numeric', 'min:0.01'],
-            'unit_price' => ['required', 'numeric', 'min:0'],
-        ], [
+        ];
+
+        if ($isPart) {
+            $rules['quantity'] = ['required', 'integer', 'min:1'];
+            if (! $request->filled('spare_part_id') && ! $request->filled('part_number')) {
+                $rules['spare_part_id'] = ['required', 'integer', 'exists:spare_parts,id'];
+            }
+        } else {
+            $rules['name'] = ['required', 'string', 'max:255'];
+            $rules['quantity'] = ['required', 'numeric', 'min:0.01'];
+            $rules['unit_price'] = ['required', 'numeric', 'min:0'];
+        }
+
+        $validated = $request->validate($rules, [
+            'spare_part_id.required' => 'Pilih suku cadang resmi dari katalog inventaris.',
             'name.required' => 'Nama item atau pekerjaan wajib diisi.',
             'quantity.required' => 'Jumlah kuantitas wajib diisi.',
+            'quantity.min' => 'Jumlah kuantitas minimal 1 untuk suku cadang.',
             'unit_price.required' => 'Harga satuan wajib diisi.',
         ]);
 
-        $subtotal = $calculator->calculateSubtotal((float) $validated['quantity'], (float) $validated['unit_price']);
-
-        $item = $service->items()->create([
-            'item_type' => $validated['item_type'],
-            'name' => $validated['name'],
-            'part_number' => $validated['part_number'] ?? null,
-            'quantity' => $validated['quantity'],
-            'unit_price' => $validated['unit_price'],
-            'subtotal' => $subtotal,
-            'added_by' => auth()->id(),
-        ]);
-
-        $calculator->recalculate($service);
+        $item = $inventoryManager->addItem($service, $validated, (int) auth()->id());
 
         $message = 'Item berhasil ditambahkan ke work order.';
 
@@ -188,7 +202,7 @@ class ServiceController extends Controller
     /**
      * Hapus item dari work order servis.
      */
-    public function removeItem(Service $service, ServiceItem $item, ServiceCostCalculator $calculator): JsonResponse|RedirectResponse
+    public function removeItem(Request $request, Service $service, ServiceItem $item, ServiceInventoryManager $inventoryManager): JsonResponse|RedirectResponse
     {
         $this->authorize('removeItem', $service);
 
@@ -196,12 +210,20 @@ class ServiceController extends Controller
             abort(404, 'Item tidak ditemukan pada servis ini.');
         }
 
-        $item->delete();
-        $calculator->recalculate($service);
+        if ($service->status->isTerminal()) {
+            $msg = 'Item pada servis berstatus selesai atau dibatalkan tidak dapat dihapus.';
+            if ($request->wantsJson()) {
+                return response()->json(['message' => $msg], 422);
+            }
+
+            return back()->with('error', $msg);
+        }
+
+        $inventoryManager->removeItem($service, $item);
 
         $message = 'Item berhasil dihapus dari work order.';
 
-        if (request()->wantsJson()) {
+        if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
                 'message' => $message,

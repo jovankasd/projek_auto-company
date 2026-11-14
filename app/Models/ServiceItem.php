@@ -12,13 +12,14 @@ class ServiceItem extends Model
     use HasFactory;
 
     protected $fillable = [
-        'service_id', 'item_type', 'name', 'part_number',
+        'service_id', 'spare_part_id', 'item_type', 'name', 'part_number',
         'quantity', 'unit_price', 'subtotal', 'added_by',
     ];
 
     protected function casts(): array
     {
         return [
+            'spare_part_id' => 'integer',
             'quantity' => 'decimal:2',
             'unit_price' => 'decimal:2',
             'subtotal' => 'decimal:2',
@@ -31,6 +32,11 @@ class ServiceItem extends Model
     public function service(): BelongsTo
     {
         return $this->belongsTo(Service::class);
+    }
+
+    public function sparePart(): BelongsTo
+    {
+        return $this->belongsTo(SparePart::class);
     }
 
     public function addedBy(): BelongsTo

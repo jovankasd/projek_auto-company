@@ -333,9 +333,7 @@
                 <form :action="'/dashboard/services/' + targetServiceId + '/items'" method="POST" class="mt-5 space-y-4">
                     @csrf
                     <input type="hidden" name="item_type" value="part">
-                    <input type="hidden" name="name" :value="selectedPart.name">
-                    <input type="hidden" name="part_number" :value="selectedPart.part_number">
-                    <input type="hidden" name="unit_price" :value="selectedPart.price">
+                    <input type="hidden" name="spare_part_id" :value="selectedPart.id">
 
                     <!-- Info Komponen -->
                     <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-200/80 flex items-center gap-3">
@@ -416,24 +414,37 @@
                 <button @click="itemModalOpen = false" class="p-2 text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
             </div>
 
-            <form :action="selectedService ? '/dashboard/services/' + selectedService.id + '/items' : '#'" method="POST" class="mt-6 space-y-4">
+            <form :action="selectedService ? '/dashboard/services/' + selectedService.id + '/items' : '#'" method="POST" class="mt-6 space-y-4" x-data="{ itemType: 'labor' }">
                 @csrf
                 <div>
                     <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Tipe Item</label>
-                    <select name="item_type" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none">
-                        <option value="part">Suku Cadang / Onderdil (Part)</option>
+                    <select name="item_type" x-model="itemType" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none">
                         <option value="labor" selected>Jasa Pengerjaan Mekanik (Labor)</option>
+                        <option value="part">Suku Cadang / Onderdil dari Katalog (Part)</option>
                         <option value="consumable">Bahan Habis Pakai / Pelumas (Consumable)</option>
                     </select>
                 </div>
 
-                <div>
+                <div x-show="itemType === 'part'" class="space-y-1">
+                    <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Pilih Suku Cadang Resmi (SKU)</label>
+                    <select name="spare_part_id" :required="itemType === 'part'" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none font-mono">
+                        <option value="">-- Pilih Suku Cadang dari Gudang --</option>
+                        @foreach($spareParts as $sp)
+                            <option value="{{ $sp->id }}" {{ $sp->stock_quantity <= 0 ? 'disabled' : '' }}>
+                                [{{ $sp->part_number }}] {{ $sp->brand }} - {{ $sp->name }} (Stok: {{ $sp->stock_quantity }} | {{ $sp->price_formatted }})
+                            </option>
+                        @endforeach
+                    </select>
+                    <p class="text-[11px] text-slate-400">Harga resmi dan stok diambil langsung dari server.</p>
+                </div>
+
+                <div x-show="itemType !== 'part'">
                     <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Deskripsi Item / Jasa</label>
-                    <input type="text" name="name" required placeholder="Contoh: Jasa Tune Up Mesin / Penggantian Kampas Rem" 
+                    <input type="text" name="name" :required="itemType !== 'part'" placeholder="Contoh: Jasa Tune Up Mesin / Ganti Oli" 
                            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none">
                 </div>
 
-                <div>
+                <div x-show="itemType !== 'part'">
                     <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Nomor Part / Ref (Opsional)</label>
                     <input type="text" name="part_number" placeholder="Contoh: REF-SRV-01" 
                            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none font-mono">
@@ -442,12 +453,12 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Jumlah (Qty)</label>
-                        <input type="number" step="0.01" min="0.01" name="quantity" value="1" required 
+                        <input type="number" step="1" min="1" name="quantity" value="1" required 
                                class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none font-mono">
                     </div>
-                    <div>
+                    <div x-show="itemType !== 'part'">
                         <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Biaya Satuan (Rp)</label>
-                        <input type="number" step="1000" min="0" name="unit_price" required placeholder="0" 
+                        <input type="number" step="1000" min="0" name="unit_price" :required="itemType !== 'part'" placeholder="0" 
                                class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none font-mono">
                     </div>
                 </div>
