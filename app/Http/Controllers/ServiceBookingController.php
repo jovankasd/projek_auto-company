@@ -48,16 +48,20 @@ class ServiceBookingController extends Controller
             ? (int) $validated['slot_hour']
             : (int) $serviceDateTime->hour;
 
-        if ($slotHour < 8 || $slotHour > 17) {
-            $slotHour = 9; // Jam operasional default 09:00
+        $openHour = $this->slotValidator->getOpenHour();
+        $closeHour = $this->slotValidator->getCloseHour();
+        $maxPerSlot = $this->slotValidator->getMaxPerSlot();
+
+        if ($slotHour < $openHour || $slotHour > $closeHour) {
+            $slotHour = $openHour;
         }
 
         $cleanPlate = strtoupper(preg_replace('/\s+/', ' ', trim($validated['vehicle_plate_number'])));
 
-        // 2. Booking slot quota validation (maks 3 / jam)
+        // 2. Booking slot quota validation
         if (! $this->slotValidator->isSlotAvailable($serviceDateTime->toDateString(), $slotHour)) {
             throw ValidationException::withMessages([
-                'service_date' => 'Kuota servis untuk slot jam '.sprintf('%02d:00', $slotHour).' sudah penuh (maksimal 3 kendaraan). Silakan pilih jam lain.',
+                'service_date' => 'Kuota servis untuk slot jam '.sprintf('%02d:00', $slotHour).' sudah penuh (maksimal '.$maxPerSlot.' kendaraan). Silakan pilih jam lain.',
             ]);
         }
 

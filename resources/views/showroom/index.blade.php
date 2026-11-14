@@ -5,20 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ $cars->first()->meta_title ?? 'Dealer Pro : Showroom Mobil Premium & Booking Servis' }}</title>
-    <meta name="description" content="{{ $cars->first()->meta_description ?? 'Jelajahi koleksi mobil mewah dan sport terbaik dengan pengalaman visual 2.5D di Dealer Pro. Layanan booking servis dan test drive resmi.' }}">
+    <title>{{ \App\Models\Setting::get('seo.site_name', 'Dealer Pro') }} — {{ \App\Models\Setting::get('seo.tagline', 'Showroom Mobil Premium & Booking Servis') }}</title>
+    <meta name="description" content="Jelajahi koleksi mobil mewah dan sport terbaik dengan pengalaman visual 2.5D di {{ \App\Models\Setting::get('seo.site_name', 'Dealer Pro') }}. Layanan booking servis dan test drive resmi.">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url()->current() }}">
-    <meta property="og:title" content="Dealer Pro : Showroom Mobil Premium & Booking Servis">
-    <meta property="og:description" content="Showroom mobil premium masa depan dengan pengalaman 2.5D. Jadwalkan test drive dan servis kendaraan Anda dengan mudah.">
+    <meta property="og:title" content="{{ \App\Models\Setting::get('seo.site_name', 'Dealer Pro') }} : {{ \App\Models\Setting::get('seo.tagline', 'Showroom Mobil Premium & Booking Servis') }}">
+    <meta property="og:description" content="Showroom mobil premium masa depan dengan pengalaman 2.5D di {{ \App\Models\Setting::get('seo.site_name', 'Dealer Pro') }}. Jadwalkan test drive dan servis kendaraan Anda dengan mudah.">
     <meta property="og:image" content="{{ asset('images/cars/ford-mustang-gt-2024.webp') }}">
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Dealer Pro : Showroom Mobil Premium">
-    <meta name="twitter:description" content="Showroom mobil premium masa depan dengan pengalaman 2.5D. Jadwalkan test drive dan servis resmi.">
+    <meta name="twitter:title" content="{{ \App\Models\Setting::get('seo.site_name', 'Dealer Pro') }} : {{ \App\Models\Setting::get('seo.tagline', 'Showroom Mobil Premium') }}">
+    <meta name="twitter:description" content="Showroom mobil premium masa depan dengan pengalaman 2.5D di {{ \App\Models\Setting::get('seo.site_name', 'Dealer Pro') }}. Jadwalkan test drive dan servis resmi.">
     <meta name="twitter:image" content="{{ asset('images/cars/ford-mustang-gt-2024.webp') }}">
 
     <!-- Schema.org JSON-LD (AutoDealer) -->
@@ -26,13 +26,14 @@
     {
         "@context": "https://schema.org",
         "@type": "AutoDealer",
-        "name": "Dealer Pro",
+        "name": "{{ \App\Models\Setting::get('seo.site_name', 'Dealer Pro') }}",
         "description": "Showroom mobil premium dan pusat servis kendaraan modern di Indonesia.",
         "url": "{{ url('/') }}",
-        "telephone": "+62-21-555-0199",
+        "telephone": "{{ \App\Models\Setting::get('contact.whatsapp', '6281234567890') }}",
+        "email": "{{ \App\Models\Setting::get('contact.email', 'info@xyzmotors.id') }}",
         "address": {
             "@type": "PostalAddress",
-            "streetAddress": "Jl. Sudirman No. 88",
+            "streetAddress": "{{ \App\Models\Setting::get('contact.address', 'Jl. Sudirman No. 88, Jakarta Selatan 12190') }}",
             "addressLocality": "Jakarta Selatan",
             "addressRegion": "DKI Jakarta",
             "postalCode": "12190",
@@ -42,8 +43,8 @@
             {
                 "@type": "OpeningHoursSpecification",
                 "dayOfWeek": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-                "opens": "08:00",
-                "closes": "18:00"
+                "opens": "{{ sprintf('%02d:00', (int) \App\Models\Setting::get('booking.open_hour', 8)) }}",
+                "closes": "{{ sprintf('%02d:00', (int) \App\Models\Setting::get('booking.close_hour', 17)) }}"
             }
         ]
     }
@@ -71,14 +72,14 @@
             <!-- Brand Identity -->
             <a href="{{ route('home') }}" class="flex items-center gap-3 group focus-visible:ring-2 focus-visible:ring-black rounded-sm py-1">
                 <span class="h-9 flex items-center justify-center overflow-hidden">
-                    <img src="{{ asset('images/logo.jpg') }}" alt="Dealer Pro" class="h-full w-auto object-contain">
+                    <img src="{{ asset('images/logo.jpg') }}" alt="{{ \App\Models\Setting::get('seo.site_name', 'Dealer Pro') }}" class="h-full w-auto object-contain">
                 </span>
                 <div class="flex flex-col">
                     <span class="font-extrabold text-base sm:text-lg tracking-tight text-slate-900 uppercase leading-none">
-                        Dealer Pro
+                        {{ \App\Models\Setting::get('seo.site_name', 'Dealer Pro') }}
                     </span>
                     <span class="font-mono text-[10px] tracking-widest text-slate-500 uppercase mt-0.5">
-                        XYZ Motors Indonesia
+                        {{ \App\Models\Setting::get('seo.tagline', 'XYZ Motors Indonesia') }}
                     </span>
                 </div>
             </a>
@@ -376,15 +377,15 @@
                     <dl class="border-t border-b border-slate-300 divide-y divide-slate-200 text-sm">
                         <div class="py-3.5 flex items-baseline justify-between gap-4">
                             <dt class="text-xs font-semibold uppercase tracking-wider text-slate-500">Lokasi Showroom &amp; Workshop</dt>
-                            <dd class="font-semibold text-slate-900 text-right">Jl. Sudirman No. 88, Jakarta Selatan</dd>
+                            <dd class="font-semibold text-slate-900 text-right">{{ \App\Models\Setting::get('contact.address', 'Jl. Sudirman No. 88, Jakarta Selatan') }}</dd>
                         </div>
                         <div class="py-3.5 flex items-baseline justify-between gap-4">
                             <dt class="text-xs font-semibold uppercase tracking-wider text-slate-500">Jam Operasional Resmi</dt>
-                            <dd class="font-mono font-bold text-slate-900 text-right tabular-nums">Senin - Sabtu / 08:00 - 18:00 WIB</dd>
+                            <dd class="font-mono font-bold text-slate-900 text-right tabular-nums">Senin - Sabtu / {{ sprintf('%02d:00', (int) \App\Models\Setting::get('booking.open_hour', 8)) }} - {{ sprintf('%02d:00', (int) \App\Models\Setting::get('booking.close_hour', 17)) }} WIB</dd>
                         </div>
                         <div class="py-3.5 flex items-baseline justify-between gap-4">
                             <dt class="text-xs font-semibold uppercase tracking-wider text-slate-500">Kapasitas Stall Bengkel</dt>
-                            <dd class="font-mono font-bold text-slate-900 text-right tabular-nums">Maks. 3 Unit / Slot Jam</dd>
+                            <dd class="font-mono font-bold text-slate-900 text-right tabular-nums">Maks. {{ \App\Models\Setting::get('booking.max_per_slot', 3) }} Unit / Slot Jam</dd>
                         </div>
                         <div class="py-3.5 flex items-baseline justify-between gap-4">
                             <dt class="text-xs font-semibold uppercase tracking-wider text-slate-500">Inventaris Katalog Aktif</dt>
@@ -436,7 +437,7 @@
                         <div class="sm:col-span-6 space-y-2">
                             <h3 class="text-lg font-extrabold text-slate-900 tracking-tight">Perawatan Berkala &amp; Kuota Presisi</h3>
                             <p class="text-sm text-slate-600 leading-relaxed">
-                                Sistem penjadwalan bengkel membatasi maksimal 3 kendaraan per jam (08:00 - 17:00 WIB) agar pengerjaan mekanik berjalan tanpa antrean. Setiap reservasi menerbitkan tiket kerja resmi <code class="font-mono text-xs bg-slate-100 px-1.5 py-0.5 border border-slate-200 text-slate-800">SRV-YYYYMMDD-XXXX</code>.
+                                Sistem penjadwalan bengkel membatasi maksimal {{ \App\Models\Setting::get('booking.max_per_slot', 3) }} kendaraan per jam ({{ sprintf('%02d:00', (int) \App\Models\Setting::get('booking.open_hour', 8)) }} - {{ sprintf('%02d:00', (int) \App\Models\Setting::get('booking.close_hour', 17)) }} WIB) agar pengerjaan mekanik berjalan tanpa antrean. Setiap reservasi menerbitkan tiket kerja resmi <code class="font-mono text-xs bg-slate-100 px-1.5 py-0.5 border border-slate-200 text-slate-800">SRV-YYYYMMDD-XXXX</code>.
                             </p>
                         </div>
                         <div class="sm:col-span-3 sm:text-right pt-1">
@@ -975,16 +976,17 @@
             <div class="grid grid-cols-1 md:grid-cols-12 gap-10 pb-12 border-b border-slate-300">
                 <div class="md:col-span-5 space-y-3">
                     <div class="flex items-center gap-3">
-                        <img src="{{ asset('images/logo.jpg') }}" alt="Dealer Pro" class="h-8 w-auto object-contain">
-                        <span class="font-extrabold text-lg tracking-tight text-slate-900 uppercase">Dealer Pro</span>
+                        <img src="{{ asset('images/logo.jpg') }}" alt="{{ \App\Models\Setting::get('seo.site_name', 'Dealer Pro') }}" class="h-8 w-auto object-contain">
+                        <span class="font-extrabold text-lg tracking-tight text-slate-900 uppercase">{{ \App\Models\Setting::get('seo.site_name', 'Dealer Pro') }}</span>
                     </div>
                     <p class="text-xs sm:text-sm text-slate-600 max-w-sm leading-relaxed">
                         Showroom kendaraan premium, layanan bengkel resmi dengan pelacakan tiket pengerjaan secara langsung, serta pusat penyedia suku cadang orisinal.
                     </p>
                     <dl class="text-xs text-slate-600 space-y-1 pt-2 font-mono">
-                        <div><dt class="inline font-sans font-bold text-slate-900">Alamat:</dt> <dd class="inline font-sans">Jl. Sudirman No. 88, Jakarta Selatan 12190</dd></div>
-                        <div><dt class="inline font-sans font-bold text-slate-900">Telepon:</dt> <dd class="inline tabular-nums">+62-21-555-0199</dd></div>
-                        <div><dt class="inline font-sans font-bold text-slate-900">Operasional:</dt> <dd class="inline tabular-nums">Senin - Sabtu / 08:00 - 18:00 WIB</dd></div>
+                        <div><dt class="inline font-sans font-bold text-slate-900">Alamat:</dt> <dd class="inline font-sans">{{ \App\Models\Setting::get('contact.address', 'Jl. Sudirman No. 88, Jakarta Selatan 12190') }}</dd></div>
+                        <div><dt class="inline font-sans font-bold text-slate-900">WhatsApp / Kontak:</dt> <dd class="inline tabular-nums"><a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', (string) \App\Models\Setting::get('contact.whatsapp', '6281234567890')) }}" target="_blank" rel="noopener noreferrer" class="hover:underline hover:text-blue-600">+{{ \App\Models\Setting::get('contact.whatsapp', '6281234567890') }}</a></dd></div>
+                        <div><dt class="inline font-sans font-bold text-slate-900">Email:</dt> <dd class="inline"><a href="mailto:{{ \App\Models\Setting::get('contact.email', 'info@xyzmotors.id') }}" class="hover:underline hover:text-blue-600">{{ \App\Models\Setting::get('contact.email', 'info@xyzmotors.id') }}</a></dd></div>
+                        <div><dt class="inline font-sans font-bold text-slate-900">Operasional:</dt> <dd class="inline tabular-nums">Senin - Sabtu / {{ sprintf('%02d:00', (int) \App\Models\Setting::get('booking.open_hour', 8)) }} - {{ sprintf('%02d:00', (int) \App\Models\Setting::get('booking.close_hour', 17)) }} WIB</dd></div>
                     </dl>
                 </div>
 
@@ -1312,18 +1314,38 @@
                     </div>
                 </div>
 
-                <!-- Tanggal & Jam Servis -->
-                <div class="space-y-1.5">
-                    <label for="srv_date" class="block text-sm font-medium text-slate-700">Tanggal & Jam Kedatangan <span class="text-red-500">*</span></label>
-                    <input type="datetime-local"
-                           id="srv_date"
-                           name="service_date"
-                           x-model="serviceForm.service_date"
-                           :min="minDate"
-                           required
-                           class="w-full px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 focus:ring-2 focus:ring-black focus:border-black text-sm transition">
-                    <p class="text-[11px] text-slate-400">Jam operasional: 08:00 - 17:00 WIB (Maks 3 kendaraan per slot jam).</p>
+                <!-- Tanggal & Slot Jam Servis -->
+                @php
+                    $bookingOpenHour = (int) \App\Models\Setting::get('booking.open_hour', 8);
+                    $bookingCloseHour = (int) \App\Models\Setting::get('booking.close_hour', 17);
+                    $bookingMaxPerSlot = (int) \App\Models\Setting::get('booking.max_per_slot', 3);
+                @endphp
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="space-y-1.5">
+                        <label for="srv_date" class="block text-sm font-medium text-slate-700">Tanggal Kedatangan <span class="text-red-500">*</span></label>
+                        <input type="date"
+                               id="srv_date"
+                               name="service_date"
+                               x-model="serviceForm.service_date"
+                               :min="minDate ? minDate.slice(0, 10) : ''"
+                               required
+                               class="w-full px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 focus:ring-2 focus:ring-black focus:border-black text-sm transition">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label for="srv_slot_hour" class="block text-sm font-medium text-slate-700">Slot Jam Kedatangan <span class="text-red-500">*</span></label>
+                        <select id="srv_slot_hour"
+                                name="slot_hour"
+                                x-model="serviceForm.slot_hour"
+                                required
+                                class="w-full px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 focus:ring-2 focus:ring-black focus:border-black text-sm transition">
+                            <option value="">Pilih Slot Jam</option>
+                            @foreach(range($bookingOpenHour, $bookingCloseHour) as $h)
+                                <option value="{{ $h }}">{{ sprintf('%02d:00', $h) }} WIB</option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
+                <p class="text-[11px] text-slate-400">Jam operasional: {{ sprintf('%02d:00', $bookingOpenHour) }} - {{ sprintf('%02d:00', $bookingCloseHour) }} WIB (Maks. {{ $bookingMaxPerSlot }} kendaraan per slot jam).</p>
 
                 <!-- Keluhan Kendaraan -->
                 <div class="space-y-1.5">
@@ -1386,6 +1408,7 @@
                     odometer_km: '',
                     service_type: 'regular',
                     service_date: '',
+                    slot_hour: '',
                     complaint_notes: ''
                 },
 

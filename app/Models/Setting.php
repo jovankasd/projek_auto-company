@@ -9,6 +9,20 @@ class Setting extends Model
 {
     protected $fillable = ['group', 'key', 'value', 'type'];
 
+    /**
+     * Nilai default aman bila database belum memiliki record untuk key tertentu.
+     */
+    public const DEFAULTS = [
+        'booking.open_hour' => 8,
+        'booking.close_hour' => 17,
+        'booking.max_per_slot' => 3,
+        'contact.whatsapp' => '6281234567890',
+        'contact.email' => 'info@xyzmotors.id',
+        'contact.address' => 'Jl. Sudirman No. 88, Jakarta Selatan 12190',
+        'seo.site_name' => 'Dealer Pro',
+        'seo.tagline' => 'Drive Your Dream',
+    ];
+
     protected static function booted(): void
     {
         static::saved(function (Setting $setting) {
@@ -24,11 +38,13 @@ class Setting extends Model
 
     public static function get(string $key, mixed $default = null): mixed
     {
-        return Cache::rememberForever("setting.{$key}", function () use ($key, $default) {
+        $resolvedDefault = $default ?? self::DEFAULTS[$key] ?? null;
+
+        return Cache::rememberForever("setting.{$key}", function () use ($key, $resolvedDefault) {
             $setting = static::where('key', $key)->first();
 
-            if (! $setting) {
-                return $default;
+            if (! $setting || $setting->value === null) {
+                return $resolvedDefault;
             }
 
             return match ($setting->type) {
