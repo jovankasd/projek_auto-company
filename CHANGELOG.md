@@ -18,6 +18,15 @@ Semua perubahan besar, fitur baru, perbaikan, dan pembaruan arsitektural pada pl
   - Penambahan method `User::revokeAccess()` untuk mengosongkan `remember_token` dan membersihkan baris sesi aktif di database saat akun dinonaktifkan, dihapus, atau kata sandi diubah.
   - Proteksi mandiri Super Admin dari deaktivasi akun diri sendiri atau demosi peran di `UserController`.
   - Penambahan 18 feature test komprehensif di `ActiveAccountEnforcementTest.php` (278 assertions).
+- **17. Lengkapi SEO, Halaman Kepercayaan, dan Dokumentasi** ([PR #17](https://github.com/jovankasd/projek_auto-company/pull/17)):
+  - Pembuatan sitemap XML dinamis (`/sitemap.xml`) via `SitemapController` yang hanya mengindeks URL publik nyata (Beranda, Detail Mobil, Kontak, Kebijakan Privasi, Syarat & Ketentuan) tanpa menyertakan area privat.
+  - Pengamanan berkas `public/robots.txt` dengan pembatasan area privat (`/dashboard/`, `/login`, `/register`, `/password/`, `/profile`, `/storage/licenses/`, `/storage/private/`).
+  - Penambahan `<meta name="robots" content="noindex, nofollow">` pada seluruh layout Blade terotentikasi (`guest.blade.php`, `dashboard.blade.php`, `app.blade.php`).
+  - Pembuatan halaman Kebijakan Privasi (`/privacy-policy`) dan Syarat & Ketentuan (`/terms-of-service`) resmi dengan transparansi data booking servis, verifikasi foto SIM, dan penandaan parameter legal `[PERLU PENGESAHAN PEMILIK: ...]`.
+  - Penambahan tag `<link rel="canonical" href="...">` konsisten pada seluruh halaman publik showroom, detail mobil, kontak, dan halaman legal.
+  - Pembaruan copy empty state showroom agar jujur dan menghilangkan klaim seolah sistem melakukan auto-healing data secara otomatis.
+  - Penambahan ADR-006 (`docs/decisions/0006-seo-trust-pages-and-honest-documentation.md`) dan pembaruan `README.md`.
+  - Penambahan 6 skenario feature test di `tests/Feature/SeoAndTrustPagesTest.php` (94 assertions).
 
 ---
 
