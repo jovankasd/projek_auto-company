@@ -5,6 +5,7 @@ namespace App\Listeners;
 use App\Enums\TestDriveStatus;
 use App\Events\TestDriveStatusChanged;
 use App\Notifications\TestDriveApproved;
+use App\Notifications\TestDriveCancelled;
 use App\Notifications\TestDriveCompleted;
 use App\Notifications\TestDriveRejected;
 use App\Notifications\TestDriveRequested;
@@ -55,11 +56,17 @@ class SendTestDriveStatusNotification implements ShouldQueue
                     if ($customer) {
                         $customer->notify(new TestDriveCompleted($testDrive));
                     }
+                    if ($sales) {
+                        $sales->notify(new TestDriveCompleted($testDrive));
+                    }
                     break;
 
                 case TestDriveStatus::Cancelled:
+                    if ($customer) {
+                        $customer->notify(new TestDriveCancelled($testDrive));
+                    }
                     if ($sales) {
-                        $sales->notify(new TestDriveRejected($testDrive));
+                        $sales->notify(new TestDriveCancelled($testDrive));
                     }
                     break;
             }

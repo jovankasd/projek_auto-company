@@ -216,6 +216,11 @@
                             <span class="font-semibold text-slate-900">Sales Pendamping:</span> {{ $upcomingTestDrive->sales->name }} ({{ $upcomingTestDrive->sales->phone_number }})
                         </p>
                     @endif
+                    <div class="pt-2">
+                        <a href="{{ route('test-drives.show', $upcomingTestDrive) }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition">
+                            Lihat Rincian &rarr;
+                        </a>
+                    </div>
                 </div>
             </div>
         @else

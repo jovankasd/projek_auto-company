@@ -31,4 +31,41 @@ enum TestDriveStatus: string
             self::Cancelled => 'bg-red-100 text-red-700 border-red-200',
         };
     }
+
+    /**
+     * Transisi status yang valid dari status ini sesuai PRD §5.2.
+     *
+     * @return array<TestDriveStatus>
+     */
+    public function allowedTransitions(): array
+    {
+        return match ($this) {
+            self::Requested => [self::Approved, self::Rejected, self::Cancelled],
+            self::Approved => [self::Completed, self::Cancelled],
+            self::Completed => [],
+            self::Rejected => [],
+            self::Cancelled => [],
+        };
+    }
+
+    public function canTransitionTo(self $next): bool
+    {
+        return in_array($next, $this->allowedTransitions(), true);
+    }
+
+    public function isTerminal(): bool
+    {
+        return match ($this) {
+            self::Completed, self::Rejected, self::Cancelled => true,
+            default => false,
+        };
+    }
+
+    public function canBeCancelled(): bool
+    {
+        return match ($this) {
+            self::Requested, self::Approved => true,
+            default => false,
+        };
+    }
 }

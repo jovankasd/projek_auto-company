@@ -52,6 +52,26 @@ class TestDrive extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::updating(function (TestDrive $testDrive) {
+            $originalStatus = $testDrive->getOriginal('status');
+            $origEnum = $originalStatus instanceof TestDriveStatus
+                ? $originalStatus
+                : ($originalStatus !== null ? TestDriveStatus::tryFrom((string) $originalStatus) : null);
+
+            if ($origEnum && $origEnum->isTerminal()) {
+                if ($testDrive->isDirty('status') && $testDrive->status !== $origEnum) {
+                    throw new \DomainException("Status test drive terminal ({$origEnum->label()}) tidak dapat diubah lagi.");
+                }
+            }
+
+            if ($origEnum && $testDrive->isDirty('status') && ! $origEnum->canTransitionTo($testDrive->status)) {
+                throw new \DomainException("Transisi status test drive dari {$origEnum->label()} ke {$testDrive->status->label()} tidak diizinkan.");
+            }
+        });
+    }
+
     // --- Scopes ---
 
     public function scopeForSales(Builder $query, int $salesId): Builder

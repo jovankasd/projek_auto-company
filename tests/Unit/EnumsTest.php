@@ -44,3 +44,32 @@ test('ServiceStatus state machine strictly enforces valid transitions', function
     expect(ServiceStatus::Completed->canTransitionTo(ServiceStatus::Pending))->toBeFalse();
     expect(ServiceStatus::Cancelled->canTransitionTo(ServiceStatus::Confirmed))->toBeFalse();
 });
+
+test('TestDriveStatus state machine strictly enforces valid transitions', function () {
+    // Requested transitions
+    expect(TestDriveStatus::Requested->canTransitionTo(TestDriveStatus::Approved))->toBeTrue();
+    expect(TestDriveStatus::Requested->canTransitionTo(TestDriveStatus::Rejected))->toBeTrue();
+    expect(TestDriveStatus::Requested->canTransitionTo(TestDriveStatus::Cancelled))->toBeTrue();
+    expect(TestDriveStatus::Requested->canTransitionTo(TestDriveStatus::Completed))->toBeFalse();
+
+    // Approved transitions
+    expect(TestDriveStatus::Approved->canTransitionTo(TestDriveStatus::Completed))->toBeTrue();
+    expect(TestDriveStatus::Approved->canTransitionTo(TestDriveStatus::Cancelled))->toBeTrue();
+    expect(TestDriveStatus::Approved->canTransitionTo(TestDriveStatus::Requested))->toBeFalse();
+    expect(TestDriveStatus::Approved->canTransitionTo(TestDriveStatus::Rejected))->toBeFalse();
+
+    // Terminal states cannot transition
+    expect(TestDriveStatus::Completed->allowedTransitions())->toBeEmpty();
+    expect(TestDriveStatus::Rejected->allowedTransitions())->toBeEmpty();
+    expect(TestDriveStatus::Cancelled->allowedTransitions())->toBeEmpty();
+
+    expect(TestDriveStatus::Completed->isTerminal())->toBeTrue();
+    expect(TestDriveStatus::Rejected->isTerminal())->toBeTrue();
+    expect(TestDriveStatus::Cancelled->isTerminal())->toBeTrue();
+    expect(TestDriveStatus::Requested->isTerminal())->toBeFalse();
+    expect(TestDriveStatus::Approved->isTerminal())->toBeFalse();
+
+    expect(TestDriveStatus::Requested->canBeCancelled())->toBeTrue();
+    expect(TestDriveStatus::Approved->canBeCancelled())->toBeTrue();
+    expect(TestDriveStatus::Completed->canBeCancelled())->toBeFalse();
+});

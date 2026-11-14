@@ -1,5 +1,12 @@
 <x-dashboard-layout title="Test Drive Saya" breadcrumb="Test Drive">
-    <div class="space-y-8">
+    <div class="space-y-8" x-data="{
+        cancelModalOpen: false,
+        selectedTestDrive: null,
+        openCancel(td) {
+            this.selectedTestDrive = td;
+            this.cancelModalOpen = true;
+        }
+    }">
         <!-- Header -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -36,14 +43,17 @@
                                 <th class="py-3.5 px-6">Jadwal Uji Kemudi</th>
                                 <th class="py-3.5 px-6">Lokasi Penjemputan</th>
                                 <th class="py-3.5 px-6">Perwakilan Sales</th>
-                                <th class="py-3.5 px-6 text-right">Status</th>
+                                <th class="py-3.5 px-6">Status</th>
+                                <th class="py-3.5 px-6 text-right">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 text-sm">
                             @foreach($testDrives as $td)
                                 <tr class="hover:bg-slate-50/80 transition">
                                     <td class="py-4 px-6">
-                                        <p class="font-bold text-slate-900">{{ $td->car->brand }} {{ $td->car->model_name }}</p>
+                                        <a href="{{ route('test-drives.show', $td) }}" class="font-bold text-slate-900 hover:text-blue-600 transition block">
+                                            {{ $td->car->brand }} {{ $td->car->model_name }}
+                                        </a>
                                         <p class="text-xs text-slate-500 font-mono">{{ $td->car->year }} &bull; {{ $td->car->price_formatted }}</p>
                                     </td>
                                     <td class="py-4 px-6">
@@ -61,14 +71,24 @@
                                             <span class="text-xs text-slate-400 italic">Menunggu penetapan sales</span>
                                         @endif
                                     </td>
-                                    <td class="py-4 px-6 text-right">
+                                    <td class="py-4 px-6">
                                         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border {{ $td->status->color() }}">
                                             <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
                                             {{ $td->status->label() }}
                                         </span>
-                                        @if($td->status->value === 'rejected' && $td->rejection_reason)
+                                        @if(in_array($td->status->value, ['rejected', 'cancelled']) && $td->rejection_reason)
                                             <p class="text-[11px] text-red-600 mt-1 max-w-xs italic">{{ $td->rejection_reason }}</p>
                                         @endif
+                                    </td>
+                                    <td class="py-4 px-6 text-right space-x-2">
+                                        <a href="{{ route('test-drives.show', $td) }}" class="px-2.5 py-1.5 bg-slate-50 text-slate-700 border border-slate-200 rounded-lg text-xs font-semibold hover:bg-slate-100 transition inline-block">
+                                            Detail
+                                        </a>
+                                        @can('cancel', $td)
+                                            <button type="button" @click="openCancel({{ $td->toJson() }})" class="px-2.5 py-1.5 bg-red-50 text-red-600 border border-red-200 rounded-lg text-xs font-semibold hover:bg-red-100 transition inline-block">
+                                                Batalkan
+                                            </button>
+                                        @endcan
                                     </td>
                                 </tr>
                             @endforeach
@@ -81,7 +101,9 @@
                     @foreach($testDrives as $td)
                         <div class="p-5 space-y-2">
                             <div class="flex items-center justify-between">
-                                <span class="font-extrabold text-base text-slate-900">{{ $td->car->brand }} {{ $td->car->model_name }}</span>
+                                <a href="{{ route('test-drives.show', $td) }}" class="font-extrabold text-base text-slate-900 hover:underline">
+                                    {{ $td->car->brand }} {{ $td->car->model_name }}
+                                </a>
                                 <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider border {{ $td->status->color() }}">
                                     {{ $td->status->label() }}
                                 </span>
@@ -91,6 +113,19 @@
                             @if($td->sales)
                                 <p class="text-xs text-slate-600">Sales: <span class="font-bold">{{ $td->sales->name }}</span> ({{ $td->sales->phone_number }})</p>
                             @endif
+                            @if(in_array($td->status->value, ['rejected', 'cancelled']) && $td->rejection_reason)
+                                <p class="text-xs text-red-600 italic">{{ $td->rejection_reason }}</p>
+                            @endif
+                            <div class="pt-2 flex items-center gap-2">
+                                <a href="{{ route('test-drives.show', $td) }}" class="flex-1 py-2 bg-slate-50 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl text-center">
+                                    Lihat Rincian
+                                </a>
+                                @can('cancel', $td)
+                                    <button type="button" @click="openCancel({{ $td->toJson() }})" class="flex-1 py-2 bg-red-50 text-red-600 border border-red-200 text-xs font-bold rounded-xl text-center">
+                                        Batalkan
+                                    </button>
+                                @endcan
+                            </div>
                         </div>
                     @endforeach
                 </div>
@@ -99,6 +134,33 @@
                     {{ $testDrives->links() }}
                 </div>
             @endif
+        </div>
+
+        <!-- Cancel Modal -->
+        <div x-show="cancelModalOpen" x-cloak class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="cancelModalOpen = false"></div>
+            <div class="relative w-full max-w-md rounded-3xl bg-white border border-slate-200 shadow-2xl p-6 sm:p-8 overflow-hidden">
+                <h3 class="font-black text-lg text-slate-900">Batalkan Pengajuan Test Drive</h3>
+                <p class="text-xs text-slate-500 mt-1">Apakah Anda yakin ingin membatalkan jadwal test drive ini?</p>
+
+                <form :action="selectedTestDrive ? '/dashboard/test-drives/' + selectedTestDrive.id + '/cancel' : '#'" method="POST" class="mt-4 space-y-4">
+                    @csrf
+                    @method('PATCH')
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Alasan Pembatalan (Opsional)</label>
+                        <textarea name="cancellation_reason" rows="3" placeholder="Contoh: Ada keperluan mendadak..."
+                                  class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none"></textarea>
+                    </div>
+                    <div class="flex items-center justify-end gap-3 pt-2">
+                        <button type="button" @click="cancelModalOpen = false" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100">
+                            Kembali
+                        </button>
+                        <button type="submit" class="px-4 py-2 rounded-xl text-xs font-bold bg-red-600 text-white hover:bg-red-700">
+                            Konfirmasi Pembatalan
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </x-dashboard-layout>
