@@ -73,8 +73,8 @@ test('showroom page renders successfully with available cars and full website ca
     $response->assertSee('Katalog Suku Cadang');
     $response->assertSee('Brake Pad Set');
     $response->assertSee('Standar Pengerjaan Bengkel Resmi Dealer Pro');
-    $response->assertDontSee('Daftar Akun');
-    $response->assertDontSee('Masuk ke Portal Pelanggan');
+    $response->assertSee(route('login'));
+    $response->assertSee(route('register'));
 });
 
 test('guest submitting test drive redirects to login with session retention', function () {

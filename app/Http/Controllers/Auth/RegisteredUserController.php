@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Auth\Events\Registered;
@@ -40,11 +41,25 @@ class RegisteredUserController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'role' => UserRole::Customer,
+            'is_active' => true,
         ]);
 
         event(new Registered($user));
 
         Auth::login($user);
+
+        if ($request->session()->has('pending_test_drive')) {
+            return redirect()->route('home')
+                ->with('open_modal', 'test_drive')
+                ->with('info', 'Pendaftaran akun berhasil! Data test drive Anda telah dipulihkan. Silakan periksa kembali dan klik konfirmasi untuk menyelesaikan pengajuan.');
+        }
+
+        if ($request->session()->has('pending_service_booking')) {
+            return redirect()->route('home')
+                ->with('open_modal', 'service_booking')
+                ->with('info', 'Pendaftaran akun berhasil! Data booking servis Anda telah dipulihkan. Silakan periksa kembali dan klik konfirmasi untuk menyelesaikan booking.');
+        }
 
         return redirect(route('dashboard', absolute: false));
     }

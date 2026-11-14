@@ -93,18 +93,18 @@
                 <a href="#promo" class="hover:text-slate-900 transition py-1">Program</a>
             </nav>
 
-            <!-- Direct Action Bar (Zero Guest Login/Register Buttons) -->
+            <!-- Direct Action Bar -->
             <div class="hidden lg:flex items-center gap-2.5">
-                <button type="button"
-                        @click="openServiceModal()"
-                        class="px-4 py-2.5 border border-slate-300 bg-white text-slate-900 hover:border-slate-900 text-xs font-bold uppercase tracking-wider transition">
+                <a href="{{ route('service-booking.create') }}"
+                   @click.prevent="openServiceModal()"
+                   class="px-4 py-2.5 border border-slate-300 bg-white text-slate-900 hover:border-slate-900 text-xs font-bold uppercase tracking-wider transition">
                     Booking Servis
-                </button>
-                <button type="button"
-                        @click="openTestDriveModal(null, '')"
-                        class="px-4 py-2.5 bg-slate-900 text-white hover:bg-blue-600 text-xs font-bold uppercase tracking-wider transition">
+                </a>
+                <a href="{{ route('test-drive.create') }}"
+                   @click.prevent="openTestDriveModal(null, '')"
+                   class="px-4 py-2.5 bg-slate-900 text-white hover:bg-blue-600 text-xs font-bold uppercase tracking-wider transition">
                     Test Drive
-                </button>
+                </a>
 
                 @auth
                     <span class="h-5 w-px bg-slate-200 mx-1" aria-hidden="true"></span>
@@ -118,6 +118,16 @@
                             Keluar
                         </button>
                     </form>
+                @else
+                    <span class="h-5 w-px bg-slate-200 mx-1" aria-hidden="true"></span>
+                    <a href="{{ route('login') }}"
+                       class="text-xs font-semibold uppercase tracking-wider text-slate-700 hover:text-slate-900 transition px-2 py-2">
+                        Masuk
+                    </a>
+                    <a href="{{ route('register') }}"
+                       class="text-xs font-bold uppercase tracking-wider text-blue-600 hover:text-blue-700 transition px-2 py-2">
+                        Daftar
+                    </a>
                 @endauth
             </div>
 
@@ -156,12 +166,12 @@
             <a href="#promo" class="block text-xs font-bold uppercase tracking-wider text-slate-700 py-2" @click="mobileMenuOpen = false">06 / Program Penawaran</a>
 
             <div class="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                <button type="button" @click="mobileMenuOpen = false; openTestDriveModal(null, '')" class="w-full text-center py-3 bg-slate-900 text-white font-bold text-xs uppercase tracking-wider">
+                <a href="{{ route('test-drive.create') }}" @click.prevent="mobileMenuOpen = false; openTestDriveModal(null, '')" class="w-full text-center py-3 bg-slate-900 text-white font-bold text-xs uppercase tracking-wider">
                     Jadwalkan Test Drive
-                </button>
-                <button type="button" @click="mobileMenuOpen = false; openServiceModal()" class="w-full text-center py-3 border border-slate-300 text-slate-900 font-bold text-xs uppercase tracking-wider">
+                </a>
+                <a href="{{ route('service-booking.create') }}" @click.prevent="mobileMenuOpen = false; openServiceModal()" class="w-full text-center py-3 border border-slate-300 text-slate-900 font-bold text-xs uppercase tracking-wider">
                     Booking Servis Resmi
-                </button>
+                </a>
             </div>
 
             @auth
@@ -174,9 +184,59 @@
                         <button type="submit" class="text-xs text-red-600 font-bold uppercase tracking-wider">Keluar</button>
                     </form>
                 </div>
+            @else
+                <div class="pt-4 mt-2 border-t border-slate-200 flex items-center justify-between text-xs font-bold uppercase tracking-wider">
+                    <a href="{{ route('login') }}" class="text-slate-700 hover:text-slate-900">Masuk ke Portal</a>
+                    <a href="{{ route('register') }}" class="text-blue-600 hover:text-blue-700">Daftar Akun Baru</a>
+                </div>
             @endauth
         </div>
     </header>
+
+    <noscript>
+        <div class="bg-amber-50 border-b border-amber-200 px-4 py-3 text-sm text-amber-900">
+            <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+                <p class="font-medium text-xs sm:text-sm">
+                    Mode JavaScript dinonaktifkan. Anda tetap dapat mengakses seluruh layanan reservasi secara mandiri melalui formulir standar.
+                </p>
+                <div class="flex items-center gap-3 shrink-0 text-xs font-bold uppercase tracking-wider">
+                    <a href="{{ route('test-drive.create') }}" class="underline text-amber-900 hover:text-black">Form Test Drive</a>
+                    <span class="text-amber-400">|</span>
+                    <a href="{{ route('service-booking.create') }}" class="underline text-amber-900 hover:text-black">Form Booking Servis</a>
+                </div>
+            </div>
+        </div>
+    </noscript>
+
+    @if (session('success') || session('error') || session('info') || $errors->any())
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
+            @if (session('success'))
+                <div class="p-4 rounded-xl bg-green-50 border border-green-200 text-green-800 text-sm font-medium flex items-center justify-between">
+                    <span>{{ session('success') }}</span>
+                </div>
+            @endif
+            @if (session('error'))
+                <div class="p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 text-sm font-medium flex items-center justify-between">
+                    <span>{{ session('error') }}</span>
+                </div>
+            @endif
+            @if (session('info'))
+                <div class="p-4 rounded-xl bg-blue-50 border border-blue-200 text-blue-800 text-sm font-medium flex items-center justify-between">
+                    <span>{{ session('info') }}</span>
+                </div>
+            @endif
+            @if ($errors->any())
+                <div class="p-4 rounded-xl bg-red-50 border border-red-200 text-red-800 text-sm font-medium">
+                    <p class="font-bold">Mohon periksa kembali formulir Anda:</p>
+                    <ul class="list-disc list-inside mt-1 text-xs space-y-0.5">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+        </div>
+    @endif
 
     <!-- Main 2.5D Kinetic Showroom -->
     <main id="main-showroom" class="relative h-[100dvh] w-full overflow-hidden bg-gray-50 flex items-center justify-center select-none pt-16 sm:pt-20">
@@ -275,22 +335,22 @@
                         <!-- Layer 20 (z-20): Action Buttons (CTA) -->
                         <div class="absolute bottom-16 sm:bottom-14 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3 sm:gap-4 pointer-events-auto" data-car-actions>
                             <!-- Primary CTA: Test Drive -->
-                            <button type="button"
-                                    @click="openTestDriveModal({{ $car->id }}, '{{ addslashes($car->brand . ' ' . $car->model_name) }}')"
-                                    data-car-id="{{ $car->id }}"
-                                    data-car-name="{{ $car->brand }} {{ $car->model_name }}"
-                                    class="bg-black text-white px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-slate-800 hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 transition duration-200 shadow-lg text-sm sm:text-base whitespace-nowrap">
+                            <a href="{{ route('test-drive.create', ['car_id' => $car->id]) }}"
+                               @click.prevent="openTestDriveModal({{ $car->id }}, '{{ addslashes($car->brand . ' ' . $car->model_name) }}')"
+                               data-car-id="{{ $car->id }}"
+                               data-car-name="{{ $car->brand }} {{ $car->model_name }}"
+                               class="bg-black text-white px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-slate-800 hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2 transition duration-200 shadow-lg text-sm sm:text-base whitespace-nowrap inline-flex items-center justify-center">
                                 Test Drive
-                            </button>
+                            </a>
 
                             <!-- Secondary CTA: Booking Servis -->
-                            <button type="button"
-                                    @click="openServiceModal('{{ addslashes($car->brand . ' ' . $car->model_name) }}')"
-                                    data-car-id="{{ $car->id }}"
-                                    data-car-name="{{ $car->brand }} {{ $car->model_name }}"
-                                    class="bg-white/90 backdrop-blur-md text-slate-900 border border-slate-300 px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-slate-100 hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-black transition duration-200 shadow-md text-sm sm:text-base whitespace-nowrap">
+                            <a href="{{ route('service-booking.create', ['vehicle_model' => $car->brand . ' ' . $car->model_name]) }}"
+                               @click.prevent="openServiceModal('{{ addslashes($car->brand . ' ' . $car->model_name) }}')"
+                               data-car-id="{{ $car->id }}"
+                               data-car-name="{{ $car->brand }} {{ $car->model_name }}"
+                               class="bg-white/90 backdrop-blur-md text-slate-900 border border-slate-300 px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-slate-100 hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-black transition duration-200 shadow-md text-sm sm:text-base whitespace-nowrap inline-flex items-center justify-center">
                                 Booking Servis
-                            </button>
+                            </a>
                         </div>
                     </section>
                 @empty
@@ -419,11 +479,11 @@
                             </p>
                         </div>
                         <div class="sm:col-span-3 sm:text-right pt-1">
-                            <button type="button"
-                                    @click="openTestDriveModal(null, '')"
-                                    class="inline-flex items-center justify-center px-4 py-2.5 border border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white text-xs font-bold uppercase tracking-wider transition">
+                            <a href="{{ route('test-drive.create') }}"
+                               @click.prevent="openTestDriveModal(null, '')"
+                               class="inline-flex items-center justify-center px-4 py-2.5 border border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white text-xs font-bold uppercase tracking-wider transition">
                                 Jadwalkan Test Drive
-                            </button>
+                            </a>
                         </div>
                     </div>
 
@@ -440,11 +500,11 @@
                             </p>
                         </div>
                         <div class="sm:col-span-3 sm:text-right pt-1">
-                            <button type="button"
-                                    @click="openServiceModal()"
-                                    class="inline-flex items-center justify-center px-4 py-2.5 bg-blue-600 text-white hover:bg-slate-900 text-xs font-bold uppercase tracking-wider transition">
+                            <a href="{{ route('service-booking.create') }}"
+                               @click.prevent="openServiceModal()"
+                               class="inline-flex items-center justify-center px-4 py-2.5 bg-blue-600 text-white hover:bg-slate-900 text-xs font-bold uppercase tracking-wider transition">
                                 Booking Servis
-                            </button>
+                            </a>
                         </div>
                     </div>
 
@@ -611,16 +671,16 @@
                                 </div>
 
                                 <div class="space-y-2.5 pt-6 mt-6 border-t border-slate-200">
-                                    <button type="button"
-                                            @click="openTestDriveModal({{ $car->id }}, '{{ addslashes($car->brand . ' ' . $car->model_name) }}')"
-                                            class="w-full py-3 px-4 bg-slate-900 hover:bg-blue-600 text-white text-xs font-bold uppercase tracking-wider transition text-center">
+                                    <a href="{{ route('test-drive.create', ['car_id' => $car->id]) }}"
+                                       @click.prevent="openTestDriveModal({{ $car->id }}, '{{ addslashes($car->brand . ' ' . $car->model_name) }}')"
+                                       class="block w-full py-3 px-4 bg-slate-900 hover:bg-blue-600 text-white text-xs font-bold uppercase tracking-wider transition text-center">
                                         Jadwalkan Test Drive
-                                    </button>
-                                    <button type="button"
-                                            @click="openServiceModal('{{ addslashes($car->brand . ' ' . $car->model_name) }}')"
-                                            class="w-full py-2.5 px-4 border border-slate-300 hover:border-slate-900 text-slate-800 text-xs font-bold uppercase tracking-wider transition text-center">
+                                    </a>
+                                    <a href="{{ route('service-booking.create', ['vehicle_model' => $car->brand . ' ' . $car->model_name]) }}"
+                                       @click.prevent="openServiceModal('{{ addslashes($car->brand . ' ' . $car->model_name) }}')"
+                                       class="block w-full py-2.5 px-4 border border-slate-300 hover:border-slate-900 text-slate-800 text-xs font-bold uppercase tracking-wider transition text-center">
                                         Booking Servis Unit Ini
-                                    </button>
+                                    </a>
                                 </div>
                             </div>
                         </article>
@@ -650,12 +710,16 @@
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                     <div class="relative">
                         <input type="text"
+                               id="part_search"
+                               name="part_search"
                                x-model="partSearch"
                                placeholder="Cari nama part, merk, atau SKU..."
                                aria-label="Cari suku cadang"
                                class="w-full sm:w-64 px-4 py-2.5 border border-slate-300 bg-white text-sm text-slate-900 focus:ring-2 focus:ring-black focus:outline-none" />
                     </div>
-                    <select x-model="partCategoryFilter"
+                    <select id="part_category_filter"
+                            name="part_category_filter"
+                            x-model="partCategoryFilter"
                             aria-label="Filter kategori suku cadang"
                             class="px-4 py-2.5 border border-slate-300 bg-white text-sm font-semibold text-slate-800 focus:ring-2 focus:ring-black focus:outline-none">
                         <option value="all">Semua Kategori Komponen</option>
@@ -671,9 +735,9 @@
                 <div class="bg-slate-50 border border-slate-300 p-12 text-center">
                     <p class="text-base font-bold text-slate-900">Inventaris suku cadang sedang diperbarui.</p>
                     <p class="text-sm text-slate-500 mt-1">Anda tetap dapat memesan jadwal servis dan berkonsultasi langsung dengan mekanik kami mengenai kebutuhan suku cadang mobil Anda.</p>
-                    <button type="button" @click="openServiceModal()" class="mt-4 bg-slate-900 text-white px-5 py-2.5 text-xs font-bold uppercase tracking-wider hover:bg-blue-600 transition">
+                    <a href="{{ route('service-booking.create') }}" @click.prevent="openServiceModal()" class="inline-block mt-4 bg-slate-900 text-white px-5 py-2.5 text-xs font-bold uppercase tracking-wider hover:bg-blue-600 transition">
                         Booking Servis Sekarang
-                    </button>
+                    </a>
                 </div>
             @else
                 <div class="border-t border-l border-slate-300 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
@@ -772,11 +836,11 @@
                                     Penggantian oli mesin sintetis, filter oli, filter udara kabin, inspeksi ketebalan kampas rem, fluida pendingin radiator, dan rotasi ban sesuai buku servis.
                                 </p>
                             </div>
-                            <button type="button"
-                                    @click="openServiceWithType('regular')"
-                                    class="shrink-0 px-4 py-2.5 border border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white text-xs font-bold uppercase tracking-wider transition">
+                            <a href="{{ route('service-booking.create') }}"
+                               @click.prevent="openServiceWithType('regular')"
+                               class="shrink-0 px-4 py-2.5 border border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white text-xs font-bold uppercase tracking-wider transition inline-flex items-center justify-center">
                                 Pilih Berkala
-                            </button>
+                            </a>
                         </div>
 
                         <!-- Layanan 02 -->
@@ -790,11 +854,11 @@
                                     Perawatan komprehensif meliputi penggantian sabuk timing belt, kuras penuh fluida transmisi otomatis (ATF), kalibrasi suspensi, dan penggantian busi iridium.
                                 </p>
                             </div>
-                            <button type="button"
-                                    @click="openServiceWithType('major')"
-                                    class="shrink-0 px-4 py-2.5 border border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white text-xs font-bold uppercase tracking-wider transition">
+                            <a href="{{ route('service-booking.create') }}"
+                               @click.prevent="openServiceWithType('major')"
+                               class="shrink-0 px-4 py-2.5 border border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white text-xs font-bold uppercase tracking-wider transition inline-flex items-center justify-center">
                                 Pilih Servis Besar
-                            </button>
+                            </a>
                         </div>
 
                         <!-- Layanan 03 -->
@@ -808,11 +872,11 @@
                                     Pemindaian modul ECU menyeluruh, evaluasi kesehatan sel baterai tegangan tinggi kendaraan listrik (EV), serta pemeriksaan sistem kelistrikan dan kaki-kaki.
                                 </p>
                             </div>
-                            <button type="button"
-                                    @click="openServiceWithType('inspection')"
-                                    class="shrink-0 px-4 py-2.5 border border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white text-xs font-bold uppercase tracking-wider transition">
+                            <a href="{{ route('service-booking.create') }}"
+                               @click.prevent="openServiceWithType('inspection')"
+                               class="shrink-0 px-4 py-2.5 border border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white text-xs font-bold uppercase tracking-wider transition inline-flex items-center justify-center">
                                 Pilih Diagnosa
-                            </button>
+                            </a>
                         </div>
 
                         <!-- Layanan 04 -->
@@ -826,11 +890,11 @@
                                     Penanganan pemeriksaan dan penggantian suku cadang yang masih berada dalam cakupan masa garansi resmi dengan pencatatan riwayat terverifikasi.
                                 </p>
                             </div>
-                            <button type="button"
-                                    @click="openServiceWithType('warranty')"
-                                    class="shrink-0 px-4 py-2.5 border border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white text-xs font-bold uppercase tracking-wider transition">
+                            <a href="{{ route('service-booking.create') }}"
+                               @click.prevent="openServiceWithType('warranty')"
+                               class="shrink-0 px-4 py-2.5 border border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white text-xs font-bold uppercase tracking-wider transition inline-flex items-center justify-center">
                                 Ajukan Klaim
-                            </button>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -883,11 +947,11 @@
                             <span class="block font-bold text-slate-900 uppercase tracking-wider">Jam Operasional Bengkel</span>
                             <span class="font-mono tabular-nums">Senin - Sabtu / 08:00 - 17:00 WIB</span>
                         </div>
-                        <button type="button"
-                                @click="openServiceModal()"
-                                class="bg-blue-600 hover:bg-slate-900 text-white px-5 py-3 text-xs font-bold uppercase tracking-wider transition text-center">
+                        <a href="{{ route('service-booking.create') }}"
+                           @click.prevent="openServiceModal()"
+                           class="bg-blue-600 hover:bg-slate-900 text-white px-5 py-3 text-xs font-bold uppercase tracking-wider transition text-center inline-flex items-center justify-center">
                             Jadwalkan Servis
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -916,11 +980,11 @@
                         <h3 class="text-base font-bold text-slate-900">Program penawaran khusus bulan ini tersedia langsung melalui konsultan Sales kami.</h3>
                         <p class="text-xs sm:text-sm text-slate-600 mt-1">Ajukan jadwal Test Drive untuk mendapatkan simulasi pembiayaan dan paket purnajual resmi.</p>
                     </div>
-                    <button type="button"
-                            @click="openTestDriveModal(null, '')"
-                            class="shrink-0 bg-slate-900 text-white px-5 py-3 text-xs font-bold uppercase tracking-wider hover:bg-blue-600 transition">
+                    <a href="{{ route('test-drive.create') }}"
+                       @click.prevent="openTestDriveModal(null, '')"
+                       class="shrink-0 bg-slate-900 text-white px-5 py-3 text-xs font-bold uppercase tracking-wider hover:bg-blue-600 transition inline-flex items-center justify-center">
                         Jadwalkan Test Drive
-                    </button>
+                    </a>
                 </div>
             @else
                 <div class="border border-slate-300 divide-y divide-slate-300 bg-white">
@@ -1003,16 +1067,16 @@
                 <div class="md:col-span-3 space-y-3">
                     <h3 class="text-xs font-bold uppercase tracking-wider text-slate-900">Reservasi Langsung</h3>
                     <div class="flex flex-col gap-2.5">
-                        <button type="button"
-                                @click="openTestDriveModal(null, '')"
-                                class="w-full text-center px-4 py-3 bg-slate-900 text-white text-xs font-bold uppercase tracking-wider hover:bg-blue-600 transition">
+                        <a href="{{ route('test-drive.create') }}"
+                           @click.prevent="openTestDriveModal(null, '')"
+                           class="w-full text-center px-4 py-3 bg-slate-900 text-white text-xs font-bold uppercase tracking-wider hover:bg-blue-600 transition block">
                             Jadwalkan Test Drive
-                        </button>
-                        <button type="button"
-                                @click="openServiceModal()"
-                                class="w-full text-center px-4 py-3 border border-slate-900 bg-white text-slate-900 text-xs font-bold uppercase tracking-wider hover:bg-slate-900 hover:text-white transition">
+                        </a>
+                        <a href="{{ route('service-booking.create') }}"
+                           @click.prevent="openServiceModal()"
+                           class="w-full text-center px-4 py-3 border border-slate-900 bg-white text-slate-900 text-xs font-bold uppercase tracking-wider hover:bg-slate-900 hover:text-white transition block">
                             Booking Servis Bengkel
-                        </button>
+                        </a>
                         @auth
                             <a href="{{ route('dashboard') }}"
                                class="w-full text-center px-4 py-2.5 border border-slate-300 text-slate-800 text-xs font-bold uppercase tracking-wider hover:bg-white transition">
@@ -1109,7 +1173,14 @@
                 </button>
             </div>
 
-            <form @submit.prevent="submitTestDrive" class="mt-6 space-y-4" enctype="multipart/form-data">
+            @if (session('pending_test_drive_license_reupload_required') || (!empty($pendingTestDrive) && empty($pendingTestDrive['driver_license_image'])))
+                <div class="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800 flex items-start gap-2">
+                    <svg class="w-4 h-4 text-amber-600 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+                    <span>Foto SIM perlu diunggah kembali demi perlindungan data pribadi Anda sebelum konfirmasi dikirim.</span>
+                </div>
+            @endif
+
+            <form action="{{ route('test-drive.store') }}" method="POST" @submit.prevent="submitTestDrive" class="mt-6 space-y-4" enctype="multipart/form-data">
                 @csrf
                 <input type="hidden" name="car_id" :value="testDriveForm.car_id">
 
@@ -1238,7 +1309,7 @@
                 </button>
             </div>
 
-            <form @submit.prevent="submitServiceBooking" class="mt-6 space-y-4">
+            <form action="{{ route('service-booking.store') }}" method="POST" @submit.prevent="submitServiceBooking" class="mt-6 space-y-4">
                 @csrf
 
                 <!-- Nomor Plat Kendaraan -->
@@ -1399,6 +1470,12 @@
                     if (config.pendingTestDrive) {
                         this.testDriveForm = { ...this.testDriveForm, ...config.pendingTestDrive };
                         this.selectedCarId = this.testDriveForm.car_id;
+                        this.$nextTick(() => {
+                            const opt = document.querySelector('#td_select_car option:checked');
+                            if (opt && opt.value) {
+                                this.selectedCarName = opt.textContent.trim();
+                            }
+                        });
                     }
 
                     // Restore pending service booking session if present

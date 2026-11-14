@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\TestDriveStatus;
 use App\Enums\UserRole;
 use App\Http\Requests\StoreTestDriveRequest;
+use App\Models\Car;
 use App\Models\TestDrive;
 use App\Models\User;
 use App\Notifications\TestDriveRequestedNotification;
@@ -18,21 +19,50 @@ class TestDriveController extends Controller
 {
     use AuthorizesRequests;
 
+    /**
+     * Tampilkan formulir mandiri untuk pengajuan test drive (progressive enhancement non-JS).
+     */
+    public function create(Request $request): View
+    {
+        $cars = Car::available()->orderBy('sort_order')->get();
+        $selectedCarId = $request->query('car_id');
+        /** @var array<string, mixed> $pendingTestDrive */
+        $pendingTestDrive = session('pending_test_drive', []);
+
+        return view('showroom.test-drive', compact('cars', 'selectedCarId', 'pendingTestDrive'));
+    }
+
     public function store(StoreTestDriveRequest $request): JsonResponse|RedirectResponse
     {
         // 1. Session Retention & Guest redirect
         if (! auth()->check()) {
-            session()->put('pending_test_drive', $request->validated());
+            $data = $request->validated();
+            $uploadedImageNotice = false;
+
+            if ($request->hasFile('driver_license_image') || isset($data['driver_license_image'])) {
+                unset($data['driver_license_image']);
+                $uploadedImageNotice = true;
+            }
+
+            session()->put('pending_test_drive', $data);
+            if ($uploadedImageNotice) {
+                session()->put('pending_test_drive_license_reupload_required', true);
+            }
+
+            $message = 'Silakan masuk atau buat akun baru untuk melanjutkan. Data Anda sudah kami simpan.';
+            if ($uploadedImageNotice) {
+                $message .= ' Demi keamanan berkas, mohon unggah kembali foto SIM Anda setelah masuk.';
+            }
 
             if ($request->wantsJson()) {
                 return response()->json([
                     'status' => 'unauthenticated',
                     'redirect' => route('login'),
-                    'message' => 'Silakan masuk untuk melanjutkan. Data Anda sudah kami simpan.',
+                    'message' => $message,
                 ], 401);
             }
 
-            return redirect()->route('login')->with('info', 'Silakan masuk untuk melanjutkan. Data Anda sudah kami simpan.');
+            return redirect()->route('login')->with('info', $message);
         }
 
         $validated = $request->validated();
@@ -71,6 +101,7 @@ class TestDriveController extends Controller
         }
 
         session()->forget('pending_test_drive');
+        session()->forget('pending_test_drive_license_reupload_required');
 
         $message = 'Pengajuan test drive terkirim. Tim sales akan menghubungi Anda.';
 

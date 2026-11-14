@@ -18,10 +18,12 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
+Route::get('/test-drive', [TestDriveController::class, 'create'])->name('test-drive.create');
 Route::post('/test-drive', [TestDriveController::class, 'store'])
     ->middleware('throttle:10,1')
     ->name('test-drive.store');
 
+Route::get('/service-booking', [ServiceBookingController::class, 'create'])->name('service-booking.create');
 Route::post('/service-booking', [ServiceBookingController::class, 'store'])
     ->middleware('throttle:10,1')
     ->name('service-booking.store');

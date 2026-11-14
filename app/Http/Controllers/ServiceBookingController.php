@@ -12,10 +12,12 @@ use App\Services\BookingSlotValidator;
 use App\Services\TicketNumberGenerator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 
 class ServiceBookingController extends Controller
 {
@@ -24,21 +26,36 @@ class ServiceBookingController extends Controller
         private TicketNumberGenerator $ticketGenerator,
     ) {}
 
+    /**
+     * Tampilkan formulir mandiri untuk booking servis (progressive enhancement non-JS).
+     */
+    public function create(Request $request): View
+    {
+        $selectedModel = $request->query('vehicle_model');
+        $complaintNotes = $request->query('complaint_notes');
+        /** @var array<string, mixed> $pendingServiceBooking */
+        $pendingServiceBooking = session('pending_service_booking', []);
+
+        return view('showroom.service-booking', compact('selectedModel', 'complaintNotes', 'pendingServiceBooking'));
+    }
+
     public function store(StoreServiceBookingRequest $request): JsonResponse|RedirectResponse
     {
         // 1. Session Retention & Guest redirect
         if (! auth()->check()) {
             session()->put('pending_service_booking', $request->validated());
 
+            $message = 'Silakan masuk atau buat akun baru untuk melanjutkan. Data booking Anda sudah kami simpan.';
+
             if ($request->wantsJson()) {
                 return response()->json([
                     'status' => 'unauthenticated',
                     'redirect' => route('login'),
-                    'message' => 'Silakan masuk untuk melanjutkan. Data Anda sudah kami simpan.',
+                    'message' => $message,
                 ], 401);
             }
 
-            return redirect()->route('login')->with('info', 'Silakan masuk untuk melanjutkan. Data Anda sudah kami simpan.');
+            return redirect()->route('login')->with('info', $message);
         }
 
         $validated = $request->validated();
@@ -49,8 +66,12 @@ class ServiceBookingController extends Controller
             : (int) $serviceDateTime->hour;
 
         if ($slotHour < 8 || $slotHour > 17) {
-            $slotHour = 9; // Jam operasional default 09:00
+            throw ValidationException::withMessages([
+                'service_date' => 'Jam kedatangan servis harus berada dalam jam operasional bengkel (08:00 - 17:00 WIB).',
+            ]);
         }
+
+        $serviceDateTime = $serviceDateTime->copy()->setHour($slotHour)->setMinute(0)->setSecond(0);
 
         $cleanPlate = strtoupper(preg_replace('/\s+/', ' ', trim($validated['vehicle_plate_number'])));
 
