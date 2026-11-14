@@ -8,8 +8,8 @@
                 </a>
                 <div class="flex items-center gap-3">
                     <h1 class="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">{{ $car->brand }} {{ $car->model_name }} ({{ $car->year }})</h1>
-                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold {{ $car->is_active ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600 border border-slate-200' }}">
-                        {{ $car->is_active ? 'Katalog Aktif' : 'Non-Aktif' }}
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold {{ $car->is_available ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-600 border border-slate-200' }}">
+                        {{ $car->is_available ? 'Katalog Aktif' : 'Non-Aktif' }}
                     </span>
                     @if($car->is_featured)
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
@@ -35,7 +35,7 @@
             <div class="lg:col-span-7 space-y-6">
                 <div class="bg-gradient-to-b from-slate-100 to-slate-200 rounded-3xl p-8 flex items-center justify-center border border-slate-200 relative overflow-hidden min-h-[320px]">
                     @if($car->hero_image_transparent)
-                        <img src="{{ Storage::url($car->hero_image_transparent) }}" alt="{{ $car->hero_image_alt }}" class="max-h-72 object-contain drop-shadow-2xl">
+                        <img src="{{ asset($car->hero_image_transparent) }}" alt="{{ $car->hero_image_alt }}" class="max-h-72 object-contain drop-shadow-2xl">
                     @else
                         <div class="text-center text-slate-400">
                             <svg class="w-16 h-16 mx-auto mb-2 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -52,7 +52,7 @@
                         <div class="grid grid-cols-3 sm:grid-cols-4 gap-3">
                             @foreach($car->gallery_images as $img)
                                 <div class="aspect-video bg-slate-100 rounded-xl overflow-hidden border border-slate-200 group">
-                                    <img src="{{ Storage::url($img) }}" alt="Galeri {{ $car->brand }} {{ $car->model_name }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                                    <img src="{{ asset($img) }}" alt="Galeri {{ $car->brand }} {{ $car->model_name }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
                                 </div>
                             @endforeach
                         </div>
@@ -65,7 +65,7 @@
                 <!-- Price Card -->
                 <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
                     <p class="text-xs font-bold uppercase text-slate-400 tracking-wider">Harga Resmi OTR</p>
-                    <p class="text-3xl font-black text-slate-900 mt-1 font-mono">Rp {{ number_format((float) $car->price_otr, 0, ',', '.') }}</p>
+                    <p class="text-3xl font-black text-slate-900 mt-1 font-mono">Rp {{ number_format((float) $car->price, 0, ',', '.') }}</p>
                     <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between text-xs">
                         <span class="text-slate-500 font-medium">Warna & Kode Cat</span>
                         <span class="font-bold text-slate-900 inline-flex items-center gap-1.5">
@@ -82,28 +82,28 @@
                     <h3 class="text-xs font-black uppercase text-slate-400 tracking-wider">Spesifikasi Mesin & Performa</h3>
                     <dl class="divide-y divide-slate-100 text-sm">
                         <div class="py-2.5 flex justify-between">
-                            <dt class="text-slate-500">Kapasitas Mesin</dt>
-                            <dd class="font-bold text-slate-900 font-mono">{{ $car->engine_capacity_cc ? $car->engine_capacity_cc . ' cc' : '-' }}</dd>
-                        </div>
-                        <div class="py-2.5 flex justify-between">
                             <dt class="text-slate-500">Transmisi</dt>
-                            <dd class="font-bold text-slate-900">{{ $car->transmission ? $car->transmission->label() : '-' }}</dd>
+                            <dd class="font-bold text-slate-900">{{ $car->engine_specs['trans'] ?? ($car->transmission ?? '-') }}</dd>
                         </div>
                         <div class="py-2.5 flex justify-between">
                             <dt class="text-slate-500">Bahan Bakar</dt>
-                            <dd class="font-bold text-slate-900">{{ $car->fuel_type ? $car->fuel_type->label() : '-' }}</dd>
+                            <dd class="font-bold text-slate-900">{{ $car->engine_specs['fuel_type'] ?? ($car->fuel_type ?? '-') }}</dd>
                         </div>
                         <div class="py-2.5 flex justify-between">
                             <dt class="text-slate-500">Tenaga Maksimum</dt>
-                            <dd class="font-bold text-slate-900 font-mono">{{ $car->power_hp ? $car->power_hp . ' HP' : '-' }}</dd>
+                            <dd class="font-bold text-slate-900 font-mono">{{ $car->engine_specs['power'] ?? ($car->power_hp ? $car->power_hp . ' HP' : '-') }}</dd>
                         </div>
                         <div class="py-2.5 flex justify-between">
                             <dt class="text-slate-500">Torsi Maksimum</dt>
-                            <dd class="font-bold text-slate-900 font-mono">{{ $car->torque_nm ? $car->torque_nm . ' Nm' : '-' }}</dd>
+                            <dd class="font-bold text-slate-900 font-mono">{{ $car->engine_specs['torque'] ?? ($car->torque_nm ? $car->torque_nm . ' Nm' : '-') }}</dd>
+                        </div>
+                        <div class="py-2.5 flex justify-between">
+                            <dt class="text-slate-500">Akselerasi (0-100 km/h)</dt>
+                            <dd class="font-bold text-slate-900 font-mono">{{ $car->engine_specs['accel'] ?? '-' }}</dd>
                         </div>
                         <div class="py-2.5 flex justify-between">
                             <dt class="text-slate-500">Kapasitas Tempat Duduk</dt>
-                            <dd class="font-bold text-slate-900 font-mono">{{ $car->seating_capacity }} Kursi</dd>
+                            <dd class="font-bold text-slate-900 font-mono">{{ $car->dimensions['seats'] ?? ($car->seating_capacity ? $car->seating_capacity . ' Kursi' : '-') }}</dd>
                         </div>
                     </dl>
                 </div>
