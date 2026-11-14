@@ -5,16 +5,20 @@ namespace App\Http\Controllers;
 use App\Enums\ServiceItemType;
 use App\Enums\ServiceStatus;
 use App\Enums\UserRole;
+use App\Http\Requests\CancelServiceRequest;
 use App\Models\Service;
 use App\Models\ServiceItem;
 use App\Models\ServiceStatusLog;
 use App\Models\User;
 use App\Services\ServiceCostCalculator;
+use App\Services\ServiceStateMachine;
+use DomainException;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -56,9 +60,43 @@ class ServiceController extends Controller
     }
 
     /**
+     * Pembatalan servis oleh customer pemilik atau Super Admin (PRD §5.1).
+     */
+    public function cancel(CancelServiceRequest $request, Service $service, ServiceStateMachine $stateMachine): JsonResponse|RedirectResponse
+    {
+        $this->authorize('cancel', $service);
+
+        try {
+            $stateMachine->cancel(
+                $service,
+                $request->validated('cancellation_reason'),
+                $request->user()
+            );
+        } catch (DomainException $e) {
+            if ($request->wantsJson()) {
+                return response()->json(['message' => $e->getMessage()], 422);
+            }
+
+            return back()->with('error', $e->getMessage());
+        }
+
+        $message = "Servis dengan nomor tiket {$service->ticket_number} berhasil dibatalkan.";
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'service' => $service->fresh(['statusLogs.changedBy']),
+            ]);
+        }
+
+        return back()->with('success', $message);
+    }
+
+    /**
      * Perbarui status pengerjaan servis (State Machine PRD §5.1).
      */
-    public function updateStatus(Request $request, Service $service): JsonResponse|RedirectResponse
+    public function updateStatus(Request $request, Service $service, ServiceStateMachine $stateMachine): JsonResponse|RedirectResponse
     {
         $this->authorize('updateStatus', $service);
 
@@ -79,51 +117,20 @@ class ServiceController extends Controller
         ]);
 
         $nextStatus = ServiceStatus::from($validated['status']);
-        $currentStatus = $service->status instanceof ServiceStatus ? $service->status : ServiceStatus::from((string) $service->status);
 
-        // 1. Guard: Transisi yang diizinkan sesuai state machine
-        if (! $currentStatus->canTransitionTo($nextStatus)) {
-            $message = "Transisi dari status {$currentStatus->label()} ke {$nextStatus->label()} tidak diizinkan.";
+        if ($nextStatus === ServiceStatus::Cancelled && $service->status->canTransitionTo($nextStatus)) {
+            $this->authorize('cancel', $service);
+        }
+
+        try {
+            $stateMachine->transition($service, $nextStatus, $validated, $request->user());
+        } catch (DomainException $e) {
             if ($request->wantsJson()) {
-                return response()->json(['message' => $message], 422);
+                return response()->json(['message' => $e->getMessage()], 422);
             }
 
-            return back()->with('error', $message);
+            return back()->with('error', $e->getMessage());
         }
-
-        // 2. Guard: Tidak boleh selesai tanpa ada service_items
-        if ($nextStatus === ServiceStatus::Completed && $service->items()->count() === 0) {
-            $message = 'Tidak dapat menyelesaikan servis tanpa rincian item onderdil atau jasa pengerjaan.';
-            if ($request->wantsJson()) {
-                return response()->json(['message' => $message], 422);
-            }
-
-            return back()->with('error', $message);
-        }
-
-        // 3. Set timestamp & metadata
-        if ($nextStatus === ServiceStatus::Confirmed) {
-            $service->confirmed_at = now();
-        } elseif ($nextStatus === ServiceStatus::InProgress) {
-            $service->started_at = now();
-        } elseif ($nextStatus === ServiceStatus::Completed) {
-            $service->completed_at = now();
-        } elseif ($nextStatus === ServiceStatus::Cancelled) {
-            $service->cancelled_at = now();
-            $service->cancellation_reason = $validated['cancellation_reason'] ?? null;
-        }
-
-        if (! empty($validated['mechanic_notes'])) {
-            $service->mechanic_notes = $validated['mechanic_notes'];
-        }
-
-        if (! empty($validated['recommendation'])) {
-            $service->recommendation = $validated['recommendation'];
-        }
-
-        $service->status_change_notes = $validated['notes'] ?? "Status diubah menjadi {$nextStatus->label()} oleh ".auth()->user()->name;
-        $service->status = $nextStatus;
-        $service->save();
 
         $message = "Status servis berhasil diperbarui menjadi {$nextStatus->label()}.";
 
@@ -149,27 +156,31 @@ class ServiceController extends Controller
             'item_type' => ['required', Rule::enum(ServiceItemType::class)],
             'name' => ['required', 'string', 'max:255'],
             'part_number' => ['nullable', 'string', 'max:100'],
-            'quantity' => ['required', 'numeric', 'min:0.01'],
-            'unit_price' => ['required', 'numeric', 'min:0'],
+            'quantity' => ['required', 'numeric', 'min:0.01', 'max:9999'],
+            'unit_price' => ['required', 'numeric', 'min:0', 'max:500000000'],
         ], [
             'name.required' => 'Nama item atau pekerjaan wajib diisi.',
             'quantity.required' => 'Jumlah kuantitas wajib diisi.',
             'unit_price.required' => 'Harga satuan wajib diisi.',
         ]);
 
-        $subtotal = $calculator->calculateSubtotal((float) $validated['quantity'], (float) $validated['unit_price']);
+        $item = DB::transaction(function () use ($service, $validated, $calculator) {
+            $subtotal = $calculator->calculateSubtotal((float) $validated['quantity'], (float) $validated['unit_price']);
 
-        $item = $service->items()->create([
-            'item_type' => $validated['item_type'],
-            'name' => $validated['name'],
-            'part_number' => $validated['part_number'] ?? null,
-            'quantity' => $validated['quantity'],
-            'unit_price' => $validated['unit_price'],
-            'subtotal' => $subtotal,
-            'added_by' => auth()->id(),
-        ]);
+            $newItem = $service->items()->create([
+                'item_type' => $validated['item_type'],
+                'name' => $validated['name'],
+                'part_number' => $validated['part_number'] ?? null,
+                'quantity' => $validated['quantity'],
+                'unit_price' => $validated['unit_price'],
+                'subtotal' => $subtotal,
+                'added_by' => auth()->id(),
+            ]);
 
-        $calculator->recalculate($service);
+            $calculator->recalculate($service);
+
+            return $newItem;
+        });
 
         $message = 'Item berhasil ditambahkan ke work order.';
 
@@ -196,8 +207,10 @@ class ServiceController extends Controller
             abort(404, 'Item tidak ditemukan pada servis ini.');
         }
 
-        $item->delete();
-        $calculator->recalculate($service);
+        DB::transaction(function () use ($service, $item, $calculator) {
+            $item->delete();
+            $calculator->recalculate($service);
+        });
 
         $message = 'Item berhasil dihapus dari work order.';
 
@@ -215,7 +228,7 @@ class ServiceController extends Controller
     /**
      * Tugaskan mekanik ke servis oleh Super Admin.
      */
-    public function assignMechanic(Request $request, Service $service): JsonResponse|RedirectResponse
+    public function assignMechanic(Request $request, Service $service, ServiceStateMachine $stateMachine): JsonResponse|RedirectResponse
     {
         $this->authorize('assignMechanic', $service);
 
@@ -235,16 +248,22 @@ class ServiceController extends Controller
         ]);
 
         $mechanic = User::findOrFail($validated['assigned_mechanic_id']);
-        $service->assigned_mechanic_id = $mechanic->id;
 
-        // Jika status masih pending, transisikan ke confirmed
+        // Jika status masih pending, transisikan ke confirmed via State Machine
         if ($service->status === ServiceStatus::Pending) {
-            $service->status_change_notes = "Mekanik {$mechanic->name} ditugaskan oleh Super Admin.";
-            $service->status = ServiceStatus::Confirmed;
-            $service->confirmed_at = now();
+            $stateMachine->transition(
+                $service,
+                ServiceStatus::Confirmed,
+                [
+                    'assigned_mechanic_id' => $mechanic->id,
+                    'notes' => "Mekanik {$mechanic->name} ditugaskan oleh Super Admin.",
+                ],
+                $request->user()
+            );
+        } else {
+            $service->assigned_mechanic_id = $mechanic->id;
+            $service->save();
         }
-
-        $service->save();
 
         $message = "Mekanik {$mechanic->name} berhasil ditugaskan untuk tiket {$service->ticket_number}.";
 

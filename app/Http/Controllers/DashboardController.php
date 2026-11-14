@@ -119,8 +119,9 @@ class DashboardController extends Controller
         // Ambil suku cadang mobil (sparepart) visual untuk perbaikan
         $spareParts = SparePart::available()->ordered()->get();
 
-        // Ambil tiket servis aktif untuk pilihan modal pasang sparepart
-        $activeServicesList = Service::whereIn('status', [ServiceStatus::Confirmed, ServiceStatus::InProgress])
+        // Ambil tiket servis aktif untuk pilihan modal pasang sparepart (hanya unit yang ditugaskan ke mekanik ini)
+        $activeServicesList = Service::where('assigned_mechanic_id', $user->id)
+            ->whereIn('status', [ServiceStatus::Confirmed, ServiceStatus::InProgress])
             ->latest('service_date')
             ->get();
 

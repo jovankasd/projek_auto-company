@@ -1,5 +1,5 @@
 <x-dashboard-layout title="Rincian Servis {{ $service->ticket_number }}" breadcrumb="Detail Servis">
-    <div class="space-y-8" x-data="{ itemModalOpen: false }">
+    <div class="space-y-8" x-data="{ itemModalOpen: false, cancelModalOpen: false }">
         <!-- Top Action Bar -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -21,23 +21,29 @@
                 </div>
             </div>
 
-            <!-- Quick Action for Mechanic / Admin -->
-            @if(auth()->user()->isMekanik() || auth()->user()->isSuperAdmin())
-                <div class="flex flex-wrap items-center gap-2">
+            <!-- Action Buttons for Customer / Mechanic / Admin -->
+            <div class="flex flex-wrap items-center gap-2">
+                @if($service->status->canBeCancelled() && (auth()->user()->isSuperAdmin() || auth()->id() === $service->customer_id))
+                    <button type="button" @click="cancelModalOpen = true" class="px-4 py-2 rounded-xl bg-red-50 text-red-700 border border-red-200 font-bold text-xs hover:bg-red-100 transition shadow-xs">
+                        Batalkan Servis
+                    </button>
+                @endif
+
+                @if((auth()->user()->isSuperAdmin() || (auth()->user()->isMekanik() && $service->assigned_mechanic_id === auth()->id())) && ! $service->status->isTerminal())
                     @if($service->status->value === 'confirmed')
                         <form method="POST" action="{{ route('services.update-status', $service) }}">
                             @csrf
                             @method('PATCH')
                             <input type="hidden" name="status" value="in_progress">
                             <input type="hidden" name="notes" value="Mulai pengerjaan unit servis.">
-                            <button type="submit" class="px-4 py-2 rounded-xl bg-blue-600 text-white font-bold text-xs hover:bg-blue-700 transition">
+                            <button type="submit" class="px-4 py-2 rounded-xl bg-blue-600 text-white font-bold text-xs hover:bg-blue-700 transition shadow-xs">
                                 Mulai Pengerjaan
                             </button>
                         </form>
                     @endif
 
                     @if($service->status->value === 'in_progress')
-                        <button type="button" @click="itemModalOpen = true" class="px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition">
+                        <button type="button" @click="itemModalOpen = true" class="px-4 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs hover:bg-slate-800 transition shadow-xs">
                             + Tambah Onderdil / Jasa
                         </button>
                         <form method="POST" action="{{ route('services.update-status', $service) }}" onsubmit="return confirm('Konfirmasi pengerjaan telah selesai?')">
@@ -45,13 +51,13 @@
                             @method('PATCH')
                             <input type="hidden" name="status" value="completed">
                             <input type="hidden" name="notes" value="Pengerjaan selesai oleh mekanik.">
-                            <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 transition">
+                            <button type="submit" class="px-4 py-2 rounded-xl bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 transition shadow-xs">
                                 Selesaikan Servis
                             </button>
                         </form>
                     @endif
-                </div>
-            @endif
+                @endif
+            </div>
         </div>
 
         <!-- Vehicle & Service Meta Card -->
@@ -267,6 +273,46 @@
                         </button>
                         <button type="submit" class="px-5 py-2.5 rounded-xl font-bold text-sm bg-slate-900 text-white hover:bg-slate-800 shadow-sm">
                             Simpan Item
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    @endif
+
+    <!-- Modal Pembatalan Servis (untuk Customer / Super Admin) -->
+    @if($service->status->canBeCancelled() && (auth()->user()->isSuperAdmin() || auth()->id() === $service->customer_id))
+        <div x-show="cancelModalOpen" 
+             x-cloak
+             class="fixed inset-0 z-50 flex items-center justify-center p-4"
+             @keydown.escape.window="cancelModalOpen = false">
+            <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="cancelModalOpen = false"></div>
+            <div class="relative w-full max-w-md rounded-3xl bg-white border border-slate-200 shadow-2xl p-6 sm:p-8 overflow-hidden"
+                 x-transition:enter="transition ease-out duration-300 transform"
+                 x-transition:enter-start="opacity-0 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100">
+                <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                    <h3 class="font-black text-lg text-slate-900">Batalkan Booking Servis</h3>
+                    <button @click="cancelModalOpen = false" class="p-2 text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+                </div>
+
+                <form action="{{ route('services.cancel', $service) }}" method="POST" class="mt-5 space-y-4">
+                    @csrf
+                    @method('PATCH')
+                    <div>
+                        <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Alasan Pembatalan</label>
+                        <textarea name="cancellation_reason" required minlength="5" maxlength="500" rows="3"
+                                  placeholder="Tuliskan alasan pembatalan booking kendaraan Anda..."
+                                  class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none"></textarea>
+                        <p class="text-[11px] text-slate-400 mt-1">Minimal 5 karakter. Status servis akan dibatalkan.</p>
+                    </div>
+
+                    <div class="pt-4 flex items-center justify-end gap-3 border-t border-slate-100">
+                        <button type="button" @click="cancelModalOpen = false" class="px-5 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:bg-slate-100">
+                            Batal
+                        </button>
+                        <button type="submit" class="px-5 py-2.5 rounded-xl font-bold text-sm bg-red-600 text-white hover:bg-red-700 shadow-sm">
+                            Konfirmasi Pembatalan
                         </button>
                     </div>
                 </form>

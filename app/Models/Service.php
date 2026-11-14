@@ -80,6 +80,25 @@ class Service extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::updating(function (Service $service) {
+            $originalStatus = $service->getOriginal('status');
+            $origEnum = $originalStatus instanceof ServiceStatus
+                ? $originalStatus
+                : ($originalStatus !== null ? ServiceStatus::tryFrom((string) $originalStatus) : null);
+
+            if ($origEnum && $origEnum->isTerminal()) {
+                if ($service->isDirty('status') && $service->status !== $origEnum) {
+                    throw new \DomainException("Status servis terminal ({$origEnum->label()}) tidak dapat diubah lagi.");
+                }
+                if ($service->isDirty('total_cost')) {
+                    throw new \DomainException('Biaya total pada work order servis terminal telah dikunci dan tidak dapat diubah.');
+                }
+            }
+        });
+    }
+
     // --- Scopes ---
 
     public function scopeForMechanic(Builder $query, int $mechanicId): Builder

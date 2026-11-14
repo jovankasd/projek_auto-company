@@ -267,7 +267,7 @@
                                     </span>
                                 </td>
                                 <td class="py-4 px-6 text-right space-x-1.5 whitespace-nowrap">
-                                    @if(in_array($service->status?->value ?? (string)$service->status, ['pending', 'confirmed']))
+                                    @if(($service->status?->value ?? (string)$service->status) === 'confirmed' && ($service->assigned_mechanic_id === auth()->id() || auth()->user()->isSuperAdmin()))
                                         <form method="POST" action="{{ route('services.update-status', $service) }}" class="inline">
                                             @csrf
                                             @method('PATCH')
@@ -278,7 +278,7 @@
                                         </form>
                                     @endif
 
-                                    @if(($service->status?->value ?? (string)$service->status) === 'in_progress')
+                                    @if(($service->status?->value ?? (string)$service->status) === 'in_progress' && ($service->assigned_mechanic_id === auth()->id() || auth()->user()->isSuperAdmin()))
                                         <button type="button" 
                                                 @click="openAddItem({{ $service->toJson() }})"
                                                 class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-extrabold rounded-xl shadow-xs transition">
