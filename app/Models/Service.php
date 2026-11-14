@@ -23,7 +23,10 @@ use Illuminate\Support\Carbon;
  * @property int|null $odometer_km
  * @property string $service_type
  * @property Carbon $service_date
- * @property string $slot_hour
+ * @property int|string $slot_hour
+ * @property Carbon|null $slot_date
+ * @property string|null $slot_key
+ * @property string|null $active_plate_slot
  * @property string|null $complaint_notes
  * @property int|null $assigned_mechanic_id
  * @property string|null $mechanic_notes
@@ -53,6 +56,7 @@ class Service extends Model
         'ticket_number', 'customer_id', 'vehicle_plate_number',
         'vehicle_model', 'vehicle_year', 'odometer_km',
         'service_type', 'service_date', 'slot_hour',
+        'slot_date', 'slot_key', 'active_plate_slot',
         'complaint_notes', 'assigned_mechanic_id',
         'mechanic_notes', 'recommendation',
         'estimated_cost', 'total_cost', 'status',
@@ -70,6 +74,7 @@ class Service extends Model
     {
         return [
             'service_date' => 'datetime',
+            'slot_date' => 'date',
             'confirmed_at' => 'datetime',
             'started_at' => 'datetime',
             'completed_at' => 'datetime',

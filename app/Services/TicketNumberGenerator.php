@@ -12,15 +12,15 @@ class TicketNumberGenerator
      * Generate nomor tiket unik dengan format SRV-YYYYMMDD-XXXX.
      * Menggunakan transaction + lockForUpdate untuk mencegah race condition.
      */
-    public function generate(int $maxRetries = 5): string
+    public function generate(int $maxRetries = 5, ?Carbon $date = null): string
     {
         $attempt = 0;
 
         while ($attempt < $maxRetries) {
             try {
-                return DB::transaction(function () {
-                    $date = Carbon::now()->format('Ymd');
-                    $prefix = "SRV-{$date}-";
+                $execute = function () use ($date) {
+                    $dateStr = ($date ?? Carbon::now())->format('Ymd');
+                    $prefix = "SRV-{$dateStr}-";
 
                     $lastTicket = Service::withTrashed()
                         ->where('ticket_number', 'like', "{$prefix}%")
@@ -42,9 +42,18 @@ class TicketNumberGenerator
                     }
 
                     return $ticket;
-                });
+                };
+
+                if (DB::transactionLevel() > 0) {
+                    return $execute();
+                }
+
+                return DB::transaction($execute);
             } catch (\RuntimeException $e) {
                 $attempt++;
+                if ($attempt >= $maxRetries) {
+                    throw $e;
+                }
                 usleep(random_int(10000, 50000));
             }
         }
