@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\CarController;
+use App\Http\Controllers\ContactInquiryController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\NotificationController;
@@ -17,6 +18,12 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/cars/{car:slug}', [HomeController::class, 'showCar'])->name('cars.public.show');
+Route::get('/spare-parts/{sparePart:slug}', [HomeController::class, 'showSparePart'])->name('spare-parts.public.show');
+Route::get('/contact', [HomeController::class, 'contact'])->name('contact.index');
+Route::post('/contact', [ContactInquiryController::class, 'store'])
+    ->middleware('throttle:5,1')
+    ->name('contact.store');
 
 Route::post('/test-drive', [TestDriveController::class, 'store'])
     ->middleware('throttle:10,1')

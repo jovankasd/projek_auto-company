@@ -91,6 +91,7 @@
                 <a href="#katalog-suku-cadang" class="hover:text-slate-900 transition py-1">Suku Cadang OEM</a>
                 <a href="#layanan-bengkel" class="hover:text-slate-900 transition py-1">Bengkel Resmi</a>
                 <a href="#promo" class="hover:text-slate-900 transition py-1">Program</a>
+                <a href="#kontak" class="hover:text-slate-900 transition py-1">Hubungi Kami</a>
             </nav>
 
             <!-- Direct Action Bar (Zero Guest Login/Register Buttons) -->
@@ -153,7 +154,8 @@
             <a href="#katalog-mobil" class="block text-xs font-bold uppercase tracking-wider text-slate-700 py-2 border-b border-slate-100" @click="mobileMenuOpen = false">03 / Katalog Unit Kendaraan</a>
             <a href="#katalog-suku-cadang" class="block text-xs font-bold uppercase tracking-wider text-slate-700 py-2 border-b border-slate-100" @click="mobileMenuOpen = false">04 / Suku Cadang OEM</a>
             <a href="#layanan-bengkel" class="block text-xs font-bold uppercase tracking-wider text-slate-700 py-2 border-b border-slate-100" @click="mobileMenuOpen = false">05 / Bengkel Resmi</a>
-            <a href="#promo" class="block text-xs font-bold uppercase tracking-wider text-slate-700 py-2" @click="mobileMenuOpen = false">06 / Program Penawaran</a>
+            <a href="#promo" class="block text-xs font-bold uppercase tracking-wider text-slate-700 py-2 border-b border-slate-100" @click="mobileMenuOpen = false">06 / Program Penawaran</a>
+            <a href="#kontak" class="block text-xs font-bold uppercase tracking-wider text-slate-700 py-2" @click="mobileMenuOpen = false">07 / Hubungi Kami</a>
 
             <div class="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <button type="button" @click="mobileMenuOpen = false; openTestDriveModal(null, '')" class="w-full text-center py-3 bg-slate-900 text-white font-bold text-xs uppercase tracking-wider">
@@ -291,6 +293,12 @@
                                     class="bg-white/90 backdrop-blur-md text-slate-900 border border-slate-300 px-6 sm:px-8 py-3 rounded-lg font-semibold hover:bg-slate-100 hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-black transition duration-200 shadow-md text-sm sm:text-base whitespace-nowrap">
                                 Booking Servis
                             </button>
+
+                            <!-- Tertiary CTA: Detail Unit -->
+                            <a href="{{ route('cars.public.show', $car->slug) }}"
+                               class="hidden sm:inline-flex bg-white/90 backdrop-blur-md text-slate-900 border border-slate-300 px-5 sm:px-6 py-3 rounded-lg font-semibold hover:bg-slate-100 hover:scale-105 active:scale-95 focus-visible:ring-2 focus-visible:ring-black transition duration-200 shadow-md text-sm sm:text-base whitespace-nowrap">
+                                Detail Unit
+                            </a>
                         </div>
                     </section>
                 @empty
@@ -541,12 +549,12 @@
                                     </span>
                                 </div>
 
-                                <div class="py-6 flex items-center justify-center min-h-[160px]">
+                                <a href="{{ route('cars.public.show', $car->slug) }}" class="py-6 flex items-center justify-center min-h-[160px] group hover:opacity-90 transition" title="Lihat detail spesifikasi {{ $car->brand }} {{ $car->model_name }}">
                                     <img src="{{ $car->hero_image_url }}"
                                          alt="{{ $car->brand }} {{ $car->model_name }}"
                                          loading="lazy"
                                          class="max-h-36 sm:max-h-40 w-auto object-contain drop-shadow-md" />
-                                </div>
+                                </a>
 
                                 <div class="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-200/80">
                                     <span>Warna Eksterior</span>
@@ -568,7 +576,9 @@
                                         {{ $car->brand }}
                                     </div>
                                     <h3 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                                        {{ $car->brand }} {{ $car->model_name }}
+                                        <a href="{{ route('cars.public.show', $car->slug) }}" class="hover:text-blue-600 transition">
+                                            {{ $car->brand }} {{ $car->model_name }}
+                                        </a>
                                     </h3>
                                     @if($car->description)
                                         <p class="text-sm text-slate-600 leading-relaxed pt-1">
@@ -611,6 +621,10 @@
                                 </div>
 
                                 <div class="space-y-2.5 pt-6 mt-6 border-t border-slate-200">
+                                    <a href="{{ route('cars.public.show', $car->slug) }}"
+                                       class="w-full py-2.5 px-4 border border-slate-900 bg-white hover:bg-slate-900 hover:text-white text-slate-900 text-xs font-bold uppercase tracking-wider transition text-center block">
+                                        Lihat Detail Spesifikasi
+                                    </a>
                                     <button type="button"
                                             @click="openTestDriveModal({{ $car->id }}, '{{ addslashes($car->brand . ' ' . $car->model_name) }}')"
                                             class="w-full py-3 px-4 bg-slate-900 hover:bg-blue-600 text-white text-xs font-bold uppercase tracking-wider transition text-center">
@@ -699,12 +713,12 @@
 
                                 <!-- Middle: Studio Image + Technical Metadata -->
                                 <div class="grid grid-cols-12 gap-4 py-5 items-center">
-                                    <div class="col-span-4 aspect-square bg-slate-50 border border-slate-200 p-2.5 flex items-center justify-center">
+                                    <a href="{{ route('spare-parts.public.show', $part->slug) }}" class="col-span-4 aspect-square bg-slate-50 border border-slate-200 p-2.5 flex items-center justify-center hover:opacity-90 transition" title="Lihat detail {{ $part->name }}">
                                         <img src="{{ $part->imageUrl }}"
                                              alt="{{ $part->name }}"
                                              loading="lazy"
                                              class="w-full h-full object-contain" />
-                                    </div>
+                                    </a>
                                     <div class="col-span-8 space-y-1.5">
                                         <div class="flex items-center gap-2">
                                             <span class="font-mono text-[11px] font-bold uppercase tracking-wider text-blue-600">{{ $part->brand }}</span>
@@ -712,7 +726,9 @@
                                             <span class="text-[11px] font-semibold text-slate-500">{{ $part->category?->label() ?? 'Komponen Umum' }}</span>
                                         </div>
                                         <h3 class="font-extrabold text-base text-slate-900 leading-snug" title="{{ $part->name }}">
-                                            {{ $part->name }}
+                                            <a href="{{ route('spare-parts.public.show', $part->slug) }}" class="hover:text-blue-600 transition">
+                                                {{ $part->name }}
+                                            </a>
                                         </h3>
                                         <p class="text-xs text-slate-500 pt-0.5">
                                             Kompatibilitas:
@@ -968,6 +984,185 @@
     </section>
 
     <!-- =====================================================================
+         SEKSI 7: KONTAK & KONSULTASI SHOWROOM (LEAD INQUIRY FORM)
+         ===================================================================== -->
+    <section id="kontak" class="bg-slate-100 border-t border-slate-300 py-20 sm:py-28">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+            <div class="border-b border-slate-300 pb-8 flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div>
+                    <span class="font-mono text-xs font-bold uppercase tracking-widest text-blue-600">07 / Layanan Prospek &amp; Konsultasi</span>
+                    <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 mt-2">
+                        Hubungi Tim Konsultan Dealer Pro
+                    </h2>
+                    <p class="text-slate-600 text-sm sm:text-base mt-2 max-w-2xl">
+                        Konsultasi unit kendaraan baru, ketersediaan komponen suku cadang, atau jadwal pengerjaan bengkel resmi. Formulir ini terhubung langsung ke tim sales dan customer service kami.
+                    </p>
+                </div>
+                <div class="flex items-center gap-3 shrink-0">
+                    <a href="https://wa.me/6281234567890" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 px-4 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold uppercase tracking-wider transition">
+                        WhatsApp Sales: +62-812-3456-7890
+                    </a>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+                <!-- Info cards (5 Cols) -->
+                <div class="lg:col-span-5 space-y-6">
+                    <div class="bg-white border border-slate-300 p-6 sm:p-8 space-y-4">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200 pb-2">
+                            Alamat &amp; Jam Layanan Showroom
+                        </h3>
+                        <p class="text-sm text-slate-800 font-sans font-medium leading-relaxed">
+                            Jl. Sudirman No. 88, Karet Semanggi, Jakarta Selatan 12190
+                        </p>
+                        <dl class="space-y-2 text-xs text-slate-600 font-mono pt-2">
+                            <div class="flex items-center justify-between"><dt class="font-sans font-bold text-slate-900">Telepon Showroom:</dt><dd class="tabular-nums">+62-21-555-0199</dd></div>
+                            <div class="flex items-center justify-between"><dt class="font-sans font-bold text-slate-900">Senin - Sabtu:</dt><dd class="tabular-nums">08:00 - 18:00 WIB</dd></div>
+                            <div class="flex items-center justify-between"><dt class="font-sans font-bold text-slate-900">Minggu / Hari Libur:</dt><dd class="font-sans text-amber-700">Janji Temu</dd></div>
+                        </dl>
+                    </div>
+
+                    <div class="bg-white border border-slate-300 p-6 sm:p-8">
+                        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200 pb-2 mb-3">
+                            Jaminan Komitmen Layanan
+                        </h3>
+                        <ul class="space-y-2 text-xs text-slate-700">
+                            <li class="flex items-center gap-2">✓ Tanggapan cepat tim sales dalam 1 jam kerja</li>
+                            <li class="flex items-center gap-2">✓ Garansi resmi unit pabrikan dan sertifikasi suku cadang</li>
+                            <li class="flex items-center gap-2">✓ Transparansi estimasi biaya servis dan suku cadang</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Form (7 Cols) -->
+                <div class="lg:col-span-7 bg-white border border-slate-300 p-6 sm:p-10 shadow-sm">
+                    @if(session('contact_success'))
+                        <div class="mb-6 p-4 bg-emerald-50 border border-emerald-300 text-emerald-900 text-sm flex items-start gap-3" role="alert">
+                            <svg class="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            <div>
+                                <p class="font-bold">Pesan Terkirim</p>
+                                <p class="text-xs text-emerald-800 mt-0.5">{{ session('contact_success') }}</p>
+                            </div>
+                        </div>
+                    @endif
+
+                    @if($errors->any())
+                        <div class="mb-6 p-4 bg-red-50 border border-red-300 text-red-900 text-sm" role="alert">
+                            <p class="font-bold text-xs uppercase tracking-wider mb-1">Gagal mengirim pesan:</p>
+                            <ul class="list-disc list-inside text-xs space-y-1">
+                                @foreach($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    <form action="{{ route('contact.store') }}"
+                          method="POST"
+                          @submit.prevent="submitContact"
+                          class="space-y-4">
+                        @csrf
+
+                        <!-- Honeypot -->
+                        <div class="hidden" aria-hidden="true" style="display:none !important;">
+                            <label for="sh_contact_website">Website URL (Jangan diisi)</label>
+                            <input type="text" id="sh_contact_website" name="website_url" value="" tabindex="-1" autocomplete="off">
+                        </div>
+
+                        <div>
+                            <label for="sh_contact_name" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                                Nama Lengkap <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text"
+                                   id="sh_contact_name"
+                                   name="name"
+                                   x-model="contactForm.name"
+                                   value="{{ old('name', auth()->user()?->name ?? '') }}"
+                                   placeholder="Contoh: Budi Santoso"
+                                   required
+                                   maxlength="100"
+                                   class="w-full text-sm border-slate-300 focus:border-blue-600 focus:ring-blue-600 rounded-none bg-white">
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label for="sh_contact_email" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                                    Alamat Email <span class="text-red-500">*</span>
+                                </label>
+                                <input type="email"
+                                       id="sh_contact_email"
+                                       name="email"
+                                       x-model="contactForm.email"
+                                       value="{{ old('email', auth()->user()?->email ?? '') }}"
+                                       placeholder="nama@domain.com"
+                                       required
+                                       maxlength="150"
+                                       class="w-full text-sm border-slate-300 focus:border-blue-600 focus:ring-blue-600 rounded-none bg-white">
+                            </div>
+                            <div>
+                                <label for="sh_contact_phone" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                                    No. Telepon / WhatsApp <span class="text-red-500">*</span>
+                                </label>
+                                <input type="tel"
+                                       id="sh_contact_phone"
+                                       name="phone"
+                                       x-model="contactForm.phone"
+                                       value="{{ old('phone', auth()->user()?->phone_number ?? '') }}"
+                                       placeholder="081234567890"
+                                       required
+                                       minlength="9"
+                                       maxlength="30"
+                                       class="w-full text-sm border-slate-300 focus:border-blue-600 focus:ring-blue-600 rounded-none bg-white">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label for="sh_contact_subject" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                                Topik Konsultasi <span class="text-red-500">*</span>
+                            </label>
+                            <select id="sh_contact_subject"
+                                    name="subject"
+                                    x-model="contactForm.subject"
+                                    required
+                                    class="w-full text-sm border-slate-300 focus:border-blue-600 focus:ring-blue-600 rounded-none bg-white">
+                                <option value="">-- Pilih Topik Konsultasi --</option>
+                                <option value="Pembelian &amp; Konsultasi Unit Mobil Baru">Pembelian &amp; Konsultasi Unit Mobil Baru</option>
+                                <option value="Informasi Suku Cadang OEM">Informasi Suku Cadang OEM</option>
+                                <option value="Reservasi Servis Bengkel Resmi">Reservasi Servis Bengkel Resmi</option>
+                                <option value="Pertanyaan Umum">Pertanyaan Umum</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="sh_contact_message" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
+                                Pesan / Kebutuhan <span class="text-red-500">*</span>
+                            </label>
+                            <textarea id="sh_contact_message"
+                                      name="message"
+                                      x-model="contactForm.message"
+                                      rows="4"
+                                      placeholder="Tuliskan pertanyaan atau kebutuhan Anda (minimal 10 karakter)..."
+                                      required
+                                      minlength="10"
+                                      maxlength="2000"
+                                      class="w-full text-sm border-slate-300 focus:border-blue-600 focus:ring-blue-600 rounded-none bg-white">{{ old('message') }}</textarea>
+                        </div>
+
+                        <div class="pt-2">
+                            <button type="submit"
+                                    :disabled="contactSubmitting"
+                                    class="w-full py-3.5 px-6 bg-slate-900 hover:bg-blue-600 text-white text-xs font-bold uppercase tracking-widest transition text-center disabled:opacity-50">
+                                <span x-show="!contactSubmitting">Kirimkan Pesan ke Sales</span>
+                                <span x-show="contactSubmitting" x-cloak>Mengirimkan...</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =====================================================================
          FOOTER RESMI DEALER PRO (CLEAN PUBLIC INTERFACE)
          ===================================================================== -->
     <footer class="bg-slate-50 border-t border-slate-300 text-slate-600 py-14 sm:py-16">
@@ -997,6 +1192,7 @@
                         <li><a href="#katalog-suku-cadang" class="hover:text-slate-900 transition">04 / Manifest Suku Cadang Orisinal</a></li>
                         <li><a href="#layanan-bengkel" class="hover:text-slate-900 transition">05 / Standar Bengkel &amp; Alur Tiket</a></li>
                         <li><a href="#promo" class="hover:text-slate-900 transition">06 / Program Penawaran Resmi</a></li>
+                        <li><a href="#kontak" class="hover:text-slate-900 transition">07 / Hubungi Tim Konsultan</a></li>
                     </ul>
                 </div>
 
@@ -1369,6 +1565,14 @@
                 carCategoryFilter: 'all',
                 partCategoryFilter: 'all',
                 partSearch: '',
+                contactSubmitting: false,
+                contactForm: {
+                    name: @js(old('name', auth()->user()?->name ?? '')),
+                    email: @js(old('email', auth()->user()?->email ?? '')),
+                    phone: @js(old('phone', auth()->user()?->phone_number ?? '')),
+                    subject: '',
+                    message: ''
+                },
 
                 testDriveForm: {
                     car_id: '',
@@ -1555,6 +1759,40 @@
                         this.addToast('Gagal memproses booking. Silakan coba kembali.', 'error', 6000);
                     } finally {
                         this.isSubmitting = false;
+                    }
+                },
+
+                async submitContact(e) {
+                    this.contactSubmitting = true;
+                    const formData = new FormData(e.target);
+
+                    try {
+                        const response = await fetch('{{ route('contact.store') }}', {
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                            },
+                            body: formData
+                        });
+
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            const errMessage = data.message || (data.errors ? Object.values(data.errors)[0][0] : 'Gagal mengirim pesan.');
+                            this.addToast(errMessage, 'error', 6000);
+                            return;
+                        }
+
+                        this.addToast(data.message || 'Pesan Anda berhasil dikirim ke tim sales!', 'success', 5000);
+                        this.contactForm.subject = '';
+                        this.contactForm.message = '';
+                        e.target.reset();
+                    } catch (error) {
+                        e.target.submit();
+                    } finally {
+                        this.contactSubmitting = false;
                     }
                 }
             };

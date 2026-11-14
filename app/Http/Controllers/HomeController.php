@@ -40,4 +40,53 @@ class HomeController extends Controller
             'pendingServiceBooking'
         ));
     }
+
+    public function showCar(Car $car): View
+    {
+        if (! $car->is_available) {
+            abort(404);
+        }
+
+        $car->loadMissing([
+            'promos' => fn ($q) => $q->active(),
+        ]);
+
+        $relatedCars = Car::available()
+            ->where('id', '!=', $car->id)
+            ->ordered()
+            ->take(3)
+            ->get();
+
+        $pendingTestDrive = session('pending_test_drive');
+        $pendingServiceBooking = session('pending_service_booking');
+
+        return view('cars.show', compact('car', 'relatedCars', 'pendingTestDrive', 'pendingServiceBooking'));
+    }
+
+    public function showSparePart(SparePart $sparePart): View
+    {
+        if (! $sparePart->is_available) {
+            abort(404);
+        }
+
+        $relatedParts = SparePart::available()
+            ->where('id', '!=', $sparePart->id)
+            ->where('category', $sparePart->category)
+            ->take(3)
+            ->get();
+
+        if ($relatedParts->isEmpty()) {
+            $relatedParts = SparePart::available()
+                ->where('id', '!=', $sparePart->id)
+                ->take(3)
+                ->get();
+        }
+
+        return view('spare-parts.show', compact('sparePart', 'relatedParts'));
+    }
+
+    public function contact(): View
+    {
+        return view('contact.index');
+    }
 }
