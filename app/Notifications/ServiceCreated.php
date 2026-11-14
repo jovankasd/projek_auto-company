@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\Service;
 use App\Notifications\Channels\WhatsAppChannel;
+use App\Support\Timezone;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -40,7 +41,7 @@ class ServiceCreated extends Notification implements ShouldQueue
             ->line('Booking servis berkala Anda telah berhasil kami terima.')
             ->line('Nomor Tiket: '.$this->service->ticket_number)
             ->line('Unit Kendaraan: '.$this->service->vehicle_model.' ('.$this->service->vehicle_plate_number.')')
-            ->line('Jadwal: '.$this->service->service_date->translatedFormat('l, d F Y').' pukul '.sprintf('%02d:00', $this->service->slot_hour).' WIB')
+            ->line('Jadwal: '.Timezone::format($this->service->service_date, 'l, d F Y', false).' pukul '.sprintf('%02d:00', $this->service->slot_hour).' WIB')
             ->action('Pantau Status Servis', $url)
             ->line('Tim kami akan segera memverifikasi dan menyiapkan slot pengerjaan Anda.');
     }
@@ -63,6 +64,6 @@ class ServiceCreated extends Notification implements ShouldQueue
 
     public function toWhatsApp(object $notifiable): string
     {
-        return "Halo {$notifiable->name},\nBooking servis Anda telah diterima dengan nomor tiket *{$this->service->ticket_number}* untuk unit {$this->service->vehicle_model} ({$this->service->vehicle_plate_number}). Jadwal: {$this->service->service_date->translatedFormat('d M Y')} jam ".sprintf('%02d:00', $this->service->slot_hour).' WIB. Pantau status servis di: '.url('/dashboard/services/'.$this->service->id);
+        return "Halo {$notifiable->name},\nBooking servis Anda telah diterima dengan nomor tiket *{$this->service->ticket_number}* untuk unit {$this->service->vehicle_model} ({$this->service->vehicle_plate_number}). Jadwal: ".Timezone::format($this->service->service_date, 'd M Y', false).' jam '.sprintf('%02d:00', $this->service->slot_hour).' WIB. Pantau status servis di: '.url('/dashboard/services/'.$this->service->id);
     }
 }

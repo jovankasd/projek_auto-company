@@ -4,8 +4,8 @@ namespace App\Console\Commands;
 
 use App\Enums\TestDriveStatus;
 use App\Models\TestDrive;
+use App\Support\Timezone;
 use Illuminate\Console\Command;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 
 class RemindUpcomingTestDrivesCommand extends Command
@@ -16,9 +16,14 @@ class RemindUpcomingTestDrivesCommand extends Command
 
     public function handle(): int
     {
-        $tomorrow = Carbon::tomorrow();
+        $tomorrow = Timezone::todayWib()->addDay();
+        $startUtc = Timezone::startOfDayUtc($tomorrow);
+        $endUtc = Timezone::endOfDayUtc($tomorrow);
 
-        $testDrives = TestDrive::whereDate('preferred_date', $tomorrow->toDateString())
+        $testDrives = TestDrive::where(function ($query) use ($tomorrow, $startUtc, $endUtc) {
+            $query->whereBetween('preferred_date', [$startUtc, $endUtc])
+                ->orWhereDate('preferred_date', $tomorrow->toDateString());
+        })
             ->where('status', TestDriveStatus::Approved)
             ->with(['customer', 'car', 'sales'])
             ->get();

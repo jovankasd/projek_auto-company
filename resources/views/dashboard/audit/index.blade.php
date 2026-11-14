@@ -69,7 +69,7 @@
                             @foreach($auditLogs as $log)
                                 <tr class="hover:bg-slate-50/80 transition">
                                     <td class="py-4 px-6 font-mono text-xs text-slate-600 whitespace-nowrap">
-                                        {{ $log->created_at->translatedFormat('d M Y, H:i:s') }} WIB
+                                        {{ \App\Support\Timezone::format($log->created_at, 'd M Y, H:i:s') }}
                                     </td>
                                     <td class="py-4 px-6">
                                         @if($log->user)

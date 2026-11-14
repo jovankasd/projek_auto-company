@@ -10,6 +10,7 @@ use App\Models\ServiceItem;
 use App\Models\ServiceStatusLog;
 use App\Models\User;
 use App\Services\ServiceCostCalculator;
+use App\Support\Timezone;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -270,7 +271,7 @@ class ServiceController extends Controller
 
         $statusLogsData = $service->statusLogs->map(function (ServiceStatusLog $log): array {
             $changedByName = $log->changedBy ? $log->changedBy->name : 'Sistem';
-            $createdAt = Carbon::parse($log->created_at);
+            $createdAt = Timezone::toWib($log->created_at) ?? Carbon::now('Asia/Jakarta');
 
             return [
                 'id' => $log->id,
@@ -278,7 +279,7 @@ class ServiceController extends Controller
                 'to_status_label' => $log->to_status ? (ServiceStatus::tryFrom($log->to_status)?->label() ?? $log->to_status) : 'Dibuat',
                 'notes' => $log->notes,
                 'changed_by' => $changedByName,
-                'created_at_human' => $createdAt->translatedFormat('d M Y, H:i').' WIB',
+                'created_at_human' => Timezone::format($log->created_at),
                 'time_ago' => $createdAt->diffForHumans(),
             ];
         })->values()->all();
@@ -312,7 +313,7 @@ class ServiceController extends Controller
             'updated_at' => $service->updated_at?->toIso8601String() ?? now()->toIso8601String(),
             'logs' => $service->statusLogs->map(function (ServiceStatusLog $log): array {
                 $changedByName = $log->changedBy ? $log->changedBy->name : 'Sistem';
-                $createdAt = Carbon::parse($log->created_at);
+                $createdAt = Timezone::toWib($log->created_at) ?? Carbon::now('Asia/Jakarta');
 
                 return [
                     'id' => $log->id,
@@ -320,7 +321,7 @@ class ServiceController extends Controller
                     'to_status_label' => $log->to_status ? (ServiceStatus::tryFrom($log->to_status)?->label() ?? $log->to_status) : 'Dibuat',
                     'notes' => $log->notes,
                     'changed_by' => $changedByName,
-                    'created_at_human' => $createdAt->translatedFormat('d M Y, H:i').' WIB',
+                    'created_at_human' => Timezone::format($log->created_at),
                     'time_ago' => $createdAt->diffForHumans(),
                 ];
             }),

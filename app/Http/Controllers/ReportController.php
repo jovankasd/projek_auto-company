@@ -6,13 +6,12 @@ use App\Enums\ServiceStatus;
 use App\Enums\UserRole;
 use App\Models\Car;
 use App\Models\Service;
-use App\Models\Setting;
 use App\Models\TestDrive;
 use App\Models\User;
-use App\Notifications\ExecutiveReportNotification;
+use App\Services\ExecutiveReportService;
+use App\Support\Timezone;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
@@ -25,14 +24,14 @@ class ReportController extends Controller
             abort(403, 'Akses ditolak.');
         }
 
-        $startDate = $request->input('start_date', Carbon::now()->startOfMonth()->toDateString());
-        $endDate = $request->input('end_date', Carbon::now()->endOfMonth()->toDateString());
+        $startDate = $request->input('start_date', Timezone::nowWib()->startOfMonth()->toDateString());
+        $endDate = $request->input('end_date', Timezone::nowWib()->endOfMonth()->toDateString());
+
+        $startUtc = Timezone::startOfDayUtc($startDate);
+        $endUtc = Timezone::endOfDayUtc($endDate);
 
         // 1. Service Stats
-        $serviceQuery = Service::whereBetween('service_date', [
-            Carbon::parse($startDate)->startOfDay(),
-            Carbon::parse($endDate)->endOfDay(),
-        ]);
+        $serviceQuery = Service::whereBetween('service_date', [$startUtc, $endUtc]);
 
         $totalServices = (clone $serviceQuery)->count();
         $completedServices = (clone $serviceQuery)->where('status', ServiceStatus::Completed)->count();
@@ -44,10 +43,7 @@ class ReportController extends Controller
             ->pluck('count', 'service_type');
 
         // 2. Test Drive Stats
-        $testDriveQuery = TestDrive::whereBetween('preferred_date', [
-            Carbon::parse($startDate)->startOfDay(),
-            Carbon::parse($endDate)->endOfDay(),
-        ]);
+        $testDriveQuery = TestDrive::whereBetween('preferred_date', [$startUtc, $endUtc]);
 
         $totalTestDrives = (clone $testDriveQuery)->count();
         $testDrivesByStatus = (clone $testDriveQuery)
@@ -56,19 +52,13 @@ class ReportController extends Controller
             ->pluck('count', 'status');
 
         // 3. Mechanic Performance
-        $mechanics = User::where('role', UserRole::Mekanik)->get()->map(function (User $mechanic) use ($startDate, $endDate) {
+        $mechanics = User::where('role', UserRole::Mekanik)->get()->map(function (User $mechanic) use ($startUtc, $endUtc) {
             $assignedCount = Service::where('assigned_mechanic_id', $mechanic->id)
-                ->whereBetween('service_date', [
-                    Carbon::parse($startDate)->startOfDay(),
-                    Carbon::parse($endDate)->endOfDay(),
-                ])->count();
+                ->whereBetween('service_date', [$startUtc, $endUtc])->count();
 
             $completedCount = Service::where('assigned_mechanic_id', $mechanic->id)
                 ->where('status', ServiceStatus::Completed)
-                ->whereBetween('service_date', [
-                    Carbon::parse($startDate)->startOfDay(),
-                    Carbon::parse($endDate)->endOfDay(),
-                ])->count();
+                ->whereBetween('service_date', [$startUtc, $endUtc])->count();
 
             return [
                 'name' => $mechanic->name,
@@ -78,11 +68,8 @@ class ReportController extends Controller
         });
 
         // 4. Most popular cars for test drive
-        $popularCars = Car::withCount(['testDrives' => function ($q) use ($startDate, $endDate) {
-            $q->whereBetween('preferred_date', [
-                Carbon::parse($startDate)->startOfDay(),
-                Carbon::parse($endDate)->endOfDay(),
-            ]);
+        $popularCars = Car::withCount(['testDrives' => function ($q) use ($startUtc, $endUtc) {
+            $q->whereBetween('preferred_date', [$startUtc, $endUtc]);
         }])->orderByDesc('test_drives_count')->take(5)->get();
 
         return view('dashboard.reports.index', compact(
@@ -102,7 +89,7 @@ class ReportController extends Controller
     /**
      * Super Admin memverifikasi dan mengirimkan laporan keseluruhan resmi ke Owner.
      */
-    public function submitToOwner(Request $request): RedirectResponse
+    public function submitToOwner(Request $request, ExecutiveReportService $reportService): RedirectResponse
     {
         $user = auth()->user();
         if (! $user->isSuperAdmin()) {
@@ -111,32 +98,35 @@ class ReportController extends Controller
 
         $note = $request->input('note', 'Laporan operasional 3 divisi (Sales, Admin Mekanik, Customer) telah diverifikasi lengkap.');
 
-        // Simpan catatan waktu pengiriman
-        Setting::set('last_report_submitted_at', now()->toDateTimeString(), 'reports');
-        Setting::set('last_report_submitted_by', $user->name, 'reports');
-        Setting::set('last_report_note', $note, 'reports');
+        $result = $reportService->submit($user, $note);
 
-        $summary = [
-            'total_services' => Service::where('status', ServiceStatus::Completed)->count(),
-            'available_cars' => Car::available()->count(),
-            'total_test_drives' => TestDrive::count(),
-            'total_revenue' => (float) Service::where('status', ServiceStatus::Completed)->sum('total_cost'),
-        ];
-
-        // Kirimkan notifikasi ke semua akun Owner
-        $owners = User::where('role', UserRole::Owner)->get();
-        foreach ($owners as $owner) {
-            try {
-                $owner->notify(new ExecutiveReportNotification(
-                    title: 'Laporan Eksekutif Terpadu Dikirim oleh Super Admin',
-                    message: "Super Admin ({$user->name}) telah memverifikasi dan mengirimkan laporan keseluruhan (Sales, Admin Mekanik, Customer).",
-                    url: route('dashboard'),
-                    summary: $summary
-                ));
-            } catch (\Throwable $e) {
-            }
+        if (! $result['success']) {
+            return back()->with('error', $result['message']);
         }
 
-        return back()->with('success', 'Laporan operasional 3 divisi berhasil diverifikasi & dikirimkan ke Owner!');
+        return back()->with('success', $result['message']);
+    }
+
+    /**
+     * Super Admin melakukan retry pengiriman laporan yang gagal secara idempoten.
+     */
+    public function retrySubmission(Request $request, ExecutiveReportService $reportService): RedirectResponse
+    {
+        $user = auth()->user();
+        if (! $user->isSuperAdmin()) {
+            abort(403, 'Hanya Super Admin yang berhak memverifikasi dan mengirimkan laporan ke Owner.');
+        }
+
+        $result = $reportService->retry($user);
+
+        if ($result['status'] === 'already_sent') {
+            return back()->with('info', $result['message']);
+        }
+
+        if (! $result['success']) {
+            return back()->with('error', $result['message']);
+        }
+
+        return back()->with('success', $result['message']);
     }
 }

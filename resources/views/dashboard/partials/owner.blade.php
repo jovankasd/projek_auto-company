@@ -37,7 +37,7 @@
             <div>
                 <div class="flex items-center gap-2">
                     <h3 class="font-extrabold text-slate-900 text-base">Status Laporan Terverifikasi dari Super Admin</h3>
-                    @if($lastReportSubmittedAt)
+                    @if(($lastReportStatus ?? null) === 'sent' && $lastReportSubmittedAt)
                         <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200">
                             Resmi Terkirim
                         </span>
@@ -47,9 +47,9 @@
                         </span>
                     @endif
                 </div>
-                @if($lastReportSubmittedAt)
+                @if(($lastReportStatus ?? null) === 'sent' && $lastReportSubmittedAt)
                     <p class="text-xs text-slate-600 mt-1">
-                        Diverifikasi & dikirimkan oleh <strong>{{ $lastReportSubmittedBy }}</strong> pada {{ \Carbon\Carbon::parse($lastReportSubmittedAt)->translatedFormat('d F Y, H:i') }} WIB.
+                        Diverifikasi & dikirimkan oleh <strong>{{ $lastReportSubmittedBy }}</strong> pada {{ \App\Support\Timezone::format($lastReportSubmittedAt, 'd F Y, H:i') }}.
                     </p>
                     @if($lastReportNote)
                         <p class="text-xs text-purple-900 bg-purple-50 px-3 py-1.5 rounded-xl border border-purple-100 mt-2 italic">
@@ -58,7 +58,7 @@
                     @endif
                 @else
                     <p class="text-xs text-slate-500 mt-1">
-                        Data real-time 3 divisi (Sales, Admin Mekanik, Customer) otomatis dihimpun di bawah ini. Super Admin dapat mengirimkan notifikasi rekap resmi sewaktu-waktu.
+                        Data real-time 3 divisi (Sales, Admin Mekanik, Customer) otomatis dihimpun di bawah ini. Super Admin dapat memverifikasi dan mengirimkan laporan resmi sewaktu-waktu.
                     </p>
                 @endif
             </div>
@@ -476,8 +476,8 @@
                                     <div class="font-bold text-slate-900">{{ $srv->customer->name ?? 'Pelanggan Umum' }}</div>
                                     <div class="text-xs text-slate-500 font-mono">{{ $srv->car_model }} ({{ $srv->license_plate }})</div>
                                 </td>
-                                <td class="py-4 px-4 text-xs">
-                                    {{ $srv->completed_at ? $srv->completed_at->translatedFormat('d M Y, H:i') : '—' }}
+                                <td class="py-4 px-4 text-xs font-mono">
+                                    {{ $srv->completed_at ? \App\Support\Timezone::format($srv->completed_at, 'd M Y, H:i') : '—' }}
                                 </td>
                                 <td class="py-4 px-4 text-xs font-medium text-slate-700">
                                     {{ $srv->mechanic->name ?? 'Admin Mekanik' }}

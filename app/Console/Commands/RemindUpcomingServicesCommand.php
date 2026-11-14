@@ -4,8 +4,8 @@ namespace App\Console\Commands;
 
 use App\Enums\ServiceStatus;
 use App\Models\Service;
+use App\Support\Timezone;
 use Illuminate\Console\Command;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 
 class RemindUpcomingServicesCommand extends Command
@@ -16,9 +16,14 @@ class RemindUpcomingServicesCommand extends Command
 
     public function handle(): int
     {
-        $tomorrow = Carbon::tomorrow();
+        $tomorrow = Timezone::todayWib()->addDay();
+        $startUtc = Timezone::startOfDayUtc($tomorrow);
+        $endUtc = Timezone::endOfDayUtc($tomorrow);
 
-        $services = Service::whereDate('service_date', $tomorrow->toDateString())
+        $services = Service::where(function ($query) use ($tomorrow, $startUtc, $endUtc) {
+            $query->whereBetween('service_date', [$startUtc, $endUtc])
+                ->orWhereDate('service_date', $tomorrow->toDateString());
+        })
             ->whereIn('status', [ServiceStatus::Pending, ServiceStatus::Confirmed])
             ->with(['customer'])
             ->get();

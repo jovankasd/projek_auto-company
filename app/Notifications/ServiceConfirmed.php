@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\Service;
 use App\Notifications\Channels\WhatsAppChannel;
+use App\Support\Timezone;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -40,7 +41,7 @@ class ServiceConfirmed extends Notification implements ShouldQueue
             ->greeting('Halo, '.$notifiable->name.'!')
             ->line('Kabar baik! Tiket servis '.$this->service->ticket_number.' telah dikonfirmasi oleh bengkel.')
             ->line('Mekanik yang ditugaskan: '.$mechanicName)
-            ->line('Jadwal Kedatangan: '.$this->service->service_date->translatedFormat('l, d F Y').' pukul '.sprintf('%02d:00', $this->service->slot_hour).' WIB')
+            ->line('Jadwal Kedatangan: '.Timezone::format($this->service->service_date, 'l, d F Y', false).' pukul '.sprintf('%02d:00', $this->service->slot_hour).' WIB')
             ->action('Lihat Detail Tiket', $url)
             ->line('Mohon hadir tepat waktu sesuai jadwal yang telah ditentukan.');
     }
@@ -67,6 +68,6 @@ class ServiceConfirmed extends Notification implements ShouldQueue
     {
         $mechanicName = $this->service->mechanic ? $this->service->mechanic->name : 'Mekanik Resmi';
 
-        return "Halo {$notifiable->name},\nTiket servis *{$this->service->ticket_number}* telah dikonfirmasi oleh bengkel XYZ Motors. Mekanik: {$mechanicName}. Silakan datang pada {$this->service->service_date->translatedFormat('d M Y')} jam ".sprintf('%02d:00', $this->service->slot_hour).' WIB. Detail: '.url('/dashboard/services/'.$this->service->id);
+        return "Halo {$notifiable->name},\nTiket servis *{$this->service->ticket_number}* telah dikonfirmasi oleh bengkel XYZ Motors. Mekanik: {$mechanicName}. Silakan datang pada ".Timezone::format($this->service->service_date, 'd M Y', false).' jam '.sprintf('%02d:00', $this->service->slot_hour).' WIB. Detail: '.url('/dashboard/services/'.$this->service->id);
     }
 }

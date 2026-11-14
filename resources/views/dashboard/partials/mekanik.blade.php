@@ -252,7 +252,7 @@
                                 </td>
                                 <td class="py-4 px-6">
                                     <span class="text-xs font-semibold block text-slate-800">
-                                        {{ \Carbon\Carbon::parse($service->service_date)->translatedFormat('d M Y') }}
+                                        {{ \App\Support\Timezone::format($service->service_date, 'd M Y', false) }}
                                     </span>
                                     <span class="text-[11px] text-slate-500 capitalize">{{ is_object($service->service_type) && method_exists($service->service_type, 'label') ? $service->service_type->label() : $service->service_type }}</span>
                                 </td>

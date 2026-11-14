@@ -27,7 +27,7 @@ class Setting extends Model
         return Cache::rememberForever("setting.{$key}", function () use ($key, $default) {
             $setting = static::where('key', $key)->first();
 
-            if (! $setting) {
+            if (! $setting || $setting->value === null) {
                 return $default;
             }
 
@@ -43,9 +43,9 @@ class Setting extends Model
     public static function set(string $key, mixed $value, string $group = 'general', string $type = 'string'): self
     {
         $stringValue = match ($type) {
-            'json' => is_array($value) ? json_encode($value) : (string) $value,
+            'json' => is_array($value) ? json_encode($value) : ($value === null ? null : (string) $value),
             'boolean' => $value ? '1' : '0',
-            default => (string) $value,
+            default => $value === null ? null : (string) $value,
         };
 
         $setting = static::updateOrCreate(

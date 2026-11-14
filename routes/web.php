@@ -62,6 +62,7 @@ Route::middleware(['auth', 'verified'])->prefix('dashboard')->group(function () 
 
     Route::get('reports', [ReportController::class, 'index'])->middleware('role:super_admin,owner')->name('reports.index');
     Route::post('reports/submit-to-owner', [ReportController::class, 'submitToOwner'])->middleware('role:super_admin')->name('reports.submit-to-owner');
+    Route::post('reports/retry-submission', [ReportController::class, 'retrySubmission'])->middleware('role:super_admin')->name('reports.retry-submission');
 
     Route::middleware('role:super_admin')->group(function () {
         Route::resource('users', UserController::class);

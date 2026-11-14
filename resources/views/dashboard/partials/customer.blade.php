@@ -63,7 +63,7 @@
                 </div>
                 <div>
                     <span class="text-xs uppercase text-slate-400 font-semibold">Waktu Booking</span>
-                    <p class="font-bold text-base text-slate-900 mt-0.5">{{ $activeService->service_date->translatedFormat('d M Y') }}</p>
+                    <p class="font-bold text-base text-slate-900 mt-0.5">{{ \App\Support\Timezone::format($activeService->service_date, 'd M Y', false) }}</p>
                     <p class="text-xs text-slate-500">Pukul {{ sprintf('%02d:00', $activeService->slot_hour) }} WIB</p>
                 </div>
                 <div>
@@ -147,7 +147,7 @@
                                 <div class="flex-1">
                                     <p class="font-semibold text-slate-800">{{ $log->notes ?? 'Status diperbarui' }}</p>
                                     <p class="text-[10px] text-slate-400 mt-0.5">
-                                        {{ $log->created_at->translatedFormat('d M Y, H:i') }} WIB 
+                                        {{ \App\Support\Timezone::format($log->created_at, 'd M Y, H:i') }}
                                         @if($log->changedBy) &bull; Oleh {{ $log->changedBy->name }} @endif
                                     </p>
                                 </div>
@@ -206,7 +206,7 @@
                         </span>
                     </div>
                     <p class="text-xs text-slate-600">
-                        <span class="font-semibold text-slate-900">Jadwal:</span> {{ $upcomingTestDrive->preferred_date->translatedFormat('l, d F Y, H:i') }} WIB
+                        <span class="font-semibold text-slate-900">Jadwal:</span> {{ \App\Support\Timezone::format($upcomingTestDrive->preferred_date, 'l, d F Y, H:i') }}
                     </p>
                     <p class="text-xs text-slate-600">
                         <span class="font-semibold text-slate-900">Lokasi:</span> {{ $upcomingTestDrive->pickup_location ?? 'Showroom Pusat Dealer Pro' }}
