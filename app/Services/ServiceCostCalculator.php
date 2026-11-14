@@ -11,11 +11,23 @@ class ServiceCostCalculator
      */
     public function recalculate(Service $service): float
     {
+        if ($service->status->isTerminal()) {
+            return (float) $service->total_cost;
+        }
+
         $total = (float) $service->items()->sum('subtotal');
 
         $service->update(['total_cost' => $total]);
 
         return $total;
+    }
+
+    /**
+     * Hitung total dari service_items tanpa mutasi model.
+     */
+    public function calculateTotal(Service $service): float
+    {
+        return (float) $service->items()->sum('subtotal');
     }
 
     /**

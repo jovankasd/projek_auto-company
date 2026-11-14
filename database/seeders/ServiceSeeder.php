@@ -224,6 +224,12 @@ class ServiceSeeder extends Seeder
             $logs = $data['logs'];
             unset($data['items'], $data['logs']);
 
+            $targetStatus = $data['status'];
+            // Jika status completed, buat sebagai in_progress terlebih dahulu agar penambahan item sah
+            if ($targetStatus === ServiceStatus::Completed) {
+                $data['status'] = ServiceStatus::InProgress;
+            }
+
             $service = Service::firstOrCreate(
                 ['ticket_number' => $data['ticket_number']],
                 $data
@@ -242,6 +248,11 @@ class ServiceSeeder extends Seeder
                 }
 
                 $costCalculator->recalculate($service);
+
+                if ($targetStatus === ServiceStatus::Completed) {
+                    $service->status = ServiceStatus::Completed;
+                    $service->save();
+                }
 
                 foreach ($logs as $log) {
                     ServiceStatusLog::create([

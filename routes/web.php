@@ -32,7 +32,10 @@ Route::middleware(['auth', 'verified'])->prefix('dashboard')->group(function () 
     Route::get('my-services/{service}', [ServiceController::class, 'track'])->name('services.track');
     Route::get('my-test-drives', [TestDriveController::class, 'myTestDrives'])->name('test-drives.my');
     Route::get('services/{service}', [ServiceController::class, 'show'])->name('services.show');
-    Route::get('services/{service}/status-stream', [ServiceController::class, 'statusStream'])->name('services.status-stream');
+    Route::patch('services/{service}/cancel', [ServiceController::class, 'cancel'])->name('services.cancel');
+    Route::get('services/{service}/status-stream', [ServiceController::class, 'statusStream'])
+        ->middleware('throttle:60,1')
+        ->name('services.status-stream');
 
     // Notification Center Routes
     Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');

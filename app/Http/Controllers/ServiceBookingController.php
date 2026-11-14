@@ -3,18 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Enums\ServiceStatus;
-use App\Enums\UserRole;
 use App\Http\Requests\StoreServiceBookingRequest;
 use App\Models\Service;
 use App\Models\User;
-use App\Notifications\ServiceBookingCreatedNotification;
 use App\Services\BookingSlotValidator;
 use App\Services\TicketNumberGenerator;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
 
 class ServiceBookingController extends Controller
@@ -91,12 +88,6 @@ class ServiceBookingController extends Controller
                 'total_cost' => 0,
             ]);
         });
-
-        // 6. Notify Super Admins
-        $superAdmins = User::where('role', UserRole::SuperAdmin)->where('is_active', true)->get();
-        if ($superAdmins->isNotEmpty()) {
-            Notification::send($superAdmins, new ServiceBookingCreatedNotification($service));
-        }
 
         session()->forget('pending_service_booking');
 

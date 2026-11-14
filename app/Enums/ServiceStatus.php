@@ -52,4 +52,14 @@ enum ServiceStatus: string
     {
         return in_array($next, $this->allowedTransitions(), true);
     }
+
+    public function isTerminal(): bool
+    {
+        return in_array($this, [self::Completed, self::Cancelled], true);
+    }
+
+    public function canBeCancelled(): bool
+    {
+        return in_array($this, [self::Pending, self::Confirmed], true);
+    }
 }

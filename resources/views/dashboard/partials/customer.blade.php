@@ -29,14 +29,14 @@
     </div>
 
     <!-- Active Service Section with Visual Timeline -->
-    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8">
+    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8" x-data="{ cancelModalOpen: false }">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-slate-100 gap-4">
             <div>
                 <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Status Pengerjaan Saat Ini</span>
                 <h2 class="text-xl font-black text-slate-900 mt-1">Servis Aktif</h2>
             </div>
             @if($activeService)
-                <div class="flex items-center gap-3">
+                <div class="flex flex-wrap items-center gap-3">
                     <span class="font-mono text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
                         {{ $activeService->ticket_number }}
                     </span>
@@ -44,6 +44,11 @@
                         <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
                         {{ $activeService->status->label() }}
                     </span>
+                    @if($activeService->status->canBeCancelled())
+                        <button type="button" @click="cancelModalOpen = true" class="px-3 py-1.5 rounded-xl bg-red-50 text-red-700 border border-red-200 text-xs font-bold hover:bg-red-100 transition shadow-xs">
+                            Batalkan Servis
+                        </button>
+                    @endif
                 </div>
             @endif
         </div>
@@ -153,6 +158,46 @@
                                 </div>
                             </div>
                         @endforeach
+                    </div>
+                </div>
+            @endif
+
+            <!-- Modal Pembatalan Servis Customer -->
+            @if($activeService->status->canBeCancelled())
+                <div x-show="cancelModalOpen" 
+                     x-cloak
+                     class="fixed inset-0 z-50 flex items-center justify-center p-4"
+                     @keydown.escape.window="cancelModalOpen = false">
+                    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="cancelModalOpen = false"></div>
+                    <div class="relative w-full max-w-md rounded-3xl bg-white border border-slate-200 shadow-2xl p-6 sm:p-8 overflow-hidden"
+                         x-transition:enter="transition ease-out duration-300 transform"
+                         x-transition:enter-start="opacity-0 scale-95"
+                         x-transition:enter-end="opacity-100 scale-100">
+                        <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                            <h3 class="font-black text-lg text-slate-900">Batalkan Booking Servis</h3>
+                            <button @click="cancelModalOpen = false" class="p-2 text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+                        </div>
+
+                        <form action="{{ route('services.cancel', $activeService) }}" method="POST" class="mt-5 space-y-4">
+                            @csrf
+                            @method('PATCH')
+                            <div>
+                                <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Alasan Pembatalan</label>
+                                <textarea name="cancellation_reason" required minlength="5" maxlength="500" rows="3"
+                                          placeholder="Tuliskan alasan pembatalan booking kendaraan Anda..."
+                                          class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none"></textarea>
+                                <p class="text-[11px] text-slate-400 mt-1">Minimal 5 karakter. Tiket servis akan dibatalkan.</p>
+                            </div>
+
+                            <div class="pt-4 flex items-center justify-end gap-3 border-t border-slate-100">
+                                <button type="button" @click="cancelModalOpen = false" class="px-5 py-2.5 rounded-xl font-bold text-sm text-slate-600 hover:bg-slate-100">
+                                    Batal
+                                </button>
+                                <button type="submit" class="px-5 py-2.5 rounded-xl font-bold text-sm bg-red-600 text-white hover:bg-red-700 shadow-sm">
+                                    Konfirmasi Pembatalan
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             @endif

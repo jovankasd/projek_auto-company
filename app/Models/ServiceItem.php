@@ -26,6 +26,23 @@ class ServiceItem extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        $guardTerminal = function (ServiceItem $item) {
+            /** @var Service|null $service */
+            $service = $item->relationLoaded('service') && $item->service !== null
+                ? $item->service
+                : Service::withTrashed()->find($item->service_id);
+
+            if ($service && $service->status->isTerminal()) {
+                throw new \DomainException('Tidak dapat memutasi item pada work order servis yang telah selesai atau dibatalkan.');
+            }
+        };
+
+        static::saving($guardTerminal);
+        static::deleting($guardTerminal);
+    }
+
     // --- Relasi ---
 
     public function service(): BelongsTo

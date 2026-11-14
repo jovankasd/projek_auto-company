@@ -6,14 +6,9 @@ use App\Enums\ServiceStatus;
 use App\Events\ServiceStatusChanged;
 use App\Models\Service;
 use App\Models\ServiceStatusLog;
-use App\Services\ServiceCostCalculator;
 
 class ServiceObserver
 {
-    public function __construct(
-        private ServiceCostCalculator $costCalculator,
-    ) {}
-
     public function created(Service $service): void
     {
         $status = $service->status instanceof ServiceStatus
@@ -58,8 +53,6 @@ class ServiceObserver
             $toStatus = $service->status instanceof ServiceStatus
                 ? $service->status
                 : ServiceStatus::tryFrom((string) $service->status) ?? ServiceStatus::Pending;
-
-            $this->costCalculator->recalculate($service->fresh());
 
             event(new ServiceStatusChanged($service, $fromStatus, $toStatus, auth()->user()));
         }

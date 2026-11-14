@@ -43,4 +43,17 @@ test('ServiceStatus state machine strictly enforces valid transitions', function
     // Terminal states cannot transition
     expect(ServiceStatus::Completed->canTransitionTo(ServiceStatus::Pending))->toBeFalse();
     expect(ServiceStatus::Cancelled->canTransitionTo(ServiceStatus::Confirmed))->toBeFalse();
+
+    // Terminal and cancellation predicates
+    expect(ServiceStatus::Completed->isTerminal())->toBeTrue();
+    expect(ServiceStatus::Cancelled->isTerminal())->toBeTrue();
+    expect(ServiceStatus::Pending->isTerminal())->toBeFalse();
+    expect(ServiceStatus::Confirmed->isTerminal())->toBeFalse();
+    expect(ServiceStatus::InProgress->isTerminal())->toBeFalse();
+
+    expect(ServiceStatus::Pending->canBeCancelled())->toBeTrue();
+    expect(ServiceStatus::Confirmed->canBeCancelled())->toBeTrue();
+    expect(ServiceStatus::InProgress->canBeCancelled())->toBeFalse();
+    expect(ServiceStatus::Completed->canBeCancelled())->toBeFalse();
+    expect(ServiceStatus::Cancelled->canBeCancelled())->toBeFalse();
 });
