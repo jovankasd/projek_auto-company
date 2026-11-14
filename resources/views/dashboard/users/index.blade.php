@@ -84,7 +84,7 @@
                                     </span>
                                 </td>
                                 <td class="py-4 px-6 text-xs text-slate-500">
-                                    {{ $u->created_at->translatedFormat('d M Y') }}
+                                    {{ \App\Support\Timezone::format($u->created_at, 'd M Y', false) }}
                                 </td>
                                 <td class="py-4 px-6 text-right space-x-2">
                                     <a href="{{ route('users.edit', $u) }}" class="inline-flex items-center px-2.5 py-1.5 rounded-lg bg-slate-100 text-slate-800 text-xs font-bold hover:bg-slate-200 transition">

@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\TestDrive;
 use App\Notifications\Channels\WhatsAppChannel;
+use App\Support\Timezone;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -39,7 +40,7 @@ class TestDriveRequested extends Notification implements ShouldQueue
             ->subject('Pengajuan Test Drive Baru: '.$carModel)
             ->greeting('Halo, '.$notifiable->name.'!')
             ->line('Ada pengajuan test drive baru untuk unit '.$carModel.' dari '.$customerName.'.')
-            ->line('Jadwal Permintaan: '.$this->testDrive->preferred_date->translatedFormat('l, d F Y'))
+            ->line('Jadwal Permintaan: '.Timezone::format($this->testDrive->preferred_date, 'l, d F Y', false))
             ->action('Lihat Detail Pengajuan', url('/dashboard/test-drives/'.$this->testDrive->id))
             ->line('Silakan hubungi pelanggan dan proses persetujuan jadwal.');
     }
@@ -66,6 +67,6 @@ class TestDriveRequested extends Notification implements ShouldQueue
     {
         $carModel = $this->testDrive->car->model_name ?? 'Mobil';
 
-        return "Halo {$notifiable->name},\nPengajuan test drive baru diterima untuk unit *{$carModel}* pada tanggal {$this->testDrive->preferred_date->translatedFormat('d M Y')}. Silakan cek di panel dashboard.";
+        return "Halo {$notifiable->name},\nPengajuan test drive baru diterima untuk unit *{$carModel}* pada tanggal ".Timezone::format($this->testDrive->preferred_date, 'd M Y', false).'. Silakan cek di panel dashboard.';
     }
 }

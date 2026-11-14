@@ -95,7 +95,7 @@
                                     $cleanPhone = '62' . substr($cleanPhone, 1);
                                 }
                                 $carName = ($td->car->brand ?? '') . ' ' . ($td->car->model_name ?? '');
-                                $dateStr = $td->preferred_date ? $td->preferred_date->translatedFormat('l, d F Y H:i') . ' WIB' : '';
+                                $dateStr = $td->preferred_date ? \App\Support\Timezone::format($td->preferred_date, 'l, d F Y H:i') : '';
                                 $waMessage = rawurlencode("Halo {$td->customer->name}, saya dari tim Sales Dealer Pro ingin mengonfirmasi jadwal pengajuan test drive unit {$carName} pada tanggal {$dateStr}. Apakah jadwal tersebut masih sesuai?");
                                 $waUrl = "https://wa.me/{$cleanPhone}?text={$waMessage}";
                             @endphp
@@ -119,8 +119,8 @@
                                     <p class="text-xs text-slate-500 font-mono">{{ $td->car->year }} &bull; Rp{{ number_format($td->car->price, 0, ',', '.') }}</p>
                                 </td>
                                 <td class="py-4 px-6">
-                                    <p class="font-medium text-slate-900">{{ $td->preferred_date->translatedFormat('d M Y') }}</p>
-                                    <p class="text-xs text-slate-500">{{ $td->preferred_date->format('H:i') }} WIB</p>
+                                    <p class="font-medium text-slate-900">{{ \App\Support\Timezone::format($td->preferred_date, 'd M Y', false) }}</p>
+                                    <p class="text-xs text-slate-500">{{ \App\Support\Timezone::toWib($td->preferred_date)?->format('H:i') }} WIB</p>
                                     <p class="text-[11px] text-slate-400 mt-1 max-w-xs truncate" title="{{ $td->pickup_location }}">
                                         📍 {{ $td->pickup_location ?? 'Showroom Pusat' }}
                                     </p>
@@ -178,7 +178,7 @@
                             $cleanPhone = '62' . substr($cleanPhone, 1);
                         }
                         $carName = ($td->car->brand ?? '') . ' ' . ($td->car->model_name ?? '');
-                        $dateStr = $td->preferred_date ? $td->preferred_date->translatedFormat('l, d F Y H:i') . ' WIB' : '';
+                        $dateStr = $td->preferred_date ? \App\Support\Timezone::format($td->preferred_date, 'l, d F Y H:i') : '';
                         $waMessage = rawurlencode("Halo {$td->customer->name}, saya dari tim Sales Dealer Pro ingin mengonfirmasi jadwal test drive unit {$carName} pada tanggal {$dateStr}.");
                         $waUrl = "https://wa.me/{$cleanPhone}?text={$waMessage}";
                     @endphp
@@ -190,7 +190,7 @@
                             </span>
                         </div>
                         <p class="font-extrabold text-base text-slate-900">{{ $td->car->brand }} {{ $td->car->model_name }}</p>
-                        <p class="text-xs text-slate-500">Jadwal: {{ $td->preferred_date->translatedFormat('d M Y, H:i') }} WIB</p>
+                        <p class="text-xs text-slate-500">Jadwal: {{ \App\Support\Timezone::format($td->preferred_date, 'd M Y, H:i') }}</p>
                         <p class="text-xs text-slate-500">Lokasi: {{ $td->pickup_location ?? 'Showroom Pusat' }}</p>
                         <p class="text-xs font-mono text-slate-600">SIM: {{ $td->driver_license_id }}</p>
 

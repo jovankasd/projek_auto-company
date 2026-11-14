@@ -299,8 +299,8 @@
 
                 <!-- Live Clock or Quick Status -->
                 <div class="hidden sm:block text-right border-l border-slate-200 pl-4">
-                    <p class="text-xs font-bold text-slate-800">{{ now()->translatedFormat('l, d M Y') }}</p>
-                    <p class="text-[11px] text-slate-400 font-mono">{{ now()->format('H:i') }} WIB</p>
+                    <p class="text-xs font-bold text-slate-800">{{ \App\Support\Timezone::nowWib()->translatedFormat('l, d M Y') }}</p>
+                    <p class="text-[11px] text-slate-400 font-mono">{{ \App\Support\Timezone::nowWib()->format('H:i') }} WIB</p>
                 </div>
             </div>
         </header>

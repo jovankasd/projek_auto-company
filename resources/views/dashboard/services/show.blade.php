@@ -74,7 +74,7 @@
 
                 <div>
                     <span class="text-xs uppercase text-slate-400 font-semibold">Jadwal Kedatangan</span>
-                    <p class="font-extrabold text-base text-slate-900 mt-1">{{ $service->service_date->translatedFormat('l, d F Y') }}</p>
+                    <p class="font-extrabold text-base text-slate-900 mt-1">{{ \App\Support\Timezone::format($service->service_date, 'l, d F Y', false) }}</p>
                     <p class="text-xs text-slate-600">Pukul {{ sprintf('%02d:00', $service->slot_hour) }} WIB</p>
                     <p class="text-xs text-slate-500 capitalize">Paket: {{ $service->service_type }}</p>
                 </div>
@@ -196,7 +196,7 @@
                                 <span class="font-bold text-xs uppercase tracking-wider text-slate-700">
                                     {{ $log->to_status ? \App\Enums\ServiceStatus::tryFrom($log->to_status)?->label() ?? $log->to_status : 'Dibuat' }}
                                 </span>
-                                <span class="text-xs text-slate-400 font-mono">{{ $log->created_at->translatedFormat('d M Y, H:i') }} WIB</span>
+                                <span class="text-xs text-slate-400 font-mono">{{ \App\Support\Timezone::format($log->created_at, 'd M Y, H:i') }}</span>
                             </div>
                             <p class="text-xs text-slate-600 mt-1">{{ $log->notes ?? '-' }}</p>
                             @if($log->changedBy)

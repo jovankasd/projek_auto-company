@@ -13,6 +13,7 @@ use App\Models\Setting;
 use App\Models\SparePart;
 use App\Models\TestDrive;
 use App\Models\User;
+use App\Support\Timezone;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -91,9 +92,13 @@ class DashboardController extends Controller
         });
 
         if ($filter === 'today') {
-            $query->whereDate('service_date', Carbon::today());
+            $todayStart = Timezone::todayWib()->startOfDay()->setTimezone('UTC');
+            $todayEnd = Timezone::todayWib()->endOfDay()->setTimezone('UTC');
+            $query->whereBetween('service_date', [$todayStart, $todayEnd]);
         } elseif ($filter === 'week') {
-            $query->whereBetween('service_date', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+            $weekStart = Timezone::nowWib()->startOfWeek()->setTimezone('UTC');
+            $weekEnd = Timezone::nowWib()->endOfWeek()->setTimezone('UTC');
+            $query->whereBetween('service_date', [$weekStart, $weekEnd]);
         }
 
         $workOrders = $query->orderByRaw("CASE status WHEN 'in_progress' THEN 1 WHEN 'confirmed' THEN 2 WHEN 'pending' THEN 3 WHEN 'completed' THEN 4 ELSE 5 END")
@@ -172,8 +177,9 @@ class DashboardController extends Controller
 
     protected function superAdminDashboard(): View
     {
-        $startOfMonth = Carbon::now()->startOfMonth();
-        $endOfMonth = Carbon::now()->endOfMonth();
+        $nowWib = Timezone::nowWib();
+        $startOfMonth = $nowWib->copy()->startOfMonth()->setTimezone('UTC');
+        $endOfMonth = $nowWib->copy()->endOfMonth()->setTimezone('UTC');
 
         // 4 KPI Cards
         $totalBookingsMonth = Service::whereBetween('created_at', [$startOfMonth, $endOfMonth])->count();
@@ -184,7 +190,7 @@ class DashboardController extends Controller
             ->sum('total_cost');
 
         // Tren 30 hari servis
-        $thirtyDaysAgo = Carbon::now()->subDays(29)->startOfDay();
+        $thirtyDaysAgo = $nowWib->copy()->subDays(29)->startOfDay()->setTimezone('UTC');
         $dailyBookings = Service::select(DB::raw('DATE(service_date) as date'), DB::raw('count(*) as count'))
             ->where('service_date', '>=', $thirtyDaysAgo)
             ->groupBy(DB::raw('DATE(service_date)'))
@@ -230,9 +236,12 @@ class DashboardController extends Controller
             ->count();
 
         // Status Laporan Resmi Terakhir ke Owner
+        $lastReportStatus = Setting::get('last_report_status');
         $lastReportSubmittedAt = Setting::get('last_report_submitted_at');
         $lastReportSubmittedBy = Setting::get('last_report_submitted_by', 'Super Admin');
         $lastReportNote = Setting::get('last_report_note');
+        $lastReportError = Setting::get('last_report_error');
+        $lastReportFailedAt = Setting::get('last_report_failed_at');
 
         $kpis = [
             'total_bookings_month' => $totalBookingsMonth,
@@ -254,18 +263,21 @@ class DashboardController extends Controller
             'lowStockParts' => $lowStockParts,
             'totalCustomers' => $totalCustomers,
             'newCustomersMonth' => $newCustomersMonth,
+            'lastReportStatus' => $lastReportStatus,
             'lastReportSubmittedAt' => $lastReportSubmittedAt,
             'lastReportSubmittedBy' => $lastReportSubmittedBy,
             'lastReportNote' => $lastReportNote,
+            'lastReportError' => $lastReportError,
+            'lastReportFailedAt' => $lastReportFailedAt,
         ]);
     }
 
     protected function ownerDashboard(Request $request): View
     {
-        $now = Carbon::now();
-        $startOfMonth = $now->copy()->startOfMonth();
-        $endOfMonth = $now->copy()->endOfMonth();
-        $startOfYear = $now->copy()->startOfYear();
+        $now = Timezone::nowWib();
+        $startOfMonth = $now->copy()->startOfMonth()->setTimezone('UTC');
+        $endOfMonth = $now->copy()->endOfMonth()->setTimezone('UTC');
+        $startOfYear = $now->copy()->startOfYear()->setTimezone('UTC');
         $endOfYear = $now->copy()->endOfYear();
 
         // 1. Total Pemasukan Servis (Bulan ini & Sepanjang Waktu)
@@ -332,8 +344,8 @@ class DashboardController extends Controller
         $monthlyRevenueChart = [];
         for ($i = 5; $i >= 0; $i--) {
             $monthDate = $now->copy()->subMonths($i);
-            $mStart = $monthDate->copy()->startOfMonth();
-            $mEnd = $monthDate->copy()->endOfMonth();
+            $mStart = $monthDate->copy()->startOfMonth()->setTimezone('UTC');
+            $mEnd = $monthDate->copy()->endOfMonth()->setTimezone('UTC');
 
             $rev = (float) Service::where('status', ServiceStatus::Completed)
                 ->whereBetween('completed_at', [$mStart, $mEnd])
@@ -358,6 +370,7 @@ class DashboardController extends Controller
             ->get();
 
         // 7. Status Pengiriman Laporan Terakhir dari Super Admin
+        $lastReportStatus = Setting::get('last_report_status');
         $lastReportSubmittedAt = Setting::get('last_report_submitted_at');
         $lastReportSubmittedBy = Setting::get('last_report_submitted_by', 'Super Admin');
         $lastReportNote = Setting::get('last_report_note');
@@ -385,6 +398,7 @@ class DashboardController extends Controller
             'newCustomersMonth' => $newCustomersMonth,
             'monthlyRevenueChart' => $monthlyRevenueChart,
             'topRecentTransactions' => $topRecentTransactions,
+            'lastReportStatus' => $lastReportStatus,
             'lastReportSubmittedAt' => $lastReportSubmittedAt,
             'lastReportSubmittedBy' => $lastReportSubmittedBy,
             'lastReportNote' => $lastReportNote,

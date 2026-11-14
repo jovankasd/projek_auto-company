@@ -124,7 +124,7 @@
 
             <div class="bg-white rounded-3xl border border-slate-200 shadow-xs p-6">
                 <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Jadwal Kedatangan</span>
-                <p class="font-extrabold text-lg text-slate-900 mt-1">{{ $service->service_date->translatedFormat('d F Y') }}</p>
+                <p class="font-extrabold text-lg text-slate-900 mt-1">{{ \App\Support\Timezone::format($service->service_date, 'd F Y', false) }}</p>
                 <p class="text-xs text-slate-600 mt-0.5">Pukul {{ sprintf('%02d:00', $service->slot_hour) }} WIB</p>
                 <div class="mt-4 pt-4 border-t border-slate-100 text-xs text-slate-500">
                     <span class="capitalize">Paket: {{ $service->service_type }}</span>

@@ -13,6 +13,9 @@ use App\Services\Contracts\WhatsAppGateway;
 use App\Services\WhatsApp\FonnteGateway;
 use App\Services\WhatsApp\LogWhatsAppGateway;
 use App\Services\WhatsApp\TwilioGateway;
+use App\Support\Timezone;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -36,6 +39,20 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        Carbon::macro('toWib', function () {
+            /** @var Carbon $this */
+            return Timezone::toWib($this);
+        });
+
+        Carbon::macro('toWibString', function (string $format = 'd M Y, H:i', bool $withSuffix = true) {
+            /** @var Carbon $this */
+            return Timezone::format($this, $format, $withSuffix);
+        });
+
+        Blade::directive('wib', function ($expression) {
+            return "<?php echo \\App\\Support\\Timezone::format($expression); ?>";
+        });
+
         Car::observe(CarObserver::class);
         Car::observe(AuditObserver::class);
 

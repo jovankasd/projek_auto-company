@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\TestDrive;
 use App\Notifications\Channels\WhatsAppChannel;
+use App\Support\Timezone;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -39,7 +40,7 @@ class TestDriveApproved extends Notification implements ShouldQueue
             ->subject('Jadwal Test Drive Disetujui: '.$carModel)
             ->greeting('Halo, '.$notifiable->name.'!')
             ->line('Selamat! Pengajuan test drive Anda untuk unit '.$carModel.' telah disetujui.')
-            ->line('Jadwal Pelaksanaan: '.$this->testDrive->preferred_date->translatedFormat('l, d F Y'))
+            ->line('Jadwal Pelaksanaan: '.Timezone::format($this->testDrive->preferred_date, 'l, d F Y', false))
             ->line('Sales Pendamping: '.$salesName)
             ->line('Lokasi: '.($this->testDrive->pickup_location ?? 'Showroom Resmi XYZ Motors'))
             ->action('Lihat Detail Jadwal', url('/dashboard/my-test-drives'))
@@ -55,7 +56,7 @@ class TestDriveApproved extends Notification implements ShouldQueue
 
         return [
             'title' => 'Pengajuan Test Drive Disetujui',
-            'message' => 'Pengajuan test drive unit '.$carModel.' telah disetujui untuk tanggal '.$this->testDrive->preferred_date->translatedFormat('d M Y'),
+            'message' => 'Pengajuan test drive unit '.$carModel.' telah disetujui untuk tanggal '.Timezone::format($this->testDrive->preferred_date, 'd M Y', false),
             'url' => '/dashboard/my-test-drives',
             'icon' => 'check-circle',
             'color' => 'emerald',
@@ -68,6 +69,6 @@ class TestDriveApproved extends Notification implements ShouldQueue
         $carModel = $this->testDrive->car->model_name ?? 'Mobil';
         $salesName = $this->testDrive->sales ? $this->testDrive->sales->name : 'Sales Representative';
 
-        return "Halo {$notifiable->name},\nSelamat! Jadwal test drive unit *{$carModel}* Anda telah disetujui untuk tanggal {$this->testDrive->preferred_date->translatedFormat('d M Y')}. Sales kami ({$salesName}) akan mendampingi Anda di lokasi. Harap membawa SIM A asli.";
+        return "Halo {$notifiable->name},\nSelamat! Jadwal test drive unit *{$carModel}* Anda telah disetujui untuk tanggal ".Timezone::format($this->testDrive->preferred_date, 'd M Y', false).". Sales kami ({$salesName}) akan mendampingi Anda di lokasi. Harap membawa SIM A asli.";
     }
 }

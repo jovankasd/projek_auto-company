@@ -45,7 +45,7 @@
                                 <tr class="hover:bg-slate-50/80 transition">
                                     <td class="py-4 px-6">
                                         <span class="font-mono font-bold text-slate-900 block">{{ $srv->ticket_number }}</span>
-                                        <span class="text-xs text-slate-500">{{ $srv->service_date->translatedFormat('d F Y') }} ({{ sprintf('%02d:00', $srv->slot_hour) }} WIB)</span>
+                                        <span class="text-xs text-slate-500">{{ \App\Support\Timezone::format($srv->service_date, 'd F Y', false) }} ({{ sprintf('%02d:00', $srv->slot_hour) }} WIB)</span>
                                     </td>
                                     <td class="py-4 px-6">
                                         <p class="font-bold text-slate-900">{{ $srv->vehicle_model }}</p>
@@ -87,7 +87,7 @@
                             </div>
                             <h4 class="font-bold text-base text-slate-900">{{ $srv->vehicle_model }} ({{ $srv->vehicle_plate_number }})</h4>
                             <div class="flex items-center justify-between text-xs text-slate-500">
-                                <span>{{ $srv->service_date->translatedFormat('d M Y, H:i') }} WIB</span>
+                                <span>{{ \App\Support\Timezone::format($srv->service_date, 'd M Y, H:i') }}</span>
                                 <span class="font-mono font-bold text-slate-900">Rp{{ number_format($srv->total_cost, 0, ',', '.') }}</span>
                             </div>
                             <div class="pt-2">

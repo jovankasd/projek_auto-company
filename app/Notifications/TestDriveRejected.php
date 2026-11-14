@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\TestDrive;
 use App\Notifications\Channels\WhatsAppChannel;
+use App\Support\Timezone;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -37,7 +38,7 @@ class TestDriveRejected extends Notification implements ShouldQueue
         return (new MailMessage)
             ->subject('Pemberitahuan Test Drive: '.$carModel)
             ->greeting('Halo, '.$notifiable->name.'!')
-            ->line('Mohon maaf, pengajuan test drive Anda untuk unit '.$carModel.' pada tanggal '.$this->testDrive->preferred_date->translatedFormat('d F Y').' belum dapat kami setujui saat ini.')
+            ->line('Mohon maaf, pengajuan test drive Anda untuk unit '.$carModel.' pada tanggal '.Timezone::format($this->testDrive->preferred_date, 'd F Y', false).' belum dapat kami setujui saat ini.')
             ->line('Alasan: '.($this->testDrive->rejection_reason ?? 'Unit sedang dalam masa perawatan / slot jadwal penuh.'))
             ->action('Ajukan Jadwal Baru', url('/'))
             ->line('Anda dapat mengajukan tanggal lain atau memilih unit mobil lain yang tersedia.');

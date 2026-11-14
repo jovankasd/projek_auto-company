@@ -58,8 +58,8 @@
                                         {{ $promo->car ? $promo->car->brand . ' ' . $promo->car->model_name : 'Semua Unit / Servis' }}
                                     </td>
                                     <td class="py-4 px-6 text-xs text-slate-600">
-                                        <span>{{ $promo->starts_at->translatedFormat('d M Y') }}</span>
-                                        <span class="text-slate-400 block">s/d {{ $promo->ends_at->translatedFormat('d M Y') }}</span>
+                                        <span>{{ \App\Support\Timezone::format($promo->starts_at, 'd M Y', false) }}</span>
+                                        <span class="text-slate-400 block">s/d {{ \App\Support\Timezone::format($promo->ends_at, 'd M Y', false) }}</span>
                                     </td>
                                     <td class="py-4 px-6 text-xs font-mono text-slate-600">
                                         {{ $promo->used_count }} / {{ $promo->max_usage ?? '∞' }}

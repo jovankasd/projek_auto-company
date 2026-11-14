@@ -47,8 +47,8 @@
                                         <p class="text-xs text-slate-500 font-mono">{{ $td->car->year }} &bull; {{ $td->car->price_formatted }}</p>
                                     </td>
                                     <td class="py-4 px-6">
-                                        <p class="font-semibold text-slate-900">{{ $td->preferred_date->translatedFormat('l, d F Y') }}</p>
-                                        <p class="text-xs text-slate-500 font-mono">Pukul {{ $td->preferred_date->format('H:i') }} WIB</p>
+                                        <p class="font-semibold text-slate-900">{{ \App\Support\Timezone::format($td->preferred_date, 'l, d F Y', false) }}</p>
+                                        <p class="text-xs text-slate-500 font-mono">Pukul {{ \App\Support\Timezone::toWib($td->preferred_date)?->format('H:i') }} WIB</p>
                                     </td>
                                     <td class="py-4 px-6 text-xs text-slate-700">
                                         {{ $td->pickup_location ?? 'Showroom Pusat Dealer Pro' }}
@@ -86,7 +86,7 @@
                                     {{ $td->status->label() }}
                                 </span>
                             </div>
-                            <p class="text-xs text-slate-600">Jadwal: {{ $td->preferred_date->translatedFormat('d M Y, H:i') }} WIB</p>
+                            <p class="text-xs text-slate-600">Jadwal: {{ \App\Support\Timezone::format($td->preferred_date, 'd M Y, H:i') }}</p>
                             <p class="text-xs text-slate-500">Lokasi: {{ $td->pickup_location ?? 'Showroom Pusat' }}</p>
                             @if($td->sales)
                                 <p class="text-xs text-slate-600">Sales: <span class="font-bold">{{ $td->sales->name }}</span> ({{ $td->sales->phone_number }})</p>
