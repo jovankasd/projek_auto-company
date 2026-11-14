@@ -18,6 +18,14 @@ Semua perubahan besar, fitur baru, perbaikan, dan pembaruan arsitektural pada pl
   - Penambahan method `User::revokeAccess()` untuk mengosongkan `remember_token` dan membersihkan baris sesi aktif di database saat akun dinonaktifkan, dihapus, atau kata sandi diubah.
   - Proteksi mandiri Super Admin dari deaktivasi akun diri sendiri atau demosi peran di `UserController`.
   - Penambahan 18 feature test komprehensif di `ActiveAccountEnforcementTest.php` (278 assertions).
+- **07. Jadikan Booking Servis Aman untuk Request Serentak**:
+  - Penyatuan validasi kuota slot jam, anti-dobel plat per slot jam, pembuatan nomor tiket unik berurutan, dan insert `Service` ke dalam satu transaksi atomik tunggal dengan bounded retry di `ServiceBookingController`.
+  - Penambahan tabel mutex `booking_slots` untuk row-locking per tanggal dan slot jam (`lockForUpdate()`), memastikan serialisasi request pada slot yang sama tanpa memblokir slot lain.
+  - Penutupan celah composite unique index lama (`uq_services_slot`) yang memakai datetime `service_date` penuh melalui penambahan kolom `slot_date`, `slot_key` (`YYYY-MM-DD:HH`), dan `active_plate_slot` (`slot_key:clean_plate`) dengan constraint unik `uq_services_active_plate_slot`.
+  - Sinkronisasi otomatis lifecycle `active_plate_slot` pada `ServiceObserver` (dikosongkan saat status berubah ke `cancelled` atau soft-deleted) agar pelanggan dapat memesan ulang slot yang telah dibatalkan tanpa gagal di level database.
+  - Penyempurnaan `TicketNumberGenerator` untuk mendukung eksekusi di dalam transaksi yang sama dengan sequence lock, format `SRV-YYYYMMDD-XXXX`, dan retry terbatas.
+  - Penambahan 7 test baru di `tests/Feature/ServiceBookingConcurrencyTest.php` yang memverifikasi penolakan kuota ke-4, penolakan plat sama dengan menit berbeda di slot yang sama, izin plat sama di jam berbeda, pemulihan kuota saat batal, pertahanan constraint unik database, simulasi perebutan slot terakhir, dan keteraturan nomor tiket.
+  - Pembaruan status catatan teknis di `ADR-003` (`docs/decisions/0003-service-state-machine-and-booking-guards.md`).
 
 ---
 
