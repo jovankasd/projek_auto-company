@@ -40,4 +40,41 @@ class HomeController extends Controller
             'pendingServiceBooking'
         ));
     }
+
+    public function privacyPolicy(): View
+    {
+        return view('pages.privacy-policy');
+    }
+
+    public function termsOfService(): View
+    {
+        return view('pages.terms-of-service');
+    }
+
+    public function showCar(Car $car): View
+    {
+        if (! $car->is_available) {
+            abort(404);
+        }
+
+        $car->loadMissing([
+            'promos' => fn ($q) => $q->active(),
+        ]);
+
+        $relatedCars = Car::available()
+            ->where('id', '!=', $car->id)
+            ->ordered()
+            ->take(3)
+            ->get();
+
+        $pendingTestDrive = session('pending_test_drive');
+        $pendingServiceBooking = session('pending_service_booking');
+
+        return view('cars.show', compact('car', 'relatedCars', 'pendingTestDrive', 'pendingServiceBooking'));
+    }
+
+    public function contact(): View
+    {
+        return view('contact.index');
+    }
 }

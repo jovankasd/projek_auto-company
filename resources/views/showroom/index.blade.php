@@ -7,6 +7,7 @@
 
     <title>{{ $cars->first()->meta_title ?? 'Dealer Pro : Showroom Mobil Premium & Booking Servis' }}</title>
     <meta name="description" content="{{ $cars->first()->meta_description ?? 'Jelajahi koleksi mobil mewah dan sport terbaik dengan pengalaman visual 2.5D di Dealer Pro. Layanan booking servis dan test drive resmi.' }}">
+    <link rel="canonical" href="{{ url()->current() }}">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
@@ -299,9 +300,9 @@
                             <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                         </div>
                         <h2 class="text-2xl font-bold text-slate-800 mb-2">Showroom Sedang Disiapkan</h2>
-                        <p class="text-slate-500 text-sm max-w-md mb-6">Data mobil belum tersedia di database. Sistem telah menginisialisasi ulang data default, silakan klik tombol di bawah untuk memuat kembali.</p>
+                        <p class="text-slate-500 text-sm max-w-md mb-6">Katalog mobil belum tersedia di database saat ini. Silakan jalankan seeder di lingkungan pengembangan atau hubungi staf kami.</p>
                         <a href="{{ route('home') }}" class="bg-black text-white px-6 py-3 rounded-lg text-sm font-semibold hover:bg-slate-800 transition active:scale-95 shadow-md">
-                            Muat Ulang Showroom
+                            Muat Ulang Halaman
                         </a>
                     </div>
                 @endforelse
@@ -1025,6 +1026,13 @@
 
             <div class="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
                 <p>&copy; {{ date('Y') }} Dealer Pro (XYZ Motors Indonesia). Seluruh hak cipta dilindungi.</p>
+                <div class="flex items-center gap-4">
+                    <a href="{{ route('privacy-policy') }}" class="hover:text-slate-900 transition underline underline-offset-2">Kebijakan Privasi</a>
+                    <span class="text-slate-300">•</span>
+                    <a href="{{ route('terms-of-service') }}" class="hover:text-slate-900 transition underline underline-offset-2">Syarat &amp; Ketentuan</a>
+                    <span class="text-slate-300">•</span>
+                    <a href="{{ route('contact.index') }}" class="hover:text-slate-900 transition underline underline-offset-2">Kontak Kami</a>
+                </div>
                 <p class="font-mono text-[11px] uppercase tracking-wider">Showroom Sales / Workshop Service / OEM Spare Parts</p>
             </div>
         </div>

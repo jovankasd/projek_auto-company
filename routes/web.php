@@ -11,12 +11,35 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ServiceBookingController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SparePartController;
 use App\Http\Controllers\TestDriveController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
+// Halaman Publik
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/cars/{car:slug}', [HomeController::class, 'showCar'])->name('cars.public.show');
+Route::get('/contact', [HomeController::class, 'contact'])->name('contact.index');
+Route::get('/kontak', [HomeController::class, 'contact']);
+
+// Halaman Kepercayaan & Legal
+Route::get('/privacy-policy', [HomeController::class, 'privacyPolicy'])->name('privacy-policy');
+Route::get('/kebijakan-privasi', [HomeController::class, 'privacyPolicy']);
+Route::get('/terms-of-service', [HomeController::class, 'termsOfService'])->name('terms-of-service');
+Route::get('/syarat-dan-ketentuan', [HomeController::class, 'termsOfService']);
+
+// SEO Sitemap & Robots
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+Route::get('/robots.txt', function () {
+    $content = file_exists(public_path('robots.txt'))
+        ? file_get_contents(public_path('robots.txt'))
+        : "User-agent: *\nDisallow: /dashboard\nSitemap: ".url('/sitemap.xml');
+
+    $content = str_replace('http://localhost/sitemap.xml', url('/sitemap.xml'), $content);
+
+    return response($content, 200, ['Content-Type' => 'text/plain']);
+});
 
 Route::post('/test-drive', [TestDriveController::class, 'store'])
     ->middleware('throttle:10,1')

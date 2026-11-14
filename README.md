@@ -1,7 +1,7 @@
 # XYZ Motors — Platform Portal Otomotif & Layanan Terintegrasi
 
 [![CI Pipeline](https://github.com/jovankasd/projek_auto-company/actions/workflows/ci.yml/badge.svg)](https://github.com/jovankasd/projek_auto-company/actions/workflows/ci.yml)
-[![Pest Tests](https://img.shields.io/badge/Pest-76%20passed-brightgreen.svg)](https://pestphp.com)
+[![Pest Tests](https://img.shields.io/badge/Pest-116%20passed-brightgreen.svg)](https://pestphp.com)
 [![PHPStan](https://img.shields.io/badge/PHPStan-Level%206-blue.svg)](https://phpstan.org)
 [![Laravel Pint](https://img.shields.io/badge/Code%20Style-PSR--12%20via%20Pint-orange.svg)](https://laravel.com/docs/pint)
 [![License](https://img.shields.io/badge/License-MIT-black.svg)](LICENSE)
@@ -100,6 +100,12 @@ Aplikasi ini dapat dijalankan melalui **`php artisan serve`**, **Laragon**, maup
 - 5 peran pengguna berbasis enum `UserRole`: **Customer**, **Sales**, **Mekanik**, **Super Admin**, dan **Owner**.
 - Middleware `SecurityHeaders` dan `AuditObserver` untuk pencatatan aktivitas perubahan model kritis.
 
+### 7. Optimasi SEO, Keamanan Perayapan & Halaman Kepercayaan (Trust Pages)
+- **Sitemap Dinamis (`/sitemap.xml`)**: Generator peta situs XML yang hanya mengindeks URL publik aktif (Beranda, Detail Mobil, Kontak, Kebijakan Privasi, Syarat & Ketentuan) tanpa menyertakan rute internal atau data privat.
+- **Perlindungan Direktori Privat (`robots.txt` & Meta Noindex)**: Perlindungan penuh area autentikasi dan dasbor staf via `robots.txt` dan tag `<meta name="robots" content="noindex, nofollow">` pada seluruh layout terotentikasi.
+- **Halaman Legal & Transparansi Data**: Kebijakan Privasi (`/privacy-policy`) dan Syarat & Ketentuan (`/terms-of-service`) resmi dengan penjelasan jujur mengenai tata kelola berkas foto SIM, hak privasi, dan batasan operasional bengkel.
+- **Integritas Seeding & Bootstrapping**: Pengisian data akun demo lokal dikelola melalui `DemoSeeder` dan `DatabaseBootstrapper` secara terkendali pada environment lokal/testing, tanpa manipulasi otomatis yang mengubah state pada environment produksi.
+
 ---
 
 ## Arsitektur & Dokumentasi
@@ -113,6 +119,7 @@ Ringkasan desain sistem dan catatan keputusan teknis tersedia di direktori `docs
   - [ADR-003](docs/decisions/0003-service-state-machine-and-booking-guards.md): Mesin Status Servis, Validasi Kuota Slot, dan Generator Tiket Atomik
   - [ADR-004](docs/decisions/0004-observer-and-queued-multi-channel-notifications.md): Observer & Event-Driven Queued Multi-Channel Notifications
   - [ADR-005](docs/decisions/0005-polling-live-tracking-over-websockets.md): Live Tracking Berbasis HTTP Polling dengan Jalur Upgrade WebSocket
+  - [ADR-006](docs/decisions/0006-seo-trust-pages-and-honest-documentation.md): Optimasi SEO, Peta Situs XML, Isolasi Perayapan Area Privat, dan Halaman Kepercayaan
 - **Panduan Deployment Produksi**: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) — Konfigurasi server Ubuntu, Nginx, Supervisor, cron scheduler, dan `deploy.sh`.
 - **Panduan Kontribusi**: [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) — Standar kode, branching workflow, konvensi commit, dan pengujian Pest.
 - **Panduan Lokal Windows/XAMPP**: [CARA_MENJALANKAN.md](CARA_MENJALANKAN.md)
