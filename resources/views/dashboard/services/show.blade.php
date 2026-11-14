@@ -225,24 +225,37 @@
                     <button @click="itemModalOpen = false" class="p-2 text-slate-400 hover:text-slate-600">&times;</button>
                 </div>
 
-                <form action="{{ route('services.add-item', $service) }}" method="POST" class="mt-6 space-y-4">
+                <form action="{{ route('services.add-item', $service) }}" method="POST" class="mt-6 space-y-4" x-data="{ itemType: 'labor' }">
                     @csrf
                     <div>
                         <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Tipe Item</label>
-                        <select name="item_type" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none">
-                            <option value="part">Suku Cadang / Onderdil (Part)</option>
-                            <option value="labor">Jasa Mekanik (Labor)</option>
+                        <select name="item_type" x-model="itemType" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none">
+                            <option value="labor" selected>Jasa Mekanik (Labor)</option>
+                            <option value="part">Suku Cadang / Onderdil dari Katalog (Part)</option>
                             <option value="consumable">Bahan Habis Pakai / Cairan (Consumable)</option>
                         </select>
                     </div>
 
-                    <div>
+                    <div x-show="itemType === 'part'" class="space-y-1">
+                        <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Pilih Suku Cadang Resmi (SKU)</label>
+                        <select name="spare_part_id" :required="itemType === 'part'" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none font-mono">
+                            <option value="">-- Pilih Suku Cadang dari Gudang --</option>
+                            @foreach($spareParts as $sp)
+                                <option value="{{ $sp->id }}" {{ $sp->stock_quantity <= 0 ? 'disabled' : '' }}>
+                                    [{{ $sp->part_number }}] {{ $sp->brand }} - {{ $sp->name }} (Stok: {{ $sp->stock_quantity }} | {{ $sp->price_formatted }})
+                                </option>
+                            @endforeach
+                        </select>
+                        <p class="text-[11px] text-slate-400">Harga resmi dan mutasi stok dihitung langsung oleh server.</p>
+                    </div>
+
+                    <div x-show="itemType !== 'part'">
                         <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Nama Onderdil / Jasa</label>
-                        <input type="text" name="name" required placeholder="Contoh: Kanvas Rem Depan" 
+                        <input type="text" name="name" :required="itemType !== 'part'" placeholder="Contoh: Kanvas Rem Depan" 
                                class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none">
                     </div>
 
-                    <div>
+                    <div x-show="itemType !== 'part'">
                         <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Nomor Part (Opsional)</label>
                         <input type="text" name="part_number" placeholder="Contoh: BP-OEM-2024" 
                                class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none font-mono">
@@ -251,12 +264,12 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Jumlah</label>
-                            <input type="number" step="0.01" min="0.01" name="quantity" value="1" required 
-                                   class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none">
+                            <input type="number" step="1" min="1" name="quantity" value="1" required 
+                                   class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none font-mono">
                         </div>
-                        <div>
+                        <div x-show="itemType !== 'part'">
                             <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Harga Satuan (Rp)</label>
-                            <input type="number" step="1000" min="0" name="unit_price" required placeholder="0" 
+                            <input type="number" step="1000" min="0" name="unit_price" :required="itemType !== 'part'" placeholder="0" 
                                    class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none font-mono">
                         </div>
                     </div>

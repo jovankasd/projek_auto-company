@@ -2,8 +2,10 @@
 
 use App\Enums\ServiceItemType;
 use App\Enums\ServiceStatus;
+use App\Enums\SparePartCategory;
 use App\Enums\UserRole;
 use App\Models\Service;
+use App\Models\SparePart;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -64,13 +66,22 @@ test('service cannot be marked completed without any service items', function ()
 test('adding and removing items dynamically recalculates service total_cost', function () {
     $this->service->update(['status' => ServiceStatus::InProgress]);
 
+    $part = SparePart::create([
+        'name' => 'Kampas Rem Depan',
+        'slug' => 'kampas-rem-depan',
+        'part_number' => 'BP-TSL-01',
+        'brand' => 'Brembo',
+        'category' => SparePartCategory::Brake,
+        'price' => 500000,
+        'stock_quantity' => 10,
+        'is_available' => true,
+    ]);
+
     // Tambah Part
     $responseAddPart = $this->actingAs($this->mechanic)->postJson(route('services.add-item', $this->service), [
         'item_type' => ServiceItemType::Part->value,
-        'name' => 'Kampas Rem Depan',
-        'part_number' => 'BP-TSL-01',
+        'spare_part_id' => $part->id,
         'quantity' => 1,
-        'unit_price' => 500000,
     ]);
 
     $responseAddPart->assertStatus(200);
