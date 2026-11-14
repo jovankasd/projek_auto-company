@@ -40,14 +40,14 @@
         <div class="h-16 flex items-center justify-between px-6 border-b border-slate-100">
             <a href="{{ route('home') }}" class="flex items-center gap-3 group">
                 <div class="h-8 rounded-lg overflow-hidden flex items-center justify-center group-hover:scale-105 transition duration-200">
-                    <img src="{{ asset('images/logo.jpg') }}" alt="Dealer Pro" class="h-full w-auto object-contain">
+                    <img src="{{ asset('images/logo.jpg') }}" alt="Dealer Pro" width="120" height="80" class="h-full w-auto object-contain aspect-[3/2]">
                 </div>
                 <div class="leading-none">
                     <span class="font-extrabold text-base tracking-tight text-slate-900">Dealer Pro</span>
-                    <span class="block text-[10px] uppercase tracking-widest text-slate-400 font-semibold mt-0.5">Control Panel</span>
+                    <span class="block text-[10px] uppercase tracking-widest text-slate-500 font-semibold mt-0.5">Control Panel</span>
                 </div>
             </a>
-            <button @click="sidebarOpen = false" class="lg:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition">
+            <button @click="sidebarOpen = false" class="lg:hidden p-1.5 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition focus-visible:ring-2 focus-visible:ring-black focus-visible:outline-none" aria-label="Tutup navigasi sidebar">
                 <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -97,7 +97,7 @@
 
             {{-- MENU CUSTOMER --}}
             @if(auth()->user()->isCustomer())
-                <div class="pt-4 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">Layanan Saya</div>
+                <div class="pt-4 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">Layanan Saya</div>
                 <a href="{{ route('services.my') }}" 
                    class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition {{ request()->routeIs('services.my') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
                     <svg class="w-5 h-5 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -116,7 +116,7 @@
 
             {{-- MENU ADMIN MEKANIK --}}
             @if(auth()->user()->isMekanik())
-                <div class="pt-4 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">Bengkel & Suku Cadang</div>
+                <div class="pt-4 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">Bengkel & Suku Cadang</div>
                 <a href="{{ route('dashboard') }}" 
                    class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition {{ request()->routeIs('dashboard') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
                     <svg class="w-5 h-5 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -136,7 +136,7 @@
 
             {{-- MENU SALES & SUPER ADMIN --}}
             @if(auth()->user()->isSales() || auth()->user()->isSuperAdmin())
-                <div class="pt-4 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">Master Data</div>
+                <div class="pt-4 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">Master Data</div>
                 <a href="{{ route('cars.index') }}" 
                    class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition {{ request()->routeIs('cars.*') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
                     <svg class="w-5 h-5 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -156,7 +156,7 @@
 
             {{-- MENU KHUSUS OWNER --}}
             @if(auth()->user()->isOwner())
-                <div class="pt-4 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">Eksekutif</div>
+                <div class="pt-4 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">Eksekutif</div>
                 <a href="{{ route('reports.index') }}" 
                    class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition {{ request()->routeIs('reports.*') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
                     <svg class="w-5 h-5 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -168,7 +168,7 @@
 
             {{-- MENU KHUSUS SUPER ADMIN --}}
             @if(auth()->user()->isSuperAdmin())
-                <div class="pt-4 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">Administrasi</div>
+                <div class="pt-4 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">Administrasi</div>
                 <a href="{{ route('users.index') }}" 
                    class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition {{ request()->routeIs('users.*') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
                     <svg class="w-5 h-5 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -200,7 +200,7 @@
                 </a>
             @endif
 
-            <div class="pt-4 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">Eksternal</div>
+            <div class="pt-4 pb-1 px-3 text-[10px] font-bold uppercase tracking-wider text-slate-500">Eksternal</div>
             <a href="{{ route('home') }}" 
                class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition">
                 <svg class="w-5 h-5 opacity-80" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -222,7 +222,7 @@
                 </div>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <button type="submit" title="Keluar" class="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition">
+                    <button type="submit" title="Keluar" class="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition focus-visible:ring-2 focus-visible:ring-black focus-visible:outline-none" aria-label="Keluar dari akun">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                         </svg>
@@ -275,17 +275,17 @@
                          class="absolute right-0 mt-2 w-80 rounded-2xl bg-white border border-slate-200 shadow-xl py-2 z-50">
                         <div class="px-4 py-2 border-b border-slate-100 flex items-center justify-between">
                             <span class="text-xs font-bold uppercase tracking-wider text-slate-700">Notifikasi</span>
-                            <span class="text-[11px] font-semibold text-slate-400" x-text="unreadCount + ' Baru'"></span>
+                            <span class="text-[11px] font-semibold text-slate-600" x-text="unreadCount + ' Baru'"></span>
                         </div>
                         <div class="max-h-72 overflow-y-auto divide-y divide-slate-50">
                             <template x-for="item in recentItems" :key="item.id">
                                 <a :href="item.url" class="block p-3 text-xs hover:bg-slate-50 transition">
                                     <p class="font-bold text-slate-800" x-text="item.title"></p>
                                     <p class="text-[11px] text-slate-600 truncate mt-0.5" x-text="item.message"></p>
-                                    <span class="text-[10px] text-slate-400 mt-1 block" x-text="item.created_at_human"></span>
+                                    <span class="text-[10px] text-slate-600 mt-1 block" x-text="item.created_at_human"></span>
                                 </a>
                             </template>
-                            <div x-show="recentItems.length === 0" class="p-6 text-center text-xs text-slate-400">
+                            <div x-show="recentItems.length === 0" class="p-6 text-center text-xs text-slate-600">
                                 Tidak ada pemberitahuan baru.
                             </div>
                         </div>
@@ -300,7 +300,7 @@
                 <!-- Live Clock or Quick Status -->
                 <div class="hidden sm:block text-right border-l border-slate-200 pl-4">
                     <p class="text-xs font-bold text-slate-800">{{ now()->translatedFormat('l, d M Y') }}</p>
-                    <p class="text-[11px] text-slate-400 font-mono">{{ now()->format('H:i') }} WIB</p>
+                    <p class="text-[11px] text-slate-600 font-mono">{{ now()->format('H:i') }} WIB</p>
                 </div>
             </div>
         </header>

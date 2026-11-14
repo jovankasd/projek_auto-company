@@ -71,7 +71,7 @@
             <!-- Brand Identity -->
             <a href="{{ route('home') }}" class="flex items-center gap-3 group focus-visible:ring-2 focus-visible:ring-black rounded-sm py-1">
                 <span class="h-9 flex items-center justify-center overflow-hidden">
-                    <img src="{{ asset('images/logo.jpg') }}" alt="Dealer Pro" class="h-full w-auto object-contain">
+                    <img src="{{ asset('images/logo.jpg') }}" alt="Dealer Pro" width="120" height="80" class="h-full w-auto object-contain aspect-[3/2]">
                 </span>
                 <div class="flex flex-col">
                     <span class="font-extrabold text-base sm:text-lg tracking-tight text-slate-900 uppercase leading-none">
@@ -217,7 +217,7 @@
                                 {{ $car->brand }} <span class="text-blue-600">{{ $car->model_name }}</span>
                             </h1>
                             <p class="font-mono text-base sm:text-xl font-bold text-slate-700 mt-1">
-                                {{ $car->price_formatted }} <span class="text-xs font-sans text-slate-400 font-normal">OTR Jakarta</span>
+                                {{ $car->price_formatted }} <span class="text-xs font-sans text-slate-600 font-normal">OTR Jakarta</span>
                             </p>
                         </div>
 
@@ -227,7 +227,7 @@
                                  alt="{{ $car->hero_image_alt ?: ($car->brand . ' ' . $car->model_name . ' tampak samping') }}"
                                  width="1060"
                                  height="480"
-                                 class="max-h-[38vh] sm:max-h-[44vh] md:max-h-[46vh] lg:max-h-[48vh] w-auto max-w-[92vw] md:max-w-[78vw] object-contain drop-shadow-car pointer-events-auto transform translate-3d"
+                                 class="max-h-[38vh] sm:max-h-[44vh] md:max-h-[46vh] lg:max-h-[48vh] w-auto max-w-[92vw] md:max-w-[78vw] object-contain drop-shadow-car pointer-events-auto transform translate-3d aspect-[1060/480]"
                                  data-car-img
                                  {{ $loop->first ? 'loading="eager" fetchpriority="high"' : 'loading="lazy" decoding="async"' }} />
                         </div>
@@ -295,7 +295,7 @@
                     </section>
                 @empty
                     <div class="w-full h-full flex flex-col items-center justify-center text-center p-8 z-20">
-                        <div class="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mb-4 text-slate-400">
+                        <div class="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mb-4 text-slate-500">
                             <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                         </div>
                         <h2 class="text-2xl font-bold text-slate-800 mb-2">Showroom Sedang Disiapkan</h2>
@@ -309,25 +309,41 @@
 
             @if(count($cars) > 0)
             <!-- Layer 20: Slider Controls & Counter -->
-            <div class="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-4 bg-white/70 backdrop-blur-md border border-slate-200/80 rounded-full px-4 py-1.5 shadow-sm">
+            <div class="absolute bottom-3 sm:bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 sm:gap-3 bg-white/80 backdrop-blur-md border border-slate-200/90 rounded-full px-3 sm:px-4 py-1.5 shadow-sm whitespace-nowrap">
                 <button type="button"
                         data-slide-prev
                         aria-label="Mobil sebelumnya"
-                        class="p-2 rounded-full hover:bg-slate-100 active:scale-90 transition text-slate-700">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="p-2 rounded-full hover:bg-slate-100 active:scale-90 focus-visible:ring-2 focus-visible:ring-black focus-visible:outline-none transition text-slate-700">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
                     </svg>
                 </button>
 
-                <div class="font-mono text-sm tracking-widest text-slate-800 font-bold select-none">
+                <div class="whitespace-nowrap font-mono text-xs sm:text-sm tracking-widest text-slate-800 font-bold select-none px-1">
                     <span id="slide-counter-current">01</span> / <span id="slide-counter-total">{{ sprintf('%02d', count($cars)) }}</span>
                 </div>
+
+                <!-- Tombol Jeda / Putar Carousel -->
+                <button type="button"
+                        data-slide-pause-play
+                        aria-label="Jeda putar otomatis"
+                        aria-pressed="false"
+                        title="Jeda putar otomatis"
+                        class="p-2 rounded-full hover:bg-slate-100 active:scale-90 focus-visible:ring-2 focus-visible:ring-black focus-visible:outline-none transition text-slate-700">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-icon-pause>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" data-icon-play>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </button>
 
                 <button type="button"
                         data-slide-next
                         aria-label="Mobil berikutnya"
-                        class="p-2 rounded-full hover:bg-slate-100 active:scale-90 transition text-slate-700">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="p-2 rounded-full hover:bg-slate-100 active:scale-90 focus-visible:ring-2 focus-visible:ring-black focus-visible:outline-none transition text-slate-700">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
                     </svg>
                 </button>
@@ -409,7 +425,7 @@
                     <!-- Divisi 01 -->
                     <div class="py-7 grid grid-cols-1 sm:grid-cols-12 gap-4 items-start">
                         <div class="sm:col-span-3">
-                            <span class="font-mono text-xs font-bold text-slate-400 uppercase tracking-widest block">DIVISI 01</span>
+                            <span class="font-mono text-xs font-bold text-slate-600 uppercase tracking-widest block">DIVISI 01</span>
                             <span class="font-mono text-xs font-bold text-slate-900 uppercase tracking-wider mt-1 block">Showroom &amp; Sales</span>
                         </div>
                         <div class="sm:col-span-6 space-y-2">
@@ -430,7 +446,7 @@
                     <!-- Divisi 02 -->
                     <div class="py-7 grid grid-cols-1 sm:grid-cols-12 gap-4 items-start">
                         <div class="sm:col-span-3">
-                            <span class="font-mono text-xs font-bold text-slate-400 uppercase tracking-widest block">DIVISI 02</span>
+                            <span class="font-mono text-xs font-bold text-slate-600 uppercase tracking-widest block">DIVISI 02</span>
                             <span class="font-mono text-xs font-bold text-slate-900 uppercase tracking-wider mt-1 block">Bengkel Resmi</span>
                         </div>
                         <div class="sm:col-span-6 space-y-2">
@@ -451,7 +467,7 @@
                     <!-- Divisi 03 -->
                     <div class="py-7 grid grid-cols-1 sm:grid-cols-12 gap-4 items-start">
                         <div class="sm:col-span-3">
-                            <span class="font-mono text-xs font-bold text-slate-400 uppercase tracking-widest block">DIVISI 03</span>
+                            <span class="font-mono text-xs font-bold text-slate-600 uppercase tracking-widest block">DIVISI 03</span>
                             <span class="font-mono text-xs font-bold text-slate-900 uppercase tracking-wider mt-1 block">Gudang Suku Cadang</span>
                         </div>
                         <div class="sm:col-span-6 space-y-2">
@@ -489,11 +505,12 @@
                 </div>
 
                 <!-- Segmented Technical Filter Bar -->
-                <div class="inline-flex flex-wrap border border-slate-300 bg-white divide-x divide-slate-300" role="tablist" aria-label="Filter Kategori Mobil">
+                <div class="inline-flex flex-wrap border border-slate-300 bg-white divide-x divide-slate-300" role="group" aria-label="Filter Kategori Mobil">
                     <button type="button"
                             @click="carCategoryFilter = 'all'"
+                            :aria-pressed="carCategoryFilter === 'all' ? 'true' : 'false'"
                             :class="carCategoryFilter === 'all' ? 'bg-slate-900 text-white' : 'bg-white text-slate-700 hover:bg-slate-50'"
-                            class="px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition">
+                            class="px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition focus-visible:ring-2 focus-visible:ring-black focus-visible:outline-none">
                         Semua ({{ count($cars) }})
                     </button>
                     @foreach(\App\Enums\CarCategory::cases() as $cat)
@@ -503,8 +520,9 @@
                         @if($catCount > 0)
                             <button type="button"
                                     @click="carCategoryFilter = '{{ $cat->value }}'"
+                                    :aria-pressed="carCategoryFilter === '{{ $cat->value }}' ? 'true' : 'false'"
                                     :class="carCategoryFilter === '{{ $cat->value }}' ? 'bg-slate-900 text-white' : 'bg-white text-slate-700 hover:bg-slate-50'"
-                                    class="px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition">
+                                    class="px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition focus-visible:ring-2 focus-visible:ring-black focus-visible:outline-none">
                                 {{ $cat->label() }} ({{ $catCount }})
                             </button>
                         @endif
@@ -544,8 +562,11 @@
                                 <div class="py-6 flex items-center justify-center min-h-[160px]">
                                     <img src="{{ $car->hero_image_url }}"
                                          alt="{{ $car->brand }} {{ $car->model_name }}"
+                                         width="1060"
+                                         height="480"
                                          loading="lazy"
-                                         class="max-h-36 sm:max-h-40 w-auto object-contain drop-shadow-md" />
+                                         decoding="async"
+                                         class="max-h-36 sm:max-h-40 w-auto object-contain drop-shadow-md aspect-[1060/480]" />
                                 </div>
 
                                 <div class="flex items-center justify-between text-xs text-slate-500 pt-2 border-t border-slate-200/80">
@@ -580,19 +601,19 @@
                                 <!-- 4-Column Hairline Telemetry Table -->
                                 <dl class="grid grid-cols-2 sm:grid-cols-4 border border-slate-200 divide-y sm:divide-y-0 sm:divide-x divide-slate-200 bg-white">
                                     <div class="p-3">
-                                        <dt class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Tenaga</dt>
+                                        <dt class="text-[10px] font-bold uppercase tracking-wider text-slate-600">Tenaga</dt>
                                         <dd class="font-mono text-xs sm:text-sm font-bold text-slate-900 mt-1 tabular-nums">{{ $car->engine_specs['power'] ?? '-' }}</dd>
                                     </div>
                                     <div class="p-3">
-                                        <dt class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Torsi</dt>
+                                        <dt class="text-[10px] font-bold uppercase tracking-wider text-slate-600">Torsi</dt>
                                         <dd class="font-mono text-xs sm:text-sm font-bold text-slate-900 mt-1 tabular-nums">{{ $car->engine_specs['torque'] ?? '-' }}</dd>
                                     </div>
                                     <div class="p-3">
-                                        <dt class="text-[10px] font-bold uppercase tracking-wider text-slate-400">0-100 KM/J</dt>
+                                        <dt class="text-[10px] font-bold uppercase tracking-wider text-slate-600">0-100 KM/J</dt>
                                         <dd class="font-mono text-xs sm:text-sm font-bold text-slate-900 mt-1 tabular-nums">{{ $car->engine_specs['accel'] ?? '-' }}</dd>
                                     </div>
                                     <div class="p-3">
-                                        <dt class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Transmisi</dt>
+                                        <dt class="text-[10px] font-bold uppercase tracking-wider text-slate-600">Transmisi</dt>
                                         <dd class="font-mono text-xs sm:text-sm font-bold text-slate-900 mt-1 tabular-nums">{{ $car->engine_specs['trans'] ?? '-' }}</dd>
                                     </div>
                                 </dl>
@@ -601,7 +622,7 @@
                             <!-- Column 3 (3 Cols): OTR Pricing & Direct Booking Triggers -->
                             <div class="lg:col-span-3 p-6 sm:p-8 flex flex-col justify-between bg-white">
                                 <div>
-                                    <span class="block text-[11px] font-bold uppercase tracking-wider text-slate-400">Harga Resmi OTR Jakarta</span>
+                                    <span class="block text-[11px] font-bold uppercase tracking-wider text-slate-600">Harga Resmi OTR Jakarta</span>
                                     <p class="font-mono text-xl sm:text-2xl font-extrabold text-slate-900 mt-1 tabular-nums">
                                         {{ $car->price_formatted }}
                                     </p>
@@ -702,8 +723,11 @@
                                     <div class="col-span-4 aspect-square bg-slate-50 border border-slate-200 p-2.5 flex items-center justify-center">
                                         <img src="{{ $part->imageUrl }}"
                                              alt="{{ $part->name }}"
+                                             width="400"
+                                             height="400"
                                              loading="lazy"
-                                             class="w-full h-full object-contain" />
+                                             decoding="async"
+                                             class="w-full h-full object-contain aspect-square" />
                                     </div>
                                     <div class="col-span-8 space-y-1.5">
                                         <div class="flex items-center gap-2">
@@ -727,7 +751,7 @@
                             <!-- Bottom: Unit Price & Direct Installation Trigger -->
                             <div class="pt-4 border-t border-slate-200 flex items-center justify-between gap-3">
                                 <div>
-                                    <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Harga Satuan</span>
+                                    <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-600">Harga Satuan</span>
                                     <span class="font-mono text-base font-extrabold text-slate-900 tabular-nums">{{ $part->price_formatted }}</span>
                                 </div>
                                 <button type="button"
@@ -765,7 +789,7 @@
                         <div class="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div class="space-y-1.5 max-w-xl">
                                 <div class="flex items-center gap-2.5">
-                                    <span class="font-mono text-xs font-bold text-slate-400">01</span>
+                                    <span class="font-mono text-xs font-bold text-slate-600">01</span>
                                     <h3 class="text-base font-extrabold text-slate-900">Servis Rutin / Berkala (Periodic Maintenance)</h3>
                                 </div>
                                 <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -783,7 +807,7 @@
                         <div class="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div class="space-y-1.5 max-w-xl">
                                 <div class="flex items-center gap-2.5">
-                                    <span class="font-mono text-xs font-bold text-slate-400">02</span>
+                                    <span class="font-mono text-xs font-bold text-slate-600">02</span>
                                     <h3 class="text-base font-extrabold text-slate-900">Servis Besar (Major Overhaul &amp; Drivetrain)</h3>
                                 </div>
                                 <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -801,7 +825,7 @@
                         <div class="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div class="space-y-1.5 max-w-xl">
                                 <div class="flex items-center gap-2.5">
-                                    <span class="font-mono text-xs font-bold text-slate-400">03</span>
+                                    <span class="font-mono text-xs font-bold text-slate-600">03</span>
                                     <h3 class="text-base font-extrabold text-slate-900">Inspeksi &amp; Diagnosa Komputer (OBD / EV Telemetry)</h3>
                                 </div>
                                 <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -819,7 +843,7 @@
                         <div class="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div class="space-y-1.5 max-w-xl">
                                 <div class="flex items-center gap-2.5">
-                                    <span class="font-mono text-xs font-bold text-slate-400">04</span>
+                                    <span class="font-mono text-xs font-bold text-slate-600">04</span>
                                     <h3 class="text-base font-extrabold text-slate-900">Klaim Garansi Resmi Pabrik</h3>
                                 </div>
                                 <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -927,7 +951,7 @@
                     @foreach($promos as $promo)
                         <div class="p-6 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
                             <div class="md:col-span-3 flex flex-col">
-                                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Kode Voucher Resmi</span>
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-600">Kode Voucher Resmi</span>
                                 <span class="font-mono text-base font-extrabold text-slate-900 mt-1">{{ $promo->code }}</span>
                                 <span class="font-mono text-xs font-bold text-emerald-700 mt-1 tabular-nums">
                                     @if(($promo->discount_type->value ?? $promo->discount_type) === 'percentage')
@@ -975,7 +999,7 @@
             <div class="grid grid-cols-1 md:grid-cols-12 gap-10 pb-12 border-b border-slate-300">
                 <div class="md:col-span-5 space-y-3">
                     <div class="flex items-center gap-3">
-                        <img src="{{ asset('images/logo.jpg') }}" alt="Dealer Pro" class="h-8 w-auto object-contain">
+                        <img src="{{ asset('images/logo.jpg') }}" alt="Dealer Pro" width="120" height="80" class="h-8 w-auto object-contain aspect-[3/2]">
                         <span class="font-extrabold text-lg tracking-tight text-slate-900 uppercase">Dealer Pro</span>
                     </div>
                     <p class="text-xs sm:text-sm text-slate-600 max-w-sm leading-relaxed">
@@ -1062,7 +1086,7 @@
                 <div class="flex-1">
                     <p class="font-medium" x-text="toast.message"></p>
                 </div>
-                <button type="button" @click="dismissToast(toast.id)" class="text-slate-400 hover:text-slate-600">
+                <button type="button" @click="dismissToast(toast.id)" class="text-slate-600 hover:text-slate-900 focus-visible:ring-2 focus-visible:ring-black focus-visible:outline-none p-1 rounded">
                     <span class="sr-only">Tutup</span>
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
@@ -1077,7 +1101,8 @@
          aria-modal="true"
          aria-labelledby="test-drive-title"
          class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
-         @keydown.escape.window="closeModals()">
+         @keydown.escape.window="closeModals()"
+         @keydown.tab="handleModalTab($event, 'testDrive')">
         <!-- Backdrop -->
         <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity"
              x-show="testDriveModalOpen"
@@ -1104,7 +1129,7 @@
                     <h2 id="test-drive-title" class="text-xl font-bold text-slate-900">Jadwalkan Test Drive</h2>
                     <p class="text-xs text-slate-500 mt-0.5" x-text="selectedCarName ? 'Unit: ' + selectedCarName : 'Pilih unit mobil yang Anda minati'"></p>
                 </div>
-                <button type="button" @click="closeModals()" class="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition" aria-label="Tutup modal">
+                <button type="button" @click="closeModals()" class="p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition focus-visible:ring-2 focus-visible:ring-black focus-visible:outline-none" aria-label="Tutup modal">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
@@ -1158,7 +1183,7 @@
                            @change="testDriveForm.driver_license_image = $event.target.files[0]"
                            accept="image/*"
                            class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200">
-                    <p class="text-[11px] text-slate-400">Format: JPG, PNG, WebP. Maks 5MB.</p>
+                    <p class="text-[11px] text-slate-600">Format: JPG, PNG, WebP. Maks 5MB.</p>
                 </div>
 
                 <!-- Lokasi Penjemputan / Dealer -->
@@ -1206,7 +1231,8 @@
          aria-modal="true"
          aria-labelledby="service-booking-title"
          class="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
-         @keydown.escape.window="closeModals()">
+         @keydown.escape.window="closeModals()"
+         @keydown.tab="handleModalTab($event, 'service')">
         <!-- Backdrop -->
         <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm transition-opacity"
              x-show="serviceModalOpen"
@@ -1233,7 +1259,7 @@
                     <h2 id="service-booking-title" class="text-xl font-bold text-slate-900">Booking Servis Kendaraan</h2>
                     <p class="text-xs text-slate-500 mt-0.5">Layanan bengkel resmi dengan mekanik tersertifikasi</p>
                 </div>
-                <button type="button" @click="closeModals()" class="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition" aria-label="Tutup modal">
+                <button type="button" @click="closeModals()" class="p-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition focus-visible:ring-2 focus-visible:ring-black focus-visible:outline-none" aria-label="Tutup modal">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
@@ -1252,7 +1278,7 @@
                            placeholder="Contoh: B 1234 XYZ"
                            required
                            class="w-full px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 focus:ring-2 focus:ring-black focus:border-black text-sm uppercase font-mono transition">
-                    <p class="text-[11px] text-slate-400">Gunakan format plat Indonesia (contoh: B 1234 ABC).</p>
+                    <p class="text-[11px] text-slate-600">Gunakan format plat Indonesia (contoh: B 1234 ABC).</p>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1322,7 +1348,7 @@
                            :min="minDate"
                            required
                            class="w-full px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 focus:ring-2 focus:ring-black focus:border-black text-sm transition">
-                    <p class="text-[11px] text-slate-400">Jam operasional: 08:00 - 17:00 WIB (Maks 3 kendaraan per slot jam).</p>
+                    <p class="text-[11px] text-slate-600">Jam operasional: 08:00 - 17:00 WIB (Maks 3 kendaraan per slot jam).</p>
                 </div>
 
                 <!-- Keluhan Kendaraan -->
@@ -1364,6 +1390,7 @@
                 selectedCarId: null,
                 selectedCarName: '',
                 isSubmitting: false,
+                lastFocusedElement: null,
                 toasts: [],
                 minDate: '',
                 carCategoryFilter: 'all',
@@ -1425,32 +1452,63 @@
                     @endif
                 },
 
+                getFocusableElements(modalEl) {
+                    if (!modalEl) return [];
+                    return Array.from(modalEl.querySelectorAll(
+                        'button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+                    )).filter(el => el.offsetParent !== null || el.getClientRects().length > 0);
+                },
+
                 openTestDriveModal(carId = null, carName = '') {
+                    this.lastFocusedElement = document.activeElement;
                     if (carId) {
                         this.testDriveForm.car_id = carId;
                         this.selectedCarName = carName;
                     }
                     this.testDriveModalOpen = true;
+                    this.$nextTick(() => {
+                        const dialog = document.querySelector('[role="dialog"][aria-labelledby="test-drive-title"]');
+                        const focusables = this.getFocusableElements(dialog);
+                        if (focusables.length) focusables[0].focus();
+                    });
                 },
 
                 openServiceModal(carModel = '') {
+                    this.lastFocusedElement = document.activeElement;
                     if (carModel) {
                         this.serviceForm.vehicle_model = carModel;
                     }
                     this.serviceModalOpen = true;
+                    this.$nextTick(() => {
+                        const dialog = document.querySelector('[role="dialog"][aria-labelledby="service-booking-title"]');
+                        const focusables = this.getFocusableElements(dialog);
+                        if (focusables.length) focusables[0].focus();
+                    });
                 },
 
                 openServiceWithPart(partName, partNumber, defaultBrand = '') {
+                    this.lastFocusedElement = document.activeElement;
                     if (defaultBrand && !this.serviceForm.vehicle_model) {
                         this.serviceForm.vehicle_model = defaultBrand;
                     }
                     this.serviceForm.complaint_notes = 'Permintaan pemasangan suku cadang: ' + partName + ' (No. Part: ' + partNumber + ').';
                     this.serviceModalOpen = true;
+                    this.$nextTick(() => {
+                        const dialog = document.querySelector('[role="dialog"][aria-labelledby="service-booking-title"]');
+                        const focusables = this.getFocusableElements(dialog);
+                        if (focusables.length) focusables[0].focus();
+                    });
                 },
 
                 openServiceWithType(type) {
+                    this.lastFocusedElement = document.activeElement;
                     this.serviceForm.service_type = type;
                     this.serviceModalOpen = true;
+                    this.$nextTick(() => {
+                        const dialog = document.querySelector('[role="dialog"][aria-labelledby="service-booking-title"]');
+                        const focusables = this.getFocusableElements(dialog);
+                        if (focusables.length) focusables[0].focus();
+                    });
                 },
 
                 copyPromoCode(code) {
@@ -1461,8 +1519,42 @@
                 },
 
                 closeModals() {
+                    if (!this.testDriveModalOpen && !this.serviceModalOpen) return;
                     this.testDriveModalOpen = false;
                     this.serviceModalOpen = false;
+                    if (this.lastFocusedElement && typeof this.lastFocusedElement.focus === 'function') {
+                        const el = this.lastFocusedElement;
+                        this.$nextTick(() => {
+                            el.focus();
+                        });
+                        this.lastFocusedElement = null;
+                    }
+                },
+
+                handleModalTab(e, modalName) {
+                    const selector = modalName === 'testDrive'
+                        ? '[role="dialog"][aria-labelledby="test-drive-title"]'
+                        : '[role="dialog"][aria-labelledby="service-booking-title"]';
+                    const modalEl = document.querySelector(selector);
+                    if (!modalEl) return;
+
+                    const focusables = this.getFocusableElements(modalEl);
+                    if (!focusables.length) return;
+
+                    const first = focusables[0];
+                    const last = focusables[focusables.length - 1];
+
+                    if (e.shiftKey) {
+                        if (document.activeElement === first) {
+                            e.preventDefault();
+                            last.focus();
+                        }
+                    } else {
+                        if (document.activeElement === last) {
+                            e.preventDefault();
+                            first.focus();
+                        }
+                    }
                 },
 
                 addToast(message, type = 'info', duration = 4000) {
@@ -1567,18 +1659,27 @@
 
             document.addEventListener('DOMContentLoaded', function() {
                 const swiperEl = document.querySelector('.showroom-swiper');
+                const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+                if (motionQuery.matches) {
+                    isPaused = true;
+                }
+
                 if (swiperEl) {
                     swiperEl.addEventListener('mouseenter', function() { isPaused = true; });
-                    swiperEl.addEventListener('mouseleave', function() { isPaused = false; });
+                    swiperEl.addEventListener('mouseleave', function() {
+                        if (!window.__showroom_autoplay_paused && !motionQuery.matches) isPaused = false;
+                    });
                     swiperEl.addEventListener('touchstart', function() { isPaused = true; }, { passive: true });
                     swiperEl.addEventListener('touchend', function() {
-                        setTimeout(function() { isPaused = false; }, 3000);
+                        setTimeout(function() {
+                            if (!window.__showroom_autoplay_paused && !motionQuery.matches) isPaused = false;
+                        }, 3000);
                     }, { passive: true });
                 }
 
                 // Otomatis bergeser setiap 2 detik (2000ms) sebagai fallback jika native autoplay belum aktif
                 setInterval(function() {
-                    if (isPaused || window.__showroom_has_autoplay) return;
+                    if (isPaused || window.__showroom_has_autoplay || window.__showroom_autoplay_paused || motionQuery.matches) return;
 
                     // 1. Prioritaskan instance Swiper langsung jika tersedia
                     if (window.__showroomSwiper && typeof window.__showroomSwiper.slideNext === 'function') {
