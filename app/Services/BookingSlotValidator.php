@@ -3,12 +3,11 @@
 namespace App\Services;
 
 use App\Models\Service;
+use App\Models\Setting;
 use Illuminate\Support\Carbon;
 
 class BookingSlotValidator
 {
-    private const MAX_PER_SLOT = 3;
-
     /**
      * Sisa kuota slot jam tertentu.
      *
@@ -24,14 +23,18 @@ class BookingSlotValidator
             ->whereNotIn('status', ['cancelled'])
             ->count();
 
-        return max(0, self::MAX_PER_SLOT - $count);
+        return max(0, $this->getMaxPerSlot() - $count);
     }
 
     /**
-     * Validasi kuota slot jam (BR-02: maks 3 kendaraan per slot_hour).
+     * Validasi kuota dan jam operasional slot jam.
      */
     public function isSlotAvailable(string $serviceDate, int $slotHour): bool
     {
+        if (! $this->isHourWithinOperatingHours($slotHour)) {
+            return false;
+        }
+
         return $this->getRemainingQuota($serviceDate, $slotHour) > 0;
     }
 
@@ -51,6 +54,21 @@ class BookingSlotValidator
 
     public function getMaxPerSlot(): int
     {
-        return self::MAX_PER_SLOT;
+        return (int) Setting::get('booking.max_per_slot', 3);
+    }
+
+    public function getOpenHour(): int
+    {
+        return (int) Setting::get('booking.open_hour', 8);
+    }
+
+    public function getCloseHour(): int
+    {
+        return (int) Setting::get('booking.close_hour', 17);
+    }
+
+    public function isHourWithinOperatingHours(int $hour): bool
+    {
+        return $hour >= $this->getOpenHour() && $hour <= $this->getCloseHour();
     }
 }

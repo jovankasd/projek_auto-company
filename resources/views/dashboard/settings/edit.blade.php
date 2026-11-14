@@ -6,6 +6,17 @@
             <p class="text-slate-500 text-sm mt-1">Konfigurasi kuota booking per jam, jam operasional dealer, metadata SEO, dan kontak WhatsApp.</p>
         </div>
 
+        @if ($errors->any())
+            <div class="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-sm">
+                <p class="font-bold mb-1">Terjadi kesalahan pada input pengaturan:</p>
+                <ul class="list-disc list-inside space-y-0.5 text-xs">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <!-- Tab Nav -->
         <div class="flex items-center gap-2 border-b border-slate-200">
             <button type="button" @click="tab = 'booking'" 
@@ -35,7 +46,7 @@
                     <div>
                         <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Jam Buka Bengkel (WIB)</label>
                         <input type="number" name="booking_open_hour" min="0" max="23" 
-                               value="{{ \App\Models\Setting::get('booking.open_hour', 8) }}" required 
+                               value="{{ old('booking_open_hour', \App\Models\Setting::get('booking.open_hour', 8)) }}" required 
                                class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:ring-2 focus:ring-slate-900 focus:outline-none">
                         <p class="text-[11px] text-slate-400 mt-1">Pukul operasional dimulai.</p>
                     </div>
@@ -43,15 +54,15 @@
                     <div>
                         <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Jam Tutup Bengkel (WIB)</label>
                         <input type="number" name="booking_close_hour" min="0" max="23" 
-                               value="{{ \App\Models\Setting::get('booking.close_hour', 17) }}" required 
+                               value="{{ old('booking_close_hour', \App\Models\Setting::get('booking.close_hour', 17)) }}" required 
                                class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:ring-2 focus:ring-slate-900 focus:outline-none">
                         <p class="text-[11px] text-slate-400 mt-1">Batas akhir penerimaan unit.</p>
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Maks. Kuota per Slot Jam (BR-02)</label>
-                        <input type="number" name="booking_max_per_slot" min="1" max="10" 
-                               value="{{ \App\Models\Setting::get('booking.max_per_slot', 3) }}" required 
+                        <input type="number" name="booking_max_per_slot" min="1" max="50" 
+                               value="{{ old('booking_max_per_slot', \App\Models\Setting::get('booking.max_per_slot', 3)) }}" required 
                                class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:ring-2 focus:ring-slate-900 focus:outline-none">
                         <p class="text-[11px] text-slate-400 mt-1">Batas kapasitas stall bengkel per jam (Default 3).</p>
                     </div>
@@ -64,14 +75,14 @@
                     <div>
                         <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Nomor WhatsApp Resmi Dealer</label>
                         <input type="text" name="contact_whatsapp" 
-                               value="{{ \App\Models\Setting::get('contact.whatsapp', '6281234567890') }}" required 
+                               value="{{ old('contact_whatsapp', \App\Models\Setting::get('contact.whatsapp', '6281234567890')) }}" required 
                                class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:ring-2 focus:ring-slate-900 focus:outline-none">
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Email Layanan Pelanggan</label>
                         <input type="email" name="contact_email" 
-                               value="{{ \App\Models\Setting::get('contact.email', 'info@xyzmotors.id') }}" required 
+                               value="{{ old('contact_email', \App\Models\Setting::get('contact.email', 'info@xyzmotors.id')) }}" required 
                                class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none">
                     </div>
                 </div>
@@ -79,7 +90,7 @@
                 <div>
                     <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Alamat Showroom Utama</label>
                     <textarea name="contact_address" rows="2" 
-                              class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none">{{ \App\Models\Setting::get('contact.address', 'Jl. Sudirman No. 1, Jakarta Selatan') }}</textarea>
+                              class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none">{{ old('contact_address', \App\Models\Setting::get('contact.address', 'Jl. Sudirman No. 88, Jakarta Selatan 12190')) }}</textarea>
                 </div>
             </div>
 
@@ -89,21 +100,21 @@
                     <div>
                         <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Nama Situs (Site Name)</label>
                         <input type="text" name="seo_site_name" 
-                               value="{{ \App\Models\Setting::get('seo.site_name', 'Dealer Pro') }}" required 
+                               value="{{ old('seo_site_name', \App\Models\Setting::get('seo.site_name', 'Dealer Pro')) }}" required 
                                class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none">
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold uppercase text-slate-500 mb-1">Tagline Brand</label>
                         <input type="text" name="seo_tagline" 
-                               value="{{ \App\Models\Setting::get('seo.tagline', 'Drive Your Dream') }}" required 
+                               value="{{ old('seo_tagline', \App\Models\Setting::get('seo.tagline', 'Drive Your Dream')) }}" required 
                                class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-slate-900 focus:outline-none">
                     </div>
                 </div>
             </div>
 
             <div class="pt-4 flex items-center justify-between border-t border-slate-100">
-                <span class="text-xs text-slate-400 font-medium">Perubahan langsung ter-cache dan ter-invalidasi otomatis.</span>
+                <span class="text-xs text-slate-500 font-medium">Perubahan pengaturan langsung berlaku pada operasional sistem dan tampilan publik.</span>
                 <button type="submit" class="px-6 py-2.5 rounded-xl font-bold text-sm bg-slate-900 text-white hover:bg-slate-800 shadow-sm transition">
                     Simpan Pengaturan
                 </button>
