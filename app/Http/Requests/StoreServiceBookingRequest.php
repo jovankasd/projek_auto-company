@@ -28,6 +28,7 @@ class StoreServiceBookingRequest extends FormRequest
             'service_date' => ['required', 'date', 'after:now'],
             'slot_hour' => ['nullable', 'integer', 'between:8,17'],
             'complaint_notes' => ['required', 'string', 'min:10', 'max:2000'],
+            'promo_code' => ['nullable', 'string', 'max:50'],
         ];
     }
 

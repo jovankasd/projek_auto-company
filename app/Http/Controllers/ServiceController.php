@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\ServiceItemType;
 use App\Enums\ServiceStatus;
 use App\Enums\UserRole;
+use App\Models\Promo;
 use App\Models\Service;
 use App\Models\ServiceItem;
 use App\Models\ServiceStatusLog;
@@ -15,6 +16,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -30,13 +32,13 @@ class ServiceController extends Controller
         $user = $request->user();
 
         $services = Service::where('customer_id', $user->id)
-            ->with(['items', 'statusLogs.changedBy', 'mechanic'])
+            ->with(['items', 'statusLogs.changedBy', 'mechanic', 'promo'])
             ->latest('service_date')
             ->paginate(10);
 
         $activeService = Service::where('customer_id', $user->id)
             ->active()
-            ->with(['items', 'statusLogs.changedBy', 'mechanic'])
+            ->with(['items', 'statusLogs.changedBy', 'mechanic', 'promo'])
             ->latest('service_date')
             ->first();
 
@@ -50,7 +52,7 @@ class ServiceController extends Controller
     {
         $this->authorize('view', $service);
 
-        $service->load(['customer', 'mechanic', 'items.addedBy', 'statusLogs.changedBy']);
+        $service->load(['customer', 'mechanic', 'promo', 'items.addedBy', 'statusLogs.changedBy']);
 
         return view('dashboard.services.show', compact('service'));
     }
@@ -101,29 +103,39 @@ class ServiceController extends Controller
             return back()->with('error', $message);
         }
 
-        // 3. Set timestamp & metadata
-        if ($nextStatus === ServiceStatus::Confirmed) {
-            $service->confirmed_at = now();
-        } elseif ($nextStatus === ServiceStatus::InProgress) {
-            $service->started_at = now();
-        } elseif ($nextStatus === ServiceStatus::Completed) {
-            $service->completed_at = now();
-        } elseif ($nextStatus === ServiceStatus::Cancelled) {
-            $service->cancelled_at = now();
-            $service->cancellation_reason = $validated['cancellation_reason'] ?? null;
-        }
+        // 3. Set timestamp, metadata, dan update status dalam transaksi atomik
+        DB::transaction(function () use ($service, $nextStatus, $currentStatus, $validated) {
+            if ($nextStatus === ServiceStatus::Confirmed) {
+                $service->confirmed_at = now();
+            } elseif ($nextStatus === ServiceStatus::InProgress) {
+                $service->started_at = now();
+            } elseif ($nextStatus === ServiceStatus::Completed) {
+                $service->completed_at = now();
+            } elseif ($nextStatus === ServiceStatus::Cancelled) {
+                $service->cancelled_at = now();
+                $service->cancellation_reason = $validated['cancellation_reason'] ?? null;
 
-        if (! empty($validated['mechanic_notes'])) {
-            $service->mechanic_notes = $validated['mechanic_notes'];
-        }
+                // Restitusi kuota voucher jika servis dibatalkan (atomic pessimistic lock)
+                if ($currentStatus !== ServiceStatus::Cancelled && $service->promo_id) {
+                    $promo = Promo::where('id', $service->promo_id)->lockForUpdate()->first();
+                    if ($promo && $promo->used_count > 0) {
+                        $promo->decrement('used_count');
+                    }
+                }
+            }
 
-        if (! empty($validated['recommendation'])) {
-            $service->recommendation = $validated['recommendation'];
-        }
+            if (! empty($validated['mechanic_notes'])) {
+                $service->mechanic_notes = $validated['mechanic_notes'];
+            }
 
-        $service->status_change_notes = $validated['notes'] ?? "Status diubah menjadi {$nextStatus->label()} oleh ".auth()->user()->name;
-        $service->status = $nextStatus;
-        $service->save();
+            if (! empty($validated['recommendation'])) {
+                $service->recommendation = $validated['recommendation'];
+            }
+
+            $service->status_change_notes = $validated['notes'] ?? "Status diubah menjadi {$nextStatus->label()} oleh ".auth()->user()->name;
+            $service->status = $nextStatus;
+            $service->save();
+        });
 
         $message = "Status servis berhasil diperbarui menjadi {$nextStatus->label()}.";
 
@@ -144,6 +156,15 @@ class ServiceController extends Controller
     public function addItem(Request $request, Service $service, ServiceCostCalculator $calculator): JsonResponse|RedirectResponse
     {
         $this->authorize('addItem', $service);
+
+        if (in_array($service->status, [ServiceStatus::Completed, ServiceStatus::Cancelled], true)) {
+            $message = 'Tidak dapat menambah item pada servis yang sudah selesai atau dibatalkan.';
+            if ($request->wantsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
+
+            return back()->with('error', $message);
+        }
 
         $validated = $request->validate([
             'item_type' => ['required', Rule::enum(ServiceItemType::class)],
@@ -191,6 +212,15 @@ class ServiceController extends Controller
     public function removeItem(Service $service, ServiceItem $item, ServiceCostCalculator $calculator): JsonResponse|RedirectResponse
     {
         $this->authorize('removeItem', $service);
+
+        if (in_array($service->status, [ServiceStatus::Completed, ServiceStatus::Cancelled], true)) {
+            $message = 'Tidak dapat menghapus item pada servis yang sudah selesai atau dibatalkan.';
+            if (request()->wantsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
+
+            return back()->with('error', $message);
+        }
 
         if ($item->service_id !== $service->id) {
             abort(404, 'Item tidak ditemukan pada servis ini.');

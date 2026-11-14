@@ -169,8 +169,36 @@
                             @endforeach
                         </tbody>
                         <tfoot>
+                            @if($service->discount_amount > 0)
+                                <tr class="bg-slate-50 text-xs text-slate-600 font-semibold">
+                                    <td colspan="4" class="py-2.5 px-6 text-right uppercase tracking-wider">Subtotal Item</td>
+                                    <td class="py-2.5 px-6 text-right font-mono text-sm text-slate-700">Rp{{ number_format($service->items->sum('subtotal'), 0, ',', '.') }}</td>
+                                    @if(auth()->user()->isMekanik() || auth()->user()->isSuperAdmin())
+                                        <td></td>
+                                    @endif
+                                </tr>
+                                <tr class="bg-emerald-50/50 text-xs text-emerald-800 font-bold">
+                                    <td colspan="4" class="py-2.5 px-6 text-right uppercase tracking-wider">
+                                        Potongan Voucher ({{ $service->promo?->code ?? 'Voucher' }})
+                                    </td>
+                                    <td class="py-2.5 px-6 text-right font-mono text-sm text-emerald-700">-Rp{{ number_format($service->discount_amount, 0, ',', '.') }}</td>
+                                    @if(auth()->user()->isMekanik() || auth()->user()->isSuperAdmin())
+                                        <td></td>
+                                    @endif
+                                </tr>
+                            @elseif($service->promo)
+                                <tr class="bg-emerald-50/40 text-xs text-emerald-800 font-medium">
+                                    <td colspan="4" class="py-2.5 px-6 text-right">
+                                        Voucher Terpasang: <strong class="font-mono font-bold">{{ $service->promo->code }}</strong> (Potongan akan dihitung otomatis saat item pekerjaan ditambahkan)
+                                    </td>
+                                    <td class="py-2.5 px-6 text-right font-mono text-xs text-emerald-700 font-bold">Terdaftar</td>
+                                    @if(auth()->user()->isMekanik() || auth()->user()->isSuperAdmin())
+                                        <td></td>
+                                    @endif
+                                </tr>
+                            @endif
                             <tr class="bg-slate-50 font-bold text-sm">
-                                <td colspan="4" class="py-4 px-6 text-right uppercase tracking-wider text-slate-600">Total Keseluruhan</td>
+                                <td colspan="4" class="py-4 px-6 text-right uppercase tracking-wider text-slate-900">Total Tagihan Bersih</td>
                                 <td class="py-4 px-6 text-right font-mono text-base text-slate-900">Rp{{ number_format($service->total_cost, 0, ',', '.') }}</td>
                                 @if(auth()->user()->isMekanik() || auth()->user()->isSuperAdmin())
                                     <td></td>

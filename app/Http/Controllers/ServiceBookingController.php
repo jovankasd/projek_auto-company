@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Enums\ServiceStatus;
 use App\Enums\UserRole;
 use App\Http\Requests\StoreServiceBookingRequest;
+use App\Models\Promo;
 use App\Models\Service;
 use App\Models\User;
 use App\Notifications\ServiceBookingCreatedNotification;
@@ -74,11 +75,53 @@ class ServiceBookingController extends Controller
         /** @var User $user */
         $user = auth()->user();
 
-        // 5. Create service in transaction
+        // 5. Create service in transaction with optional atomic voucher lock
         $service = DB::transaction(function () use ($user, $ticketNumber, $validated, $cleanPlate, $serviceDateTime, $slotHour) {
+            $promo = null;
+
+            if (! empty($validated['promo_code'])) {
+                $promoCode = strtoupper(trim((string) $validated['promo_code']));
+
+                // Lock row promo untuk mencegah race condition kuota
+                $promo = Promo::where('code', $promoCode)
+                    ->lockForUpdate()
+                    ->first();
+
+                if (! $promo) {
+                    throw ValidationException::withMessages([
+                        'promo_code' => 'Kode voucher tidak valid atau tidak ditemukan.',
+                    ]);
+                }
+
+                $now = Carbon::now();
+                if (! $promo->is_active
+                    || ($promo->starts_at && Carbon::parse($promo->starts_at)->isFuture())
+                    || ($promo->ends_at && Carbon::parse($promo->ends_at)->isPast())) {
+                    throw ValidationException::withMessages([
+                        'promo_code' => 'Masa berlaku voucher telah berakhir atau belum aktif.',
+                    ]);
+                }
+
+                if ($promo->car_id !== null) {
+                    throw ValidationException::withMessages([
+                        'promo_code' => 'Voucher ini khusus untuk program pembelian unit kendaraan di showroom fisik, bukan untuk booking servis.',
+                    ]);
+                }
+
+                if ($promo->max_usage !== null && $promo->used_count >= $promo->max_usage) {
+                    throw ValidationException::withMessages([
+                        'promo_code' => 'Kuota penukaran voucher ini telah habis.',
+                    ]);
+                }
+
+                // Increment atomik dalam transaksi yang sama
+                $promo->increment('used_count');
+            }
+
             return Service::create([
                 'ticket_number' => $ticketNumber,
                 'customer_id' => $user->id,
+                'promo_id' => $promo?->id,
                 'vehicle_plate_number' => $cleanPlate,
                 'vehicle_model' => $validated['vehicle_model'],
                 'vehicle_year' => $validated['vehicle_year'],
@@ -88,6 +131,7 @@ class ServiceBookingController extends Controller
                 'slot_hour' => $slotHour,
                 'complaint_notes' => $validated['complaint_notes'],
                 'status' => ServiceStatus::Pending,
+                'discount_amount' => 0,
                 'total_cost' => 0,
             ]);
         });
