@@ -6,6 +6,16 @@ Semua perubahan besar, fitur baru, perbaikan, dan pembaruan arsitektural pada pl
 
 ## [Unreleased]
 
+### Integritas Proses & Suku Cadang (Audit Perbaikan 2026-11-09)
+- **08. Hubungkan Item Servis ke Stok dan Harga Server**:
+  - Menambahkan kolom `spare_part_id` (foreign key nullable dengan `nullOnDelete`) pada tabel `service_items` melalui migrasi `2024_01_15_000002_add_spare_part_id_to_service_items_table.php` untuk menjaga kompatibilitas data historis.
+  - Membangun `ServiceInventoryManager` untuk mutasi stok atomik transaksional (`lockForUpdate`), verifikasi ketersediaan suku cadang, dan pencegahan stok negatif saat penambahan item servis.
+  - Menegakkan keamanan harga anti-tamper di server: nama, nomor part, dan harga satuan suku cadang diambil langsung dari model `SparePart` master, mengabaikan manipulasi harga dan deskripsi dari peramban/klien.
+  - Menambahkan pemulihan kuantitas stok secara otomatis dan idempoten saat item suku cadang dihapus sebelum servis mencapai status terminal (`completed`/`cancelled`).
+  - Mengunci work order terminal (`completed` dan `cancelled`) agar tidak dapat dimutasi lagi (`addItem` dan `removeItem` ditolak dengan status 422).
+  - Memperbarui antarmuka pengguna mekanik di dashboard (`mekanik.blade.php`) dan halaman detail servis (`show.blade.php`) untuk memilih suku cadang berdasarkan SKU resmi tanpa bergantung pada input tersembunyi.
+  - Menambahkan 8 feature test komprehensif di `tests/Feature/ServiceInventoryTest.php` (44 assertions) yang mencakup seluruh skenario anti-tamper, stok atomik, pemulihan stok, kompatibilitas item lama, dan konsistensi metrik laporan owner.
+
 ### Keamanan (Security Hardening - Audit Perbaikan 2026-11-09)
 - **01. Hilangkan Kredensial Demo dari UI dan Seeder Produksi** ([PR #1](https://github.com/jovankasd/projek_auto-company/pull/1)):
   - Menghapus kartu kredensial demo, teks kata sandi default `password`, dan autofill JavaScript dari halaman login publik (`resources/views/auth/login.blade.php`).
