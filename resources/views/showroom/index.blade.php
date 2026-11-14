@@ -905,7 +905,7 @@
                         Program Penawaran &amp; Voucher Resmi
                     </h2>
                     <p class="text-slate-600 text-sm mt-1">
-                        Gunakan kode program di bawah ini saat melakukan konfirmasi pembelian unit atau reservasi perawatan berkala.
+                        Gunakan kode voucher bengkel saat reservasi perawatan berkala daring, atau konsultasikan kode penawaran unit kepada konsultan Sales kami di dealer.
                     </p>
                 </div>
             </div>
@@ -927,8 +927,19 @@
                     @foreach($promos as $promo)
                         <div class="p-6 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
                             <div class="md:col-span-3 flex flex-col">
-                                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Kode Voucher Resmi</span>
-                                <span class="font-mono text-base font-extrabold text-slate-900 mt-1">{{ $promo->code }}</span>
+                                <div class="flex items-center gap-1.5 mb-1">
+                                    @if($promo->car)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-800 border border-blue-200">
+                                            Dealer Offline
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                            Bengkel Resmi
+                                        </span>
+                                    @endif
+                                </div>
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Kode Voucher Resmi</span>
+                                <span class="font-mono text-base font-extrabold text-slate-900 mt-0.5">{{ $promo->code }}</span>
                                 <span class="font-mono text-xs font-bold text-emerald-700 mt-1 tabular-nums">
                                     @if(($promo->discount_type->value ?? $promo->discount_type) === 'percentage')
                                         Potongan {{ (float) $promo->discount_value }}%
@@ -938,27 +949,54 @@
                                 </span>
                             </div>
 
-                            <div class="md:col-span-6 space-y-1">
+                            <div class="md:col-span-5 space-y-1">
                                 <h3 class="text-base font-extrabold text-slate-900">{{ $promo->title }}</h3>
                                 @if($promo->car)
                                     <p class="text-xs font-bold text-blue-600">
-                                        Unit Berlaku: {{ $promo->car->brand }} {{ $promo->car->model_name }}
+                                        Unit Khusus: {{ $promo->car->brand }} {{ $promo->car->model_name }}
                                     </p>
                                 @endif
                                 @if($promo->description)
                                     <p class="text-xs text-slate-600 leading-relaxed">{{ $promo->description }}</p>
                                 @endif
+                                @if($promo->car)
+                                    <p class="text-[11px] text-slate-500 italic pt-0.5">
+                                        Klaim offline: Tunjukkan kode ini kepada Sales saat negosiasi di showroom atau cantumkan pada jadwal Test Drive.
+                                    </p>
+                                @else
+                                    <p class="text-[11px] text-slate-500 pt-0.5">
+                                        Klaim online: Masukkan kode saat reservasi servis bengkel untuk pemotongan biaya pengerjaan.
+                                    </p>
+                                @endif
                             </div>
 
-                            <div class="md:col-span-3 flex md:flex-col items-center md:items-end justify-between gap-2">
+                            <div class="md:col-span-4 flex flex-col md:items-end justify-between gap-3">
                                 <span class="font-mono text-[11px] text-slate-500 tabular-nums">
                                     Berlaku s/d {{ $promo->ends_at ? $promo->ends_at->format('d M Y') : '-' }}
+                                    @if($promo->max_usage)
+                                        &bull; Sisa Kuota: {{ max(0, $promo->max_usage - $promo->used_count) }}
+                                    @endif
                                 </span>
-                                <button type="button"
-                                        @click="copyPromoCode('{{ addslashes($promo->code) }}')"
-                                        class="px-4 py-2 border border-slate-900 text-slate-900 hover:bg-slate-900 hover:text-white text-xs font-bold uppercase tracking-wider transition">
-                                    Salin Kode
-                                </button>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    @if($promo->car)
+                                        <button type="button"
+                                                @click="consultSalesForCarPromo({{ $promo->car->id }}, '{{ addslashes($promo->car->brand . ' ' . $promo->car->model_name) }}', '{{ addslashes($promo->code) }}')"
+                                                class="px-3.5 py-2 bg-slate-900 text-white hover:bg-blue-600 text-xs font-bold uppercase tracking-wider transition">
+                                            Konsultasi Sales
+                                        </button>
+                                    @else
+                                        <button type="button"
+                                                @click="applyPromoToService('{{ addslashes($promo->code) }}')"
+                                                class="px-3.5 py-2 bg-blue-600 text-white hover:bg-blue-700 text-xs font-bold uppercase tracking-wider transition">
+                                            Pakai untuk Servis
+                                        </button>
+                                    @endif
+                                    <button type="button"
+                                            @click="copyPromoCode('{{ addslashes($promo->code) }}')"
+                                            class="px-3 py-2 border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-bold uppercase tracking-wider transition">
+                                        Salin Kode
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     @endforeach
@@ -1238,7 +1276,7 @@
                 </button>
             </div>
 
-            <form @submit.prevent="submitServiceBooking" class="mt-6 space-y-4">
+            <form @submit.prevent="submitServiceBooking" action="{{ route('service-booking.store') }}" method="POST" class="mt-6 space-y-4">
                 @csrf
 
                 <!-- Nomor Plat Kendaraan -->
@@ -1338,6 +1376,20 @@
                               class="w-full px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 focus:ring-2 focus:ring-black focus:border-black text-sm transition"></textarea>
                 </div>
 
+                <!-- Kode Voucher / Promo (Opsional) -->
+                <div class="space-y-1.5">
+                    <label for="srv_promo" class="block text-sm font-medium text-slate-700">Kode Voucher Promo <span class="text-xs text-slate-500 font-normal">(Opsional)</span></label>
+                    <input type="text"
+                           id="srv_promo"
+                           name="promo_code"
+                           x-model="serviceForm.promo_code"
+                           @input="serviceForm.promo_code = $event.target.value.toUpperCase()"
+                           placeholder="Contoh: XYZSUPER2024"
+                           maxlength="50"
+                           class="w-full px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 focus:ring-2 focus:ring-black focus:border-black text-sm uppercase font-mono transition">
+                    <p class="text-[11px] text-slate-500">Masukkan kode voucher bengkel untuk klaim potongan biaya servis berkala.</p>
+                </div>
+
                 <!-- Submit Button -->
                 <div class="pt-4 flex items-center justify-end gap-3">
                     <button type="button" @click="closeModals()" class="px-5 py-2.5 rounded-lg border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 text-sm transition">
@@ -1386,7 +1438,8 @@
                     odometer_km: '',
                     service_type: 'regular',
                     service_date: '',
-                    complaint_notes: ''
+                    complaint_notes: '',
+                    promo_code: ''
                 },
 
                 init() {
@@ -1458,6 +1511,22 @@
                         navigator.clipboard.writeText(code);
                     }
                     this.addToast('Kode promo ' + code + ' berhasil disalin!', 'success', 3500);
+                },
+
+                applyPromoToService(code) {
+                    this.serviceForm.promo_code = code;
+                    this.copyPromoCode(code);
+                    this.serviceModalOpen = true;
+                },
+
+                consultSalesForCarPromo(carId, carName, promoCode) {
+                    this.copyPromoCode(promoCode);
+                    this.openTestDriveModal(carId, carName);
+                    if (this.testDriveForm.notes) {
+                        this.testDriveForm.notes += ' [Klaim Promo Unit: ' + promoCode + ']';
+                    } else {
+                        this.testDriveForm.notes = 'Konsultasi program promo unit mobil dengan kode: ' + promoCode;
+                    }
                 },
 
                 closeModals() {
@@ -1551,6 +1620,7 @@
                         this.closeModals();
                         // Reset form
                         this.serviceForm.complaint_notes = '';
+                        this.serviceForm.promo_code = '';
                     } catch (error) {
                         this.addToast('Gagal memproses booking. Silakan coba kembali.', 'error', 6000);
                     } finally {

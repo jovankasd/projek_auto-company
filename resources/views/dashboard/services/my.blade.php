@@ -57,6 +57,11 @@
                                     </td>
                                     <td class="py-4 px-6 font-mono font-bold text-slate-900">
                                         Rp{{ number_format($srv->total_cost, 0, ',', '.') }}
+                                        @if($srv->discount_amount > 0)
+                                            <p class="text-[10px] text-emerald-600 font-sans font-semibold">Hemat Rp{{ number_format($srv->discount_amount, 0, ',', '.') }}</p>
+                                        @elseif($srv->promo)
+                                            <p class="text-[10px] text-emerald-600 font-sans font-semibold">Voucher: {{ $srv->promo->code }}</p>
+                                        @endif
                                     </td>
                                     <td class="py-4 px-6">
                                         <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border {{ $srv->status->color() }}">

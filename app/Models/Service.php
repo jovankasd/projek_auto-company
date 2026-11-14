@@ -26,9 +26,11 @@ use Illuminate\Support\Carbon;
  * @property string $slot_hour
  * @property string|null $complaint_notes
  * @property int|null $assigned_mechanic_id
+ * @property int|null $promo_id
  * @property string|null $mechanic_notes
  * @property string|null $recommendation
  * @property string $estimated_cost
+ * @property string $discount_amount
  * @property string $total_cost
  * @property ServiceStatus $status
  * @property Carbon|null $confirmed_at
@@ -40,6 +42,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  * @property-read User $customer
  * @property-read User|null $mechanic
+ * @property-read Promo|null $promo
  * @property-read Collection<int, ServiceItem> $items
  * @property-read Collection<int, ServiceStatusLog> $statusLogs
  */
@@ -53,9 +56,9 @@ class Service extends Model
         'ticket_number', 'customer_id', 'vehicle_plate_number',
         'vehicle_model', 'vehicle_year', 'odometer_km',
         'service_type', 'service_date', 'slot_hour',
-        'complaint_notes', 'assigned_mechanic_id',
+        'complaint_notes', 'assigned_mechanic_id', 'promo_id',
         'mechanic_notes', 'recommendation',
-        'estimated_cost', 'total_cost', 'status',
+        'estimated_cost', 'discount_amount', 'total_cost', 'status',
         'confirmed_at', 'started_at', 'completed_at',
         'cancelled_at', 'cancellation_reason',
     ];
@@ -75,6 +78,7 @@ class Service extends Model
             'completed_at' => 'datetime',
             'cancelled_at' => 'datetime',
             'estimated_cost' => 'decimal:2',
+            'discount_amount' => 'decimal:2',
             'total_cost' => 'decimal:2',
             'status' => ServiceStatus::class,
         ];
@@ -105,6 +109,11 @@ class Service extends Model
     public function mechanic(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_mechanic_id');
+    }
+
+    public function promo(): BelongsTo
+    {
+        return $this->belongsTo(Promo::class, 'promo_id')->withTrashed();
     }
 
     public function items(): HasMany
