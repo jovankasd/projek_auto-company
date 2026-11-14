@@ -44,7 +44,7 @@ Route::middleware(['auth', 'verified'])->prefix('dashboard')->group(function () 
         Route::post('cars/reorder', [CarController::class, 'reorder'])->name('cars.reorder');
         Route::patch('cars/{slug}/restore', [CarController::class, 'restore'])->name('cars.restore');
         Route::resource('cars', CarController::class);
-        Route::resource('promos', PromoController::class);
+        Route::resource('promos', PromoController::class)->except(['show']);
         Route::patch('test-drives/{testDrive}/approve', [TestDriveController::class, 'approve'])->name('test-drives.approve');
         Route::patch('test-drives/{testDrive}/reject', [TestDriveController::class, 'reject'])->name('test-drives.reject');
     });
@@ -64,7 +64,7 @@ Route::middleware(['auth', 'verified'])->prefix('dashboard')->group(function () 
     Route::post('reports/submit-to-owner', [ReportController::class, 'submitToOwner'])->middleware('role:super_admin')->name('reports.submit-to-owner');
 
     Route::middleware('role:super_admin')->group(function () {
-        Route::resource('users', UserController::class);
+        Route::resource('users', UserController::class)->except(['show']);
         Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit.index');
         Route::get('settings', [SettingController::class, 'edit'])->name('settings.edit');
         Route::patch('settings', [SettingController::class, 'update'])->name('settings.update');
