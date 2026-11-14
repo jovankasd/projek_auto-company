@@ -208,26 +208,27 @@
                         </div>
 
                         <!-- Car Top Header / Meta -->
-                        <div class="absolute top-20 sm:top-24 inset-x-0 z-20 flex flex-col items-center justify-center text-center px-4" data-car-meta>
-                            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider {{ $car->category->color() ?? 'bg-blue-100 text-blue-700' }} border shadow-xs mb-2">
+                        <div class="absolute top-2 sm:top-4 md:top-4 lg:top-6 inset-x-0 z-20 flex flex-col items-center justify-center text-center px-4" data-car-meta>
+                            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider {{ $car->category->color() ?? 'bg-blue-100 text-blue-700' }} border shadow-xs mb-1.5 sm:mb-2">
                                 <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
                                 {{ $car->category->label() }}
                             </div>
                             <h1 class="text-2xl sm:text-4xl md:text-5xl font-extrabold text-slate-900 tracking-tight">
                                 {{ $car->brand }} <span class="text-blue-600">{{ $car->model_name }}</span>
                             </h1>
-                            <p class="font-mono text-base sm:text-xl font-bold text-slate-700 mt-1">
-                                {{ $car->price_formatted }} <span class="text-xs font-sans text-slate-400 font-normal">OTR Jakarta</span>
+                            <p class="mt-1.5 sm:mt-2 inline-flex items-center gap-2 px-3.5 sm:px-4 py-1 sm:py-1.5 rounded-full bg-white/90 backdrop-blur-md border border-slate-200/90 shadow-xs">
+                                <span class="font-mono text-base sm:text-xl font-extrabold text-slate-900 tracking-tight">{{ $car->price_formatted }}</span>
+                                <span class="text-xs font-sans text-slate-600 font-medium">OTR Jakarta</span>
                             </p>
                         </div>
 
                         <!-- Layer 10 (z-10): Car Floating Image with Drop Shadow -->
-                        <div class="absolute inset-0 z-10 flex items-center justify-center pointer-events-none px-4 md:px-8 mt-4 sm:mt-2" data-car-visual>
+                        <div class="absolute inset-0 z-10 flex items-center justify-center pointer-events-none px-4 md:px-8 mt-0 sm:mt-1 md:mt-2" data-car-visual>
                             <img src="{{ $car->hero_image_url }}"
                                  alt="{{ $car->hero_image_alt ?: ($car->brand . ' ' . $car->model_name . ' tampak samping') }}"
                                  width="1060"
                                  height="480"
-                                 class="max-h-[38vh] sm:max-h-[44vh] md:max-h-[46vh] lg:max-h-[48vh] w-auto max-w-[92vw] md:max-w-[78vw] object-contain drop-shadow-car pointer-events-auto transform translate-3d"
+                                 class="max-h-[30vh] sm:max-h-[32vh] md:max-h-[33vh] lg:max-h-[34vh] w-auto max-w-[92vw] md:max-w-[78vw] object-contain drop-shadow-car pointer-events-auto transform translate-3d"
                                  data-car-img
                                  {{ $loop->first ? 'loading="eager" fetchpriority="high"' : 'loading="lazy" decoding="async"' }} />
                         </div>
@@ -409,7 +410,7 @@
                     <!-- Divisi 01 -->
                     <div class="py-7 grid grid-cols-1 sm:grid-cols-12 gap-4 items-start">
                         <div class="sm:col-span-3">
-                            <span class="font-mono text-xs font-bold text-slate-400 uppercase tracking-widest block">DIVISI 01</span>
+                            <span class="font-mono text-xs font-bold text-slate-500 uppercase tracking-widest block">DIVISI 01</span>
                             <span class="font-mono text-xs font-bold text-slate-900 uppercase tracking-wider mt-1 block">Showroom &amp; Sales</span>
                         </div>
                         <div class="sm:col-span-6 space-y-2">
@@ -430,7 +431,7 @@
                     <!-- Divisi 02 -->
                     <div class="py-7 grid grid-cols-1 sm:grid-cols-12 gap-4 items-start">
                         <div class="sm:col-span-3">
-                            <span class="font-mono text-xs font-bold text-slate-400 uppercase tracking-widest block">DIVISI 02</span>
+                            <span class="font-mono text-xs font-bold text-slate-500 uppercase tracking-widest block">DIVISI 02</span>
                             <span class="font-mono text-xs font-bold text-slate-900 uppercase tracking-wider mt-1 block">Bengkel Resmi</span>
                         </div>
                         <div class="sm:col-span-6 space-y-2">
@@ -451,7 +452,7 @@
                     <!-- Divisi 03 -->
                     <div class="py-7 grid grid-cols-1 sm:grid-cols-12 gap-4 items-start">
                         <div class="sm:col-span-3">
-                            <span class="font-mono text-xs font-bold text-slate-400 uppercase tracking-widest block">DIVISI 03</span>
+                            <span class="font-mono text-xs font-bold text-slate-500 uppercase tracking-widest block">DIVISI 03</span>
                             <span class="font-mono text-xs font-bold text-slate-900 uppercase tracking-wider mt-1 block">Gudang Suku Cadang</span>
                         </div>
                         <div class="sm:col-span-6 space-y-2">
@@ -580,19 +581,19 @@
                                 <!-- 4-Column Hairline Telemetry Table -->
                                 <dl class="grid grid-cols-2 sm:grid-cols-4 border border-slate-200 divide-y sm:divide-y-0 sm:divide-x divide-slate-200 bg-white">
                                     <div class="p-3">
-                                        <dt class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Tenaga</dt>
+                                        <dt class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Tenaga</dt>
                                         <dd class="font-mono text-xs sm:text-sm font-bold text-slate-900 mt-1 tabular-nums">{{ $car->engine_specs['power'] ?? '-' }}</dd>
                                     </div>
                                     <div class="p-3">
-                                        <dt class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Torsi</dt>
+                                        <dt class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Torsi</dt>
                                         <dd class="font-mono text-xs sm:text-sm font-bold text-slate-900 mt-1 tabular-nums">{{ $car->engine_specs['torque'] ?? '-' }}</dd>
                                     </div>
                                     <div class="p-3">
-                                        <dt class="text-[10px] font-bold uppercase tracking-wider text-slate-400">0-100 KM/J</dt>
+                                        <dt class="text-[10px] font-bold uppercase tracking-wider text-slate-500">0-100 KM/J</dt>
                                         <dd class="font-mono text-xs sm:text-sm font-bold text-slate-900 mt-1 tabular-nums">{{ $car->engine_specs['accel'] ?? '-' }}</dd>
                                     </div>
                                     <div class="p-3">
-                                        <dt class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Transmisi</dt>
+                                        <dt class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Transmisi</dt>
                                         <dd class="font-mono text-xs sm:text-sm font-bold text-slate-900 mt-1 tabular-nums">{{ $car->engine_specs['trans'] ?? '-' }}</dd>
                                     </div>
                                 </dl>
@@ -601,7 +602,7 @@
                             <!-- Column 3 (3 Cols): OTR Pricing & Direct Booking Triggers -->
                             <div class="lg:col-span-3 p-6 sm:p-8 flex flex-col justify-between bg-white">
                                 <div>
-                                    <span class="block text-[11px] font-bold uppercase tracking-wider text-slate-400">Harga Resmi OTR Jakarta</span>
+                                    <span class="block text-[11px] font-bold uppercase tracking-wider text-slate-500">Harga Resmi OTR Jakarta</span>
                                     <p class="font-mono text-xl sm:text-2xl font-extrabold text-slate-900 mt-1 tabular-nums">
                                         {{ $car->price_formatted }}
                                     </p>
@@ -727,7 +728,7 @@
                             <!-- Bottom: Unit Price & Direct Installation Trigger -->
                             <div class="pt-4 border-t border-slate-200 flex items-center justify-between gap-3">
                                 <div>
-                                    <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Harga Satuan</span>
+                                    <span class="block text-[10px] font-bold uppercase tracking-wider text-slate-500">Harga Satuan</span>
                                     <span class="font-mono text-base font-extrabold text-slate-900 tabular-nums">{{ $part->price_formatted }}</span>
                                 </div>
                                 <button type="button"
@@ -765,7 +766,7 @@
                         <div class="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div class="space-y-1.5 max-w-xl">
                                 <div class="flex items-center gap-2.5">
-                                    <span class="font-mono text-xs font-bold text-slate-400">01</span>
+                                    <span class="font-mono text-xs font-bold text-slate-500">01</span>
                                     <h3 class="text-base font-extrabold text-slate-900">Servis Rutin / Berkala (Periodic Maintenance)</h3>
                                 </div>
                                 <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -783,7 +784,7 @@
                         <div class="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div class="space-y-1.5 max-w-xl">
                                 <div class="flex items-center gap-2.5">
-                                    <span class="font-mono text-xs font-bold text-slate-400">02</span>
+                                    <span class="font-mono text-xs font-bold text-slate-500">02</span>
                                     <h3 class="text-base font-extrabold text-slate-900">Servis Besar (Major Overhaul &amp; Drivetrain)</h3>
                                 </div>
                                 <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -801,7 +802,7 @@
                         <div class="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div class="space-y-1.5 max-w-xl">
                                 <div class="flex items-center gap-2.5">
-                                    <span class="font-mono text-xs font-bold text-slate-400">03</span>
+                                    <span class="font-mono text-xs font-bold text-slate-500">03</span>
                                     <h3 class="text-base font-extrabold text-slate-900">Inspeksi &amp; Diagnosa Komputer (OBD / EV Telemetry)</h3>
                                 </div>
                                 <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -819,7 +820,7 @@
                         <div class="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div class="space-y-1.5 max-w-xl">
                                 <div class="flex items-center gap-2.5">
-                                    <span class="font-mono text-xs font-bold text-slate-400">04</span>
+                                    <span class="font-mono text-xs font-bold text-slate-500">04</span>
                                     <h3 class="text-base font-extrabold text-slate-900">Klaim Garansi Resmi Pabrik</h3>
                                 </div>
                                 <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
@@ -927,7 +928,7 @@
                     @foreach($promos as $promo)
                         <div class="p-6 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
                             <div class="md:col-span-3 flex flex-col">
-                                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Kode Voucher Resmi</span>
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Kode Voucher Resmi</span>
                                 <span class="font-mono text-base font-extrabold text-slate-900 mt-1">{{ $promo->code }}</span>
                                 <span class="font-mono text-xs font-bold text-emerald-700 mt-1 tabular-nums">
                                     @if(($promo->discount_type->value ?? $promo->discount_type) === 'percentage')
@@ -1158,7 +1159,7 @@
                            @change="testDriveForm.driver_license_image = $event.target.files[0]"
                            accept="image/*"
                            class="w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200">
-                    <p class="text-[11px] text-slate-400">Format: JPG, PNG, WebP. Maks 5MB.</p>
+                    <p class="text-[11px] text-slate-500">Format: JPG, PNG, WebP. Maks 5MB.</p>
                 </div>
 
                 <!-- Lokasi Penjemputan / Dealer -->
@@ -1252,7 +1253,7 @@
                            placeholder="Contoh: B 1234 XYZ"
                            required
                            class="w-full px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 focus:ring-2 focus:ring-black focus:border-black text-sm uppercase font-mono transition">
-                    <p class="text-[11px] text-slate-400">Gunakan format plat Indonesia (contoh: B 1234 ABC).</p>
+                    <p class="text-[11px] text-slate-500">Gunakan format plat Indonesia (contoh: B 1234 ABC).</p>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1322,7 +1323,7 @@
                            :min="minDate"
                            required
                            class="w-full px-4 py-2.5 rounded-lg border border-slate-300 bg-white text-slate-900 focus:ring-2 focus:ring-black focus:border-black text-sm transition">
-                    <p class="text-[11px] text-slate-400">Jam operasional: 08:00 - 17:00 WIB (Maks 3 kendaraan per slot jam).</p>
+                    <p class="text-[11px] text-slate-500">Jam operasional: 08:00 - 17:00 WIB (Maks 3 kendaraan per slot jam).</p>
                 </div>
 
                 <!-- Keluhan Kendaraan -->

@@ -1,30 +1,29 @@
 <x-guest-layout>
-    <div class="mb-4 text-sm text-gray-600">
-        {{ __('Thanks for signing up! Before getting started, could you verify your email address by clicking on the link we just emailed to you? If you didn\'t receive the email, we will gladly send you another.') }}
+    <div class="mb-6 text-center">
+        <h1 class="text-xl font-black tracking-tight text-slate-900">Verifikasi Alamat Email</h1>
+        <p class="text-xs text-slate-500 mt-2 leading-relaxed">
+            Terima kasih telah mendaftar di Dealer Pro. Sebelum memulai, silakan verifikasi alamat email Anda dengan mengeklik tautan yang baru saja kami kirimkan. Jika belum menerima email tersebut, kami dapat mengirimkan tautan baru.
+        </p>
     </div>
 
     @if (session('status') == 'verification-link-sent')
-        <div class="mb-4 font-medium text-sm text-green-600">
-            {{ __('A new verification link has been sent to the email address you provided during registration.') }}
+        <div class="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs font-semibold text-emerald-800 text-center">
+            Tautan verifikasi baru telah dikirimkan ke alamat email yang Anda gunakan saat mendaftar.
         </div>
     @endif
 
-    <div class="mt-4 flex items-center justify-between">
+    <div class="space-y-4 pt-2">
         <form method="POST" action="{{ route('verification.send') }}">
             @csrf
-
-            <div>
-                <x-primary-button>
-                    {{ __('Resend Verification Email') }}
-                </x-primary-button>
-            </div>
+            <x-primary-button class="w-full py-3 justify-center">
+                Kirim Ulang Email Verifikasi
+            </x-primary-button>
         </form>
 
-        <form method="POST" action="{{ route('logout') }}">
+        <form method="POST" action="{{ route('logout') }}" class="text-center pt-2">
             @csrf
-
-            <button type="submit" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                {{ __('Log Out') }}
+            <button type="submit" class="text-xs font-semibold text-slate-500 hover:text-slate-900 hover:underline focus:outline-none focus:ring-2 focus:ring-black rounded py-1 px-2">
+                Keluar dari Akun
             </button>
         </form>
     </div>
