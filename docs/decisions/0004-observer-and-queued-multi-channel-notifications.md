@@ -9,7 +9,7 @@ Accepted
 ## Context
 Setiap perubahan status servis dan pengajuan test drive perlu:
 1. Mencatat riwayat kronologis (`ServiceStatusLog`) dan jejak audit sistem (`AuditLog`).
-2. Mengirimkan pemberitahuan kepada pihak terkait (Customer, Mekanik, Sales, Super Admin) melalui beberapa kanal sekaligus: in-app database notification, Email, dan WhatsApp Gateway.
+2. Mengirimkan pemberitahuan kepada pihak terkait (pemohon/kontak pengajuan maupun staf `Mekanik`, `Sales`, `Super Admin`, `Owner`) melalui beberapa kanal: in-app database notification, Email, dan WhatsApp Gateway.
 3. Tidak memperlambat waktu respons HTTP ketika driver email/SMTP atau API WhatsApp eksternal mengalami latensi atau gangguan sementara.
 
 ## Decision

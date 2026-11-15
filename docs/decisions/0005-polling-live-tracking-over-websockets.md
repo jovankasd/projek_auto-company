@@ -1,7 +1,7 @@
 # ADR-005: Live Tracking Berbasis HTTP Polling dengan Jalur Upgrade WebSocket
 
 ## Status
-Accepted
+Superseded in part by [ADR-008](0008-staff-only-portal-and-guest-ticket-tracking.md) — pemantauan progres pelanggan kini diakses publik tanpa login melalui widget `#lacak-tiket` (`GET /track-ticket`), sedangkan topbar notification polling (`60` detik) tetap berjalan untuk 4 peran staf di dasbor.
 
 ## Date
 2026-10-01

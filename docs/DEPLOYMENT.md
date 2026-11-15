@@ -10,8 +10,8 @@ Dokumen ini memandu proses pemasangan, konfigurasi server, dan peluncuran (zero-
 |---|---|---|
 | **Sistem Operasi** | Ubuntu 22.04 LTS | Ubuntu 24.04 LTS |
 | **PHP** | 8.2+ | 8.2 / 8.3 dengan FPM & OPcache |
-| **Ekstensi PHP** | `bcmath`, `ctype`, `curl`, `dom`, `fileinfo`, `json`, `mbstring`, `openssl`, `pcre`, `pdo_mysql`, `tokenizer`, `xml`, `zip` |
-| **Database** | MySQL 8.0+ / MariaDB 10.6+ | MySQL 8.0+ |
+| **Ekstensi PHP** | `bcmath`, `ctype`, `curl`, `dom`, `fileinfo`, `gd`, `mbstring`, `openssl`, `pdo_mysql`, `pdo_sqlite`, `tokenizer`, `xml`, `zip` |
+| **Database** | MySQL 8.0+ / MariaDB 10.6+ atau SQLite (lokal/staging) | MySQL 8.0+ / MariaDB 10.6+ |
 | **Web Server** | Nginx 1.20+ | Nginx 1.24+ |
 | **Process Manager** | Supervisor 4.2+ | Supervisor |
 | **Node.js** | Node 18+ | Node 20 LTS & NPM |

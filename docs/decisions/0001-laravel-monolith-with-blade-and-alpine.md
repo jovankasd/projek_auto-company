@@ -7,7 +7,7 @@ Accepted
 2026-10-01
 
 ## Context
-Platform **XYZ Motors** menggabungkan portal publik (showroom mobil 2.5D, katalog suku cadang, promo, pengajuan test drive & booking servis) dengan dashboard operasional multi-peran (Customer, Sales, Mekanik, Super Admin, Owner). Proyek perlu:
+Platform **XYZ Motors** menggabungkan portal publik tanpa wajib login (showroom mobil 2.5D, katalog suku cadang, promo, pengajuan test drive & booking servis, serta cek tiket publik `SRV-`/`TD-`) dengan dashboard operasional staf internal (`Owner`, `Super Admin`, `Sales`, `Mekanik` — lihat pembaruan pada [ADR-008](0008-staff-only-portal-and-guest-ticket-tracking.md)). Proyek perlu:
 - Berjalan di lingkungan pengembangan lokal umum (Laragon, XAMPP, atau `php artisan serve`) serta server Linux standar (Nginx + PHP-FPM) tanpa orkestrasi banyak service frontend/backend terpisah.
 - Mendukung SEO server-rendered untuk halaman showroom publik, autentikasi sesi aman bawaan (Laravel Breeze), serta animasi interaktif showroom (Swiper & GSAP).
 - Meminimalkan kompleksitas build dan duplikasi validasi antara klien dan server untuk tim kecil.

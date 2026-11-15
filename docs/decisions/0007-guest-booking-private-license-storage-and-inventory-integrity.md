@@ -18,13 +18,13 @@ Pada pemeriksaan akhir lintas alur (*Final Release Gate*), aplikasi **XYZ Motors
 
 1. **Alur Guest-First & Pelacakan Tiket Ganda (`SRV-` / `TD-`)**:
    - Pengunjung dapat langsung mengajukan test drive (`POST /test-drive`) maupun booking servis (`POST /service-booking`) tanpa login terlebih dahulu.
-   - `User::resolveGuestCustomer()` mencari akun berdasarkan email (termasuk yang *soft-deleted*) atau membuat entitas pelanggan placeholder dengan `role = UserRole::Customer` dan `is_active = false` sehingga tidak dapat digunakan untuk login sampai pelanggan mendaftar resmi.
+   - `User::resolveGuestCustomer()` mencari akun berdasarkan email (termasuk yang *soft-deleted*) atau membuat entitas kontak pelanggan pasif dengan `role = UserRole::Customer` dan `is_active = false` semata-mata untuk integritas relasi *foreign key* tanpa membuka akses login portal (lihat [ADR-008](0008-staff-only-portal-and-guest-ticket-tracking.md)).
    - `TicketNumberGenerator` menghasilkan nomor tiket unik harian terkunci (`DB::transaction` + `lockForUpdate`) untuk servis (`SRV-YYYYMMDD-XXXX`) dan test drive (`TD-YYYYMMDD-XXXX`, melalui kolom `test_drives.ticket_number`).
    - Endpoint publik `GET /track-ticket` (`HomeController::trackTicket`, dilindungi `throttle:30,1`) melayani pencarian progres baik tiket servis maupun test drive pada bagian `#lacak-tiket` showroom.
 
 2. **Isolasi Foto SIM di Penyimpanan Privat & State Machine Test Drive**:
    - `TestDriveController::store()` menyimpan unggahan foto SIM ke disk `local` (`licenses/`), bukan disk `public`.
-   - Akses foto SIM dilayani melalui rute terotentikasi `GET /dashboard/test-drives/{testDrive}/license` (`TestDriveController::viewLicense`) dengan pemeriksaan `TestDrivePolicy::viewLicense` (hanya `SuperAdmin`, `Customer` pemilik pengajuan, atau `Sales` yang ditugaskan / prospek belum bertuan).
+   - Akses foto SIM dilayani melalui rute terotentikasi `GET /dashboard/test-drives/{testDrive}/license` (`TestDriveController::viewLicense`) dengan pemeriksaan `TestDrivePolicy::viewLicense` (`SuperAdmin`, `Sales` yang ditugaskan / prospek belum bertuan, serta kompatibilitas internal `customer_id`).
    - `TestDriveStatus` menerapkan transisi formal (`allowedTransitions()` & `canTransitionTo()`) untuk status `Requested → Approved/Rejected/Cancelled` dan `Approved → Completed/Cancelled`, melarang perubahan dari status terminal.
 
 3. **Integritas Harga Server-Side & Pengurangan Stok Atomik pada Work Order**:

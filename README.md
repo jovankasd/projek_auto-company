@@ -1,206 +1,173 @@
-# Dealer Pro (XYZ Motors) — Platform Portal Otomotif & Layanan Bengkel
+# Dealer Pro — XYZ Motors Portal Otomotif & Manajemen Bengkel
 
-[![CI Pipeline](https://github.com/jovankasd/projek_auto-company/actions/workflows/ci.yml/badge.svg)](https://github.com/jovankasd/projek_auto-company/actions/workflows/ci.yml)
+[![Laravel 11](https://img.shields.io/badge/Laravel-11.x-FF2D20?logo=laravel&logoColor=white)](https://laravel.com)
+[![PHP 8.2+](https://img.shields.io/badge/PHP-8.2%2B-777BB4?logo=php&logoColor=white)](https://www.php.net)
 [![Pest Tests](https://img.shields.io/badge/Pest-131%20passed-brightgreen.svg)](https://pestphp.com)
-[![PHPStan](https://img.shields.io/badge/PHPStan-Level%206-blue.svg)](https://phpstan.org)
-[![Laravel Pint](https://img.shields.io/badge/Code%20Style-PSR--12%20via%20Pint-orange.svg)](https://laravel.com/docs/pint)
-[![License](https://img.shields.io/badge/License-MIT-black.svg)](LICENSE)
+[![PHPStan](https://img.shields.io/badge/PHPStan-Level%206-2B5B84.svg)](https://phpstan.org)
 
-**Dealer Pro (XYZ Motors)** adalah platform portal otomotif monolith berbasis **Laravel 11**, **Blade**, **Tailwind CSS**, dan **Alpine.js** yang menyatukan showroom mobil interaktif 2.5D (Swiper + GSAP), katalog suku cadang OEM, pengajuan test drive dan booking servis tanpa wajib login dengan pelacakan tiket publik (`SRV-` / `TD-`), manajemen *work order* bengkel dengan penguncian stok atomik, dasbor operasional untuk 5 peran pengguna, serta notifikasi asinkron multi-kanal (Database, Email, WhatsApp).
+**Dealer Pro (XYZ Motors)** adalah platform portal otomotif monolith berbasis **Laravel 11**, **Blade**, **Tailwind CSS**, dan **Alpine.js** yang menyatukan showroom kendaraan interaktif 2.5D (**Swiper** + **GSAP**), katalog suku cadang OEM, pengajuan **Test Drive** dan **Booking Servis** tanpa akun/login dengan pelacakan tiket publik (`TD-` dan `SRV-`), manajemen *work order* bengkel dengan penguncian stok atomik, dasbor operasional khusus **4 peran staf internal**, serta notifikasi asinkron multi-kanal (Database, Email, dan WhatsApp).
 
-Untuk panduan khusus pengguna Windows/XAMPP, lihat [CARA_MENJALANKAN.md](CARA_MENJALANKAN.md).
+Untuk panduan menjalankan proyek di Windows lokal (SQLite maupun MySQL XAMPP/Laragon), lihat [CARA_MENJALANKAN.md](CARA_MENJALANKAN.md).
 
 ---
 
-## Quick Start
+## Prasyarat
 
-### Prasyarat
-- **PHP 8.2+** dengan ekstensi Laravel (`bcmath`, `ctype`, `curl`, `dom`, `fileinfo`, `gd`, `mbstring`, `openssl`, `pdo_mysql`/`pdo_sqlite`, `tokenizer`, `xml`, `zip`)
-- **Composer 2.5+**
-- **Node.js 18+** (direkomendasikan 20 LTS) dan **NPM**
-- **SQLite** (bawaan `.env.example`) atau **MySQL 8.0+ / MariaDB**
-
-### Langkah Instalasi Lokal
-
-1. **Clone repositori**
-   ```bash
-   git clone https://github.com/jovankasd/projek_auto-company.git
-   cd projek_auto-company
-   ```
-
-2. **Install dependensi PHP & JavaScript**
-   ```bash
-   composer install
-   npm install
-   ```
-
-3. **Siapkan environment & application key**
-   ```bash
-   cp .env.example .env
-   php artisan key:generate
-   ```
-   > Pengguna Windows CMD/PowerShell dapat memakai `copy .env.example .env`. Secara default `.env.example` memakai `DB_CONNECTION=sqlite`; sesuaikan `DB_CONNECTION=mysql`, `DB_DATABASE`, `DB_USERNAME`, dan `DB_PASSWORD` bila menggunakan MySQL/XAMPP.
-
-4. **Jalankan migrasi & pengisian data**
-   ```bash
-   php artisan migrate --seed
-   # Opsional (khusus APP_ENV=local/testing): isi akun & katalog demo
-   php artisan db:seed --class=DemoSeeder
-   php artisan storage:link
-   ```
-   `DatabaseSeeder` hanya menjalankan `SettingSeeder` sehingga aman dijalankan di produksi. `DemoSeeder` dan `UserSeeder` memiliki penjaga lingkungan (*environment guard*) agar hanya berjalan di `local` atau `testing`.
-
-5. **Kompilasi aset & jalankan server pengembangan**
-   ```bash
-   npm run build
-   composer run dev
-   ```
-   Atau jalankan server Laravel saja dengan `php artisan serve`, lalu akses `http://127.0.0.1:8000` (halaman publik) dan `http://127.0.0.1:8000/logind` (atau `/login`) untuk masuk ke dasbor.
+- **PHP 8.2+** dengan ekstensi standar Laravel (`bcmath`, `ctype`, `curl`, `dom`, `fileinfo`, `gd`, `mbstring`, `openssl`, `pdo_sqlite` / `pdo_mysql`, `tokenizer`, `xml`, `zip`)
+- **Composer 2.x**
+- **Node.js 20+** dan **npm**
+- **SQLite** (bawaan `.env.example`, langsung siap pakai) atau **MySQL 8.0+ / MariaDB**
 
 ---
 
-## Commands
+## Quick Start (Instalasi Lokal)
 
-### Pengembangan, Build & Pengujian
+```bash
+# 1. Kloning repositori
+git clone https://github.com/jovankasd/projek_auto-company.git
+cd projek_auto-company
 
-| Perintah | Deskripsi |
-|---|---|
-| `composer run dev` | Menjalankan `php artisan serve`, `queue:listen`, `pail`, dan `npm run dev` secara paralel |
-| `php artisan serve` | Menjalankan server pengembangan Laravel di `http://127.0.0.1:8000` |
-| `php artisan queue:listen --tries=1` | Memproses antrean notifikasi asinkron (Database, Email, WhatsApp) |
-| `npm run dev` | Menjalankan Vite dev server dengan hot reload CSS/JS |
-| `npm run build` | Mengompilasi bundle produksi CSS/JS (`public/build/`) |
-| `php artisan test --compact` | Menjalankan seluruh test suite Pest (Unit & Feature) |
-| `./vendor/bin/pint --test` | Memeriksa kepatuhan format kode PSR-12 via Laravel Pint |
-| `./vendor/bin/phpstan analyse --memory-limit=1G` | Menjalankan analisis statis Larastan Level 6 |
+# 2. Pasang dependensi backend & frontend
+composer install
+npm install
 
-### Perintah Console & Penjadwalan (`routes/console.php`)
+# 3. Salin konfigurasi lingkungan & hasilkan app key
+cp .env.example .env
+php artisan key:generate
 
-| Perintah | Jadwal / Eksekusi | Fungsi |
-|---|---|---|
-| `php artisan services:remind-upcoming` | Harian `08:00` | Mengirim pengingat jadwal servis H-1 kepada pelanggan |
-| `php artisan test-drives:remind-upcoming` | Harian `08:30` | Mengirim pengingat jadwal test drive H-1 ke pelanggan dan sales |
-| `php artisan promos:deactivate-expired` | Setiap jam | Menonaktifkan promo yang melewati batas tanggal `ends_at` |
-| `php artisan media:optimize {directory=public/storage}` | Manual | Mengonversi dan mengoptimasi gambar media ke format WebP |
+# 4. Jalankan migrasi & seeder pengaturan bawaan (SettingSeeder)
+php artisan migrate --seed
 
----
+# Opsional (khusus APP_ENV=local/testing): isi data demo showroom, unit mobil, suku cadang, promo, & akun staf
+php artisan db:seed --class=DemoSeeder
 
-## Fitur Website
-
-### 1. Showroom 2.5D & Katalog Kendaraan Publik
-- Eksplorasi showroom interaktif berbasis Swiper & GSAP pada `/` dengan filter kategori (`SUV`, `Sedan`, `Sports`, `EV`, `MPV`) dan dukungan `prefers-reduced-motion` serta tombol jeda/putar carousel.
-- Halaman detail kendaraan publik (`/cars/{car:slug}`) menampilkan spesifikasi teknis, stok, promo aktif terkait, serta modal reservasi.
-- Katalog suku cadang OEM (10 kategori `SparePartCategory`) dengan pencarian nama/SKU dan indikator stok menipis.
-
-### 2. Reservasi Tanpa Wajib Login & Pelacakan Tiket Publik
-- Pengunjung dapat langsung mengajukan **Test Drive** (`POST /test-drive`) dan **Booking Servis** (`POST /service-booking`) tanpa wajib mendaftar lebih dulu; `User::resolveGuestCustomer()` menautkan data ke entitas pelanggan sementara (`is_active = false`) agar tidak membuka celah login.
-- **Test Drive**: Penugasan otomatis ke *Sales* aktif via *round-robin* beban terendah, unggahan foto SIM A ke disk `local` terisolasi, nomor tiket harian `TD-YYYYMMDD-XXXX`, serta alur status `Requested → Approved / Rejected / Cancelled → Completed`.
-- **Booking Servis**: Validasi jam operasional dan kuota maksimal per slot jam (`BookingSlotValidator`, membaca pengaturan dinamis `booking.open_hour`, `booking.close_hour`, dan `booking.max_per_slot`), pencegahan *double-booking* nomor polisi pada slot yang sama, serta generator tiket harian terkunci `SRV-YYYYMMDD-XXXX` (`TicketNumberGenerator`).
-- **Pelacakan Tiket Publik (`#lacak-tiket` / `GET /track-ticket`)**: Pengunjung dapat memeriksa status tiket `SRV-...` maupun `TD-...` langsung dari showroom tanpa login (dilindungi `throttle:30,1`).
-
-### 3. Work Order Bengkel, Integritas Stok & Live Tracking
-- Siklus status servis mengikuti *state machine* pada `ServiceStatus`: `Pending → Confirmed → InProgress → Completed`, atau `Cancelled` sebelum pengerjaan dimulai. Status terminal (`Completed`, `Cancelled`) mengunci seluruh mutasi item dan penugasan ulang mekanik.
-- Penambahan item suku cadang (`ServiceController::addItem`) mengambil harga satuan resmi dari tabel `SparePart` di server, memotong stok secara atomik dengan `lockForUpdate()`, dan mengembalikan stok saat item dihapus (`removeItem`), lalu menghitung ulang `total_cost` lewat `ServiceCostCalculator`.
-- Halaman pelacakan pelanggan (`/dashboard/my-services/{service}`) melakukan polling JSON setiap 30 detik ke `/dashboard/services/{service}/status-stream`, sedangkan lonceng notifikasi melakukan polling setiap 60 detik.
-
-### 4. Dasbor Multi-Peran & Notifikasi Multi-Kanal
-- **5 Peran Berbasis Enum `UserRole`**: `Customer`, `Sales`, `Mekanik`, `SuperAdmin`, dan `Owner`, dengan ruang kerja, metrik KPI, dan otorisasi terpisah.
-- **Laporan Eksekutif**: Rekapitulasi layanan, kinerja mekanik, unit populer, dan pengiriman laporan resmi dari `SuperAdmin` ke `Owner` (`/dashboard/reports`).
-- **Notifikasi Antrean (`ShouldQueue`)**: Pengiriman paralel ke kanal **Database** (Notification Center `/dashboard/notifications`), **Email**, dan **WhatsApp** melalui kontrak `WhatsAppGateway` (driver `log`, `fonnte`, `twilio`).
-
-### 5. SEO, Halaman Kepercayaan & Keamanan
-- **SEO & Isolasi Perayapan**: Sitemap XML dinamis (`/sitemap.xml` via `SitemapController`) hanya mencantumkan halaman publik aktif; `/robots.txt` dan `<meta name="robots" content="noindex, nofollow">` melindungi area autentikasi, dasbor, dan berkas privat.
-- **Halaman Legal & Kontak**: Halaman Kebijakan Privasi (`/privacy-policy`, `/kebijakan-privasi`), Syarat & Ketentuan (`/terms-of-service`, `/syarat-dan-ketentuan`), serta halaman Kontak (`/contact`, `/kontak`, `POST /contact` dengan *honeypot* `website_url` dan `throttle:5,1`).
-- **Perlindungan Akses & Header**: Middleware `SecurityHeaders` (termasuk CSP dan HSTS produksi), `trustProxies('*')`, `EnsureUserIsActive` (pemutusan sesi *real-time* saat akun dinonaktifkan + `User::revokeAccess()`), akses foto SIM terotorisasi (`GET /dashboard/test-drives/{testDrive}/license`), rute login staf `/logind`, dan pencatatan jejak perubahan model kritis melalui `AuditObserver`.
-
----
-
-## Architecture
-
-Aplikasi ini dibangun sebagai monolith Laravel 11 terstruktur tanpa dependensi SPA terpisah.
-
-### Struktur Direktori Inti
-
-```text
-app/
-├── Console/Commands/    # Perintah terjadwal (pengingat H-1, promo kedaluwarsa, optimasi media)
-├── Enums/               # Enum backed PHP 8.2+ (UserRole, ServiceStatus, TestDriveStatus, dll.)
-├── Events/              # Domain events (ServiceStatusChanged, TestDriveStatusChanged)
-├── Http/
-│   ├── Controllers/     # Controller publik, auth, booking, work order, dashboard, laporan, sitemap
-│   ├── Middleware/      # CheckRole, EnsureUserIsActive, SecurityHeaders
-│   └── Requests/        # Validasi terpusat (LoginRequest, StoreServiceBookingRequest, dll.)
-├── Listeners/           # Queued listeners pengirim notifikasi multi-kanal
-├── Models/              # Model Eloquent (Car, SparePart, Promo, Service, TestDrive, Setting, AuditLog)
-├── Notifications/       # Kelas notifikasi Database/Mail/WhatsApp & WhatsAppChannel
-├── Observers/           # ServiceObserver, TestDriveObserver, CarObserver, AuditObserver
-├── Policies/            # Otorisasi granular per resource & kepemilikan data
-└── Services/            # TicketNumberGenerator, BookingSlotValidator, ServiceCostCalculator, WhatsAppGateway
-docs/
-├── decisions/           # Architecture Decision Records (ADR-001 s.d. ADR-007)
-├── nginx/               # Contoh konfigurasi Nginx produksi
-└── supervisor/          # Konfigurasi worker Supervisor untuk queue
+# 5. Buat symlink penyimpanan publik & kompilasi aset frontend
+php artisan storage:link
+npm run build
 ```
 
-### Keputusan Arsitektur (ADRs)
+> **Catatan Database & Windows:** Pengguna Windows CMD/PowerShell dapat memakai `copy .env.example .env`. Secara bawaan `.env.example` menggunakan `DB_CONNECTION=sqlite` (`database/database.sqlite`). Jika memakai MySQL/XAMPP/Laragon, sesuaikan `DB_CONNECTION=mysql`, `DB_DATABASE`, `DB_USERNAME`, dan `DB_PASSWORD` di `.env` sebelum menjalankan `php artisan migrate --seed`.
+>
+> **Keamanan Seeder:** `DatabaseSeeder` hanya memanggil `SettingSeeder` sehingga aman di lingkungan produksi. `DemoSeeder` dan `UserSeeder` memiliki penjaga lingkungan (*environment guard*) agar hanya berjalan pada `APP_ENV=local` atau `testing`.
 
-Detail latar belakang, alternatif yang dipertimbangkan, dan konsekuensi setiap keputusan teknis terdokumentasi di [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) dan [`docs/decisions/README.md`](docs/decisions/README.md):
+### Menjalankan Server Pengembangan
 
-| Dokumen | Topik Keputusan |
-|---|---|
-| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Ikhtisar lapisan aplikasi, matriks RBAC, state machine, dan pipeline notifikasi |
-| [ADR-001](docs/decisions/0001-laravel-monolith-with-blade-and-alpine.md) | Pemilihan Laravel 11 Monolith dengan Blade, Tailwind CSS, dan Alpine.js |
-| [ADR-002](docs/decisions/0002-enum-rbac-with-policies-and-middleware.md) | Kontrol akses berbasis peran (RBAC) menggunakan PHP Enum, Middleware, dan Policies |
-| [ADR-003](docs/decisions/0003-service-state-machine-and-booking-guards.md) | Mesin status servis, validasi kuota slot, dan generator tiket atomik |
-| [ADR-004](docs/decisions/0004-observer-and-queued-multi-channel-notifications.md) | Pipeline Observer → Event → Queued Listener & kontrak WhatsApp Gateway |
-| [ADR-005](docs/decisions/0005-polling-live-tracking-over-websockets.md) | Live tracking berbasis HTTP Polling dengan jalur upgrade WebSocket |
-| [ADR-006](docs/decisions/0006-seo-trust-pages-and-honest-documentation.md) | Sitemap XML dinamis, isolasi perayapan area privat, dan halaman kepercayaan |
-| [ADR-007](docs/decisions/0007-guest-booking-private-license-storage-and-inventory-integrity.md) | Reservasi guest tanpa wajib login, penyimpanan privat foto SIM, dan integritas stok Work Order |
+```bash
+# Menjalankan server HTTP Laravel, queue worker, Pail logs, dan Vite dev server bersamaan
+composer run dev
+```
 
----
-
-## Konfigurasi Lingkungan & Pengaturan Sistem
-
-- **Queue & Session**: `.env.example` mengonfigurasi `QUEUE_CONNECTION=database` dan `SESSION_DRIVER=database`. Pastikan worker antrean berjalan saat memproses notifikasi Email/WhatsApp secara asinkron.
-- **WhatsApp Gateway** (`config/services.php`): Atur `WHATSAPP_ENABLED=true` dan `WHATSAPP_DRIVER=log|fonnte|twilio` beserta `FONNTE_TOKEN` atau kredensial `TWILIO_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_WHATSAPP_FROM`.
-- **Pengaturan Operasional Dinamis (`/dashboard/settings`)**: Super Admin dapat mengatur jam operasional (`booking.open_hour`, `booking.close_hour`), kuota slot (`booking.max_per_slot`), kontak (`contact.whatsapp`, `contact.email`, `contact.address`), serta metadata SEO (`seo.site_name`, `seo.tagline`).
+Atau jalankan server Laravel saja dengan `php artisan serve`, lalu akses:
+- **Portal Publik Showroom:** `http://127.0.0.1:8000`
+- **Cek Tiket Publik (`SRV-` / `TD-`):** `http://127.0.0.1:8000/#lacak-tiket`
+- **Masuk Portal Staf (URL Tersembunyi dari Navbar Publik):** `http://127.0.0.1:8000/logind` (alias `/login`)
 
 ---
 
-## Akun Demo Lokal
+## Perintah Pengembangan & Pengujian
 
-> **Catatan Keamanan:** Akun berikut hanya dibuat oleh `UserSeeder` / `DemoSeeder` pada lingkungan `local` dan `testing`, dan tidak dibuat otomatis di lingkungan `production` atau `staging`.
+| Perintah | Deskripsi |
+|:---|:---|
+| `npm run dev` | Menjalankan server kompilasi Vite (Tailwind CSS + Alpine.js + showroom assets) |
+| `npm run build` | Membangun bundle aset produksi di `public/build` |
+| `php artisan test --compact` | Menjalankan seluruh test suite Pest (Unit & Feature) |
+| `./vendor/bin/pint --test` | Memeriksa kepatuhan gaya kode via Laravel Pint |
+| `./vendor/bin/phpstan analyse --memory-limit=1G` | Analisis statis kode `app/` (Larastan Level 6) |
+| `php artisan queue:work` | Memproses antrean notifikasi database, email, dan WhatsApp secara asinkron |
+| `php artisan media:optimize` | Mengoptimalkan gambar publik di `storage/app/public` ke WebP |
 
-Kata sandi seluruh akun demo: **`password`**
+### Tugas Terjadwal (`routes/console.php`)
 
-| Peran | Email | Fokus Akses |
-|---|---|---|
-| **Owner** | `owner@xyzmotors.id` | Ringkasan finansial eksekutif, nilai aset unit & suku cadang, laporan resmi |
-| **Super Admin** | `superadmin@xyzmotors.id` | Kendali operasional penuh, penugasan mekanik, manajemen user/promo/pengaturan, audit log |
-| **Sales** | `sales@xyzmotors.id` | Katalog mobil, suku cadang, promo, serta persetujuan/penyelesaian test drive |
-| **Mekanik** | `mekanik@xyzmotors.id`, `mekanik1@xyzmotors.id`, `mekanik2@xyzmotors.id` | Antrean work order, pembaruan status servis, input item suku cadang & jasa |
-| **Customer** | `customer@xyzmotors.id` | Pengajuan test drive, booking servis, pembatalan sebelum diproses, pelacakan status |
-
----
-
-## Pengujian & Deployment
-
-Rangkaian validasi yang dijalankan oleh [CI Pipeline](.github/workflows/ci.yml) sebelum rilis:
-- **Pest Test Suite**: `php artisan test --compact` (**131 passed, 1097 assertions**)
-- **Code Style**: `./vendor/bin/pint --test` (PSR-12 compliant)
-- **Static Analysis**: `./vendor/bin/phpstan analyse --memory-limit=1G` (Larastan Level 6)
-- **Frontend Bundle**: `npm run build` (Vite + Tailwind CSS)
-
-Untuk prosedur setup server Ubuntu, Nginx, Supervisor, cron scheduler, dan skrip *zero-downtime deployment* (`deploy.sh`), lihat [Panduan Deployment Produksi](docs/DEPLOYMENT.md).
+| Command | Jadwal | Fungsi |
+|:---|:---|:---|
+| `php artisan services:remind-upcoming` | Harian `08:00` | Mengirim pengingat jadwal servis H-1 kepada kontak pemohon |
+| `php artisan test-drives:remind-upcoming` | Harian `08:30` | Mengirim pengingat jadwal test drive H-1 ke kontak pemohon dan sales |
+| `php artisan promos:deactivate-expired` | Setiap jam | Menonaktifkan kode promo yang telah melewati `ends_at` |
 
 ---
 
-## Contributing
+## Fitur Utama & Alur Sistem Terkini
 
-Standar format kode, konvensi pesan commit, alur Pull Request, dan kewajiban pengujian otomatis dijelaskan di [Panduan Kontribusi](docs/CONTRIBUTING.md). Riwayat perubahan lintas rilis tercatat di [CHANGELOG.md](CHANGELOG.md).
+### 1. Showroom Interaktif 2.5D & Halaman Publik SEO
+- **Stage 2.5D Showroom (`/`)**: Carousel **Swiper 14** dengan animasi bertahap **GSAP 3.15**, kontrol keyboard (`←`/`→`), tombol jeda/putar otomatis, dukungan penuh `prefers-reduced-motion`, filter kategori (`SPORTS`, `SUV`, `SEDAN`, `MPV`, `EV`), katalog suku cadang, serta program promo aktif.
+- **Halaman Detail Unit (`/cars/{slug}`)**: Menampilkan spesifikasi mesin, fitur, stok unit, promo aktif terkait, form pengajuan unit langsung, serta metadata Open Graph, Twitter Card, dan Schema.org JSON-LD (`Product` + `Car`).
+- **Halaman Kepercayaan & Sitemap**: Halaman **Hubungi Kami** (`/contact` & `/kontak`, dilindungi *honeypot* `website_url` dan `throttle`), **Kebijakan Privasi** (`/privacy-policy` & `/kebijakan-privasi`), **Syarat & Ketentuan** (`/terms-of-service` & `/syarat-dan-ketentuan`), `GET /sitemap.xml` dinamis, serta `public/robots.txt` yang memblokir rute privat.
+
+### 2. Pengajuan Tamu Tanpa Akun (*Guest-First*) & Cek Tiket Publik
+- **Tanpa Login / Tanpa Akun Pelanggan**: Pengunjung showroom publik dapat langsung mengajukan **Test Drive** (`POST /test-drive`) maupun **Booking Servis** (`POST /service-booking`) tanpa membuat akun. Antarmuka publik (`public-navbar` & `public-footer`) tidak memuat tombol registrasi/login pelanggan; navigasi utama diarahkan langsung ke **Cek Tiket**.
+- **Test Drive (`TD-YYYYMMDD-XXXX`)**: Penugasan otomatis ke *Sales* aktif via *round-robin* beban terendah, nomor tiket otomatis oleh `TicketNumberGenerator::generateTestDrive()`, penyimpanan foto SIM A terisolasi pada disk privat (`local` -> `storage/app/private/licenses/`), serta mesin status `Requested → Approved / Rejected / Cancelled → Completed`.
+- **Booking Servis (`SRV-YYYYMMDD-XXXX`)**: Validasi jam operasional dan kuota slot per jam oleh `BookingSlotValidator` (membaca pengaturan dinamis `booking.open_hour`, `booking.close_hour`, dan `booking.max_per_slot`), pencegahan *double-booking* nomor polisi pada slot jam yang sama, serta generator tiket harian terkunci (`DB::transaction` + `lockForUpdate()`).
+- **Lacak Tiket Publik (`/#lacak-tiket` & `GET /track-ticket`)**: Pengunjung dapat memantau progres pengajuan `SRV-...` maupun `TD-...`, jadwal, nama mekanik/sales, rincian biaya/item pengerjaan, dan riwayat log status langsung dari beranda tanpa login (`throttle:30,1`).
+- **Resolusi Entitas Kontak Pasif**: `User::resolveGuestCustomer()` menautkan data pemohon ke entitas kontak sementara di tabel `users` dengan status `is_active = false` semata-mata demi integritas relasi *foreign key* (`customer_id`); entitas ini ditolak oleh `LoginRequest` dan `EnsureUserIsActive` agar tidak pernah bisa masuk ke portal staf.
+
+### 3. Work Order Bengkel & Integritas Stok Atomik
+- **State Machine `ServiceStatus`**: Transisi tervalidasi (`Pending → Confirmed → InProgress → Completed` serta `Cancelled` hanya sebelum pengerjaan dimulai), lengkap dengan guard penolakan penyelesaian apabila item work order masih kosong dan pencatatan riwayat di `service_status_logs`.
+- **Penguncian Stok & Harga Sisi Server**: Penambahan dan penghapusan item suku cadang (`ServiceController::addItem` / `removeItem`) dijalankan dalam transaksi database dengan `lockForUpdate()` pada `SparePart`, mengambil `unit_price` langsung dari database server, memperbarui `stock_quantity` secara atomik, dan menghitung ulang `total_cost` lewat `ServiceCostCalculator`.
+
+### 4. Portal Staf Internal (4 Peran Aktif) & Notifikasi Multi-Kanal
+- **Login Tersembunyi Portal Staf (`/logind`)**: Berlabel **"Masuk Portal Staf"** untuk personel internal dealer. Manajemen akun di `/dashboard/users` (`UserController::staffRoles()`) hanya mengelola **4 peran staf aktif**: `Owner`, `SuperAdmin`, `Sales`, dan `Mekanik`.
+- **Notifikasi Berbasis Observer**: Perubahan status di `ServiceObserver` dan `TestDriveObserver` memicu event terantre (`ServiceStatusChanged`, `TestDriveStatusChanged`) ke kanal in-app database (topbar badge polling 60 detik), Email, dan `WhatsAppChannel` (`LogWhatsAppGateway` secara default, atau driver `fonnte` / `twilio` via `.env`).
+- **Keamanan Lapisan Aplikasi**: Middleware `SecurityHeaders` (CSP, `X-Frame-Options`, `nosniff`, `Referrer-Policy`, `Permissions-Policy`, dan HSTS produksi), `trustProxies('*')`, `EnsureUserIsActive` (pemutusan sesi seketika jika akun dinonaktifkan + `User::revokeAccess()`), akses foto SIM terotorisasi (`GET /dashboard/test-drives/{testDrive}/license`), `<meta name="robots" content="noindex, nofollow">` pada layout staf/auth, serta jejak audit di `AuditObserver`.
 
 ---
+
+## Arsitektur & Catatan Keputusan (ADR)
+
+```
+app/
+├── Console/Commands/    # Pengingat jadwal & optimasi media WebP
+├── Enums/               # Backed enum PHP 8.2+ (UserRole, ServiceStatus, TestDriveStatus, dll.)
+├── Events/              # Domain events (ServiceStatusChanged, TestDriveStatusChanged)
+├── Http/
+│   ├── Controllers/     # Public showroom, booking, work order, CRUD staf, laporan, sitemap
+│   ├── Middleware/      # CheckRole, EnsureUserIsActive, SecurityHeaders
+│   └── Requests/        # Validasi form & autentikasi (LoginRequest, StoreServiceBookingRequest, dll.)
+├── Listeners/           # Queued notification listeners (tries=3, timeout=30)
+├── Models/              # Model Eloquent + relasi & scope domain
+├── Notifications/       # Kelas notifikasi database, mail, & WhatsAppChannel
+├── Observers/           # CarObserver, ServiceObserver, TestDriveObserver, AuditObserver
+├── Policies/            # Otorisasi resource (Car, Promo, Service, SparePart, TestDrive, User)
+└── Services/            # TicketNumberGenerator, BookingSlotValidator, ServiceCostCalculator, ImageOptimizer, CarSlugGenerator, DatabaseBootstrapper
+```
+
+Dokumentasi arsitektur terperinci tersedia di [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) dan catatan keputusan arsitektur di [docs/decisions/README.md](docs/decisions/README.md):
+
+| ADR | Keputusan Arsitektural | Status |
+|:---|:---|:---|
+| [ADR-001](docs/decisions/0001-laravel-monolith-with-blade-and-alpine.md) | Monolith Laravel 11 dengan Blade, Tailwind CSS, dan Alpine.js | Accepted *(Diperbarui per [ADR-008](docs/decisions/0008-staff-only-portal-and-guest-ticket-tracking.md))* |
+| [ADR-002](docs/decisions/0002-enum-rbac-with-policies-and-middleware.md) | Kontrol Akses Berbasis Peran (RBAC) dengan Enum, Middleware, dan Policies | Superseded in part by [ADR-008](docs/decisions/0008-staff-only-portal-and-guest-ticket-tracking.md) |
+| [ADR-003](docs/decisions/0003-service-state-machine-and-booking-guards.md) | Mesin Status Servis, Validasi Kuota Slot, dan Generator Tiket Atomik | Accepted |
+| [ADR-004](docs/decisions/0004-observer-and-queued-multi-channel-notifications.md) | Observer + Queued Listeners untuk Notifikasi Multi-Kanal & Audit Trail | Accepted *(Diperbarui per [ADR-008](docs/decisions/0008-staff-only-portal-and-guest-ticket-tracking.md))* |
+| [ADR-005](docs/decisions/0005-polling-live-tracking-over-websockets.md) | Polling JSON Ringan untuk Pelacakan & Notifikasi Dibandingkan WebSocket Daemon | Superseded in part by [ADR-008](docs/decisions/0008-staff-only-portal-and-guest-ticket-tracking.md) |
+| [ADR-006](docs/decisions/0006-seo-trust-pages-and-honest-documentation.md) | Sitemap Dinamis, Halaman Kepercayaan Publik, Proteksi `noindex`, dan Dokumentasi Jujur | Accepted |
+| [ADR-007](docs/decisions/0007-guest-booking-private-license-storage-and-inventory-integrity.md) | Reservasi Guest Tanpa Login, Penyimpanan Privat Foto SIM, dan Integritas Stok Work Order | Accepted *(Diperbarui per [ADR-008](docs/decisions/0008-staff-only-portal-and-guest-ticket-tracking.md))* |
+| [ADR-008](docs/decisions/0008-staff-only-portal-and-guest-ticket-tracking.md) | Portal Khusus 4 Peran Staf (`/logind`) & Pelacakan Tiket Publik Tamu (`SRV-` / `TD-`) | Accepted |
+
+---
+
+## Akun Demo Lokal (Portal Staf — `DemoSeeder`)
+
+Kredensial berikut hanya dibuat apabila `php artisan db:seed --class=DemoSeeder` dijalankan di lingkungan `local` atau `testing`, dan hanya dapat masuk melalui halaman **Masuk Portal Staf** (`/logind`):
+
+| Peran Staf | Email | Kata Sandi | Ruang Kerja & Wewenang |
+|:---|:---|:---|:---|
+| **Owner** | `owner@xyzmotors.id` | `password` | Ringkasan eksekutif, kinerja divisi Sales & Bengkel, serta laporan finansial detail |
+| **Super Admin** | `superadmin@xyzmotors.id` | `password` | Manajemen penuh unit mobil, promo, suku cadang, penugasan mekanik, akun staf (`/dashboard/users`), laporan, audit log, dan pengaturan |
+| **Sales** | `sales@xyzmotors.id` | `password` | Manajemen lead Test Drive, verifikasi foto SIM terotorisasi, kontak WhatsApp pelanggan, serta katalog mobil, promo, dan suku cadang |
+| **Admin Mekanik** | `mekanik1@xyzmotors.id`, `mekanik2@xyzmotors.id`, `mekanik@xyzmotors.id` | `password` | Antrean work order servis, pembaruan status pengerjaan, pengisian item jasa/onderdil, dan manajemen gudang suku cadang |
+
+> Pelanggan akhir tidak memiliki akun portal atau kredensial login. Seluruh reservasi dan pengecekan status pelanggan dilakukan sebagai tamu publik pada beranda (`/`) dan `#lacak-tiket` menggunakan nomor tiket `TD-` atau `SRV-`.
+
+---
+
+## Panduan Lanjutan & Kontribusi
+
+- [Panduan Menjalankan Lokal (Windows / SQLite / XAMPP)](CARA_MENJALANKAN.md)
+- [Arsitektur Sistem Terperinci](docs/ARCHITECTURE.md)
+- [Panduan Deployment Produksi](docs/DEPLOYMENT.md)
+- [Panduan Kontribusi & Standar Kode](docs/CONTRIBUTING.md)
+- [Catatan Perubahan Rilis (Changelog)](CHANGELOG.md)
 
 ## Lisensi
 
-Proyek ini dilisensikan di bawah [MIT License](LICENSE).
+Perangkat lunak sumber terbuka di bawah lisensi MIT.

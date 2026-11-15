@@ -1,7 +1,7 @@
 # ADR-002: Kontrol Akses Berbasis Peran (RBAC) dengan Enum, Middleware, dan Policies
 
 ## Status
-Accepted
+Superseded in part by [ADR-008](0008-staff-only-portal-and-guest-ticket-tracking.md) — portal login & manajemen staf kini hanya mencakup 4 peran aktif (`Owner`, `SuperAdmin`, `Sales`, `Mekanik`), sedangkan nilai `UserRole::Customer` dipertahankan di lapisan database internal untuk entitas kontak tamu pasif (`is_active = false`) dan kompatibilitas pengujian regresi.
 
 ## Date
 2026-10-01

@@ -1,143 +1,155 @@
-# Arsitektur Sistem XYZ Motors
+# Arsitektur Sistem — Dealer Pro (XYZ Motors)
 
-Dokumen ini menjelaskan arsitektur perangkat lunak, pola desain, alur data, mesin status (state machine), dan kebijakan otorisasi yang diimplementasikan pada platform portal otomotif **XYZ Motors**.
+Dokumen ini menjelaskan arsitektur perangkat lunak, pola desain, alur data tamu (*guest-first*), mesin status (*state machine*), dan matriks otorisasi staf yang berjalan pada platform portal otomotif **Dealer Pro (XYZ Motors)**.
 
----
+## 1. Gambaran Umum Monolith Berlapis
 
-## 1. Ikhtisar Arsitektur
-
-XYZ Motors dibangun menggunakan framework **Laravel 11**, **Blade**, **Tailwind CSS**, dan **Alpine.js** (dengan bundling **Vite** serta **Swiper**/**GSAP** untuk showroom). Catatan keputusan arsitektur mendetail tersedia di [Architecture Decision Records (ADRs)](decisions/README.md).
+Aplikasi dibangun dengan **Laravel 11**, **Blade**, **Tailwind CSS**, dan **Alpine.js** (dibundel via **Vite** bersama **Swiper** dan **GSAP** untuk panggung showroom 2.5D). Catatan alasan tiap keputusan teknis tersedia di [Architecture Decision Records (ADRs)](decisions/README.md).
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                       Client Layer                          │
-│   Alpine.js (Real-time Polling) • Blade • Tailwind CSS      │
-└──────────────────────────────┬──────────────────────────────┘
-                               │ HTTP / JSON
-┌──────────────────────────────▼──────────────────────────────┐
-│                    Routing & Middleware                     │
-│    Web / Auth / RoleMiddleware (RBAC) / SecurityHeaders     │
-└──────────────────────────────┬──────────────────────────────┘
-                               │
-┌──────────────────────────────▼──────────────────────────────┐
-│                     Controller Layer                        │
-│   ShowroomController • BookingController • ServiceController│
-│   TestDriveController • DashboardController • Notification  │
-└──────┬───────────────────────┬───────────────────────┬──────┘
-       │                       │                       │
-┌──────▼─────────────┐ ┌───────▼──────────────┐ ┌──────▼──────┐
-│   Service Layer    │ │   Eloquent Models    │ │   Policies  │
-│ • TicketGenerator  │ │ • User     • Car     │ │ • Service   │
-│ • SlotValidator    │ │ • Service  • Item    │ │ • TestDrive │
-│ • CostCalculator   │ │ • StatusLog• Promo   │ │ • Car       │
-│ • SlugGenerator    │ │ • AuditLog • Setting │ └─────────────┘
-└──────┬─────────────┘ └───────┬──────────────┘
-       │                       │
-┌──────▼───────────────────────▼──────────────────────────────┐
-│                 Event & Observer Layer                      │
-│ • ServiceObserver    ──► ServiceStatusChanged               │
-│ • TestDriveObserver  ──► TestDriveStatusChanged             │
-│ • AuditObserver      ──► AuditLog                           │
-└──────────────────────────────┬──────────────────────────────┘
-                               │ Dispatch Job
-┌──────────────────────────────▼──────────────────────────────┐
-│                 Async Queued Notification                   │
-│ • SendServiceStatusNotification (Tries: 3, Timeout: 30s)    │
-│ • SendTestDriveStatusNotification (Tries: 3, Timeout: 30s)  │
-└──────────────────────────────┬──────────────────────────────┘
-                               │
-            ┌──────────────────┼──────────────────┐
-            ▼                  ▼                  ▼
-     ┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-     │  Database   │    │  Mail/SMTP  │    │  WhatsApp   │
-     │  (In-App)   │    │ (Templates) │    │  (Gateway)  │
-     └─────────────┘    └─────────────┘    └─────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                       PRESENTATION LAYER (HTTP / UI)                    │
+│  Public Showroom (Swiper + GSAP) • /cars/{slug} • /contact • Legal      │
+│  Lacak Tiket Publik (#lacak-tiket) • Portal Staf 4 Peran (/logind)      │
+└────────────────────────────────────┬────────────────────────────────────┘
+                                     │ Web / Auth / RoleMiddleware (RBAC)
+                                     │ EnsureUserIsActive / SecurityHeaders
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         APPLICATION CONTROLLERS                         │
+│   HomeController • CarController • SparePartController • PromoController │
+│   ServiceBookingController • ServiceController • TestDriveController     │
+│   DashboardController • UserController • ReportController • Sitemap     │
+└──────┬─────────────────────────────┬──────────────────────────────┬─────┘
+       │                             │                              │
+       ▼                             ▼                              ▼
+┌───────────────────┐     ┌──────────────────────┐     ┌──────────────────┐
+│  DOMAIN SERVICES  │     │    ELOQUENT MODELS   │     │ SECURITY/SUPPORT │
+│ • SlotValidator   │     │ • Service • Item     │     │ • User::resolve  │
+│ • CostCalculator  │     │ • TestDrive • Car    │     │   GuestCustomer  │
+│ • TicketGenerator │     │ • Promo • SparePart  │     │ • Policies       │
+│ • ImageOptimizer  │     │ • AuditLog • Setting │     │ • FormRequests   │
+└───────────────────┘     └──────────┬───────────┘     └──────────────────┘
+                                     │ Eloquent Lifecycle Events
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                       OBSERVERS & DOMAIN EVENTS                         │
+│  • CarObserver (Cache invalidation showroom_cars)                       │
+│  • ServiceObserver ──► ServiceStatusLogs + ServiceStatusChanged         │
+│  • TestDriveObserver ──► TestDriveStatusChanged                         │
+│  • AuditObserver ──► AuditLogs (created, updated, deleted)              │
+└────────────────────────────────────┬────────────────────────────────────┘
+                                     │ Dispatched to Database Queue
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│                     QUEUED LISTENERS & CHANNELS                         │
+│  • SendServiceStatusNotification (Tries: 3, Timeout: 30s)               │
+│  • SendTestDriveStatusNotification (Tries: 3, Timeout: 30s)             │
+│  ──► Channels: Database (In-App), Mail, WhatsAppChannel (Log/Fonnte/Tw.)│
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 2. Matriks Otorisasi Berbasis Peran (RBAC)
+## 2. Model Akses: Tamu Publik (*Guest-First*) & 4 Peran Staf Internal
 
-Platform menerapkan 5 peran pengguna berbasis enum `UserRole`:
+Pada versi final platform, pelanggan akhir adalah **pengunjung publik (tamu) tanpa akun login portal**, sedangkan autentikasi `/logind` (*"Masuk Portal Staf"*) dan manajemen akun `/dashboard/users` (`UserController::staffRoles()`) dibatasi secara eksklusif untuk **4 peran staf internal aktif** berbasis enum [`App\Enums\UserRole`](../app/Enums/UserRole.php): `Sales`, `Mekanik`, `SuperAdmin`, dan `Owner`.
 
-| Fitur / Modul | Customer | Sales | Mekanik | Super Admin | Owner |
-|---|:---:|:---:|:---:|:---:|:---:|
-| **Katalog Showroom & Filter** | Baca | Baca & Kelola Mobil | Baca | Akses Penuh | Baca (Ringkasan) |
-| **Pengajuan Test Drive** | Buat & Lihat Milik Sendiri | Review, Setujui, Tolak | - | Akses Penuh | Metrik Ringkasan |
-| **Booking Servis Kendaraan** | Buat & Pantau Milik Sendiri | - | Lihat Antrean, Update WO | Akses Penuh & Assign Mekanik | Metrik Ringkasan |
-| **Work Order & Suku Cadang** | - | Kelola Master Sparepart | Kelola Master & Input Item WO | Akses Penuh | Nilai Inventaris |
-| **Manajemen Promo** | Baca (Publik) | Baca & Kelola | - | Akses Penuh | - |
-| **Pusat Notifikasi** | Milik Sendiri | Milik Sendiri | Milik Sendiri | Milik Sendiri | Milik Sendiri |
-| **Laporan Eksekutif** | - | - | - | Lihat & Kirim ke Owner | Lihat & Terima Laporan |
-| **Manajemen Pengguna, Audit & Pengaturan** | - | - | - | Akses Penuh | - |
+### Matriks Hak Akses Publik & Staf
 
----
+| Fitur / Modul | Tamu Publik (Guest) | Sales | Admin Mekanik | Super Admin | Owner |
+|:---|:---:|:---:|:---:|:---:|:---:|
+| **Showroom 2.5D, Detail Unit (`/cars/{slug}`), Kontak, Legal** | Lihat & Kirim Form | - | - | - | - |
+| **Pengajuan Test Drive (`POST /test-drive`)** | Kirim Tanpa Login (`TD-...`) | Review, Setujui, Tolak, Selesai, Batal | - | Akses Penuh | Metrik Ringkas |
+| **Booking Servis (`POST /service-booking`)** | Kirim Tanpa Login (`SRV-...`) | - | Lihat Antrean | Akses Penuh & Assign Mekanik | Metrik Ringkas |
+| **Lacak Tiket Publik (`GET /track-ticket`)** | Cek Tiket `SRV-` / `TD-` | - | - | - | - |
+| **Work Order & Stok Suku Cadang (`/dashboard/services/{id}`)** | - | - | Update Status & Item (Unit Ditugaskan) | Akses Penuh | Lihat Detail |
+| **Katalog Mobil & Promo (`/dashboard/cars`, `/promos`)** | Lihat di Showroom | CRUD Penuh | - *(403 Forbidden)* | CRUD Penuh | Lihat Ringkasan |
+| **Gudang Suku Cadang (`/dashboard/spare-parts`)** | Lihat Katalog Publik | CRUD | CRUD & Potong Stok Work Order | CRUD Penuh | Lihat Ringkasan |
+| **Foto SIM A Privat (`/dashboard/test-drives/{id}/license`)** | - | Lead Sendiri / Belum Bertuan | - *(403 Forbidden)* | Akses Penuh | - *(403 Forbidden)* |
+| **Pengguna Staf, Audit Log, Pengaturan** | - | - *(403)* | - *(403)* | CRUD Staf (`staffRoles`) & Penuh | - *(403)* |
+| **Laporan Eksekutif & Keuangan (`/dashboard/reports`)** | - | - *(403)* | - *(403)* | Akses Penuh & Kirim Rekap | Akses Penuh (Read) |
 
-## 3. Mesin Status (State Machine)
-
-### A. Alur Status Servis Kendaraan (`ServiceStatus`)
-
-```
-      [ pending ] 
-           │
-           │ (Admin menugaskan mekanik)
-           ▼
-     [ confirmed ]
-           │
-           │ (Mekanik menekan "Mulai Pengerjaan")
-           ▼
-    [ in_progress ]  ◄── (Kelola Service Items: Sparepart & Jasa)
-           │
-           │ (Pengerjaan tuntas & minimal memiliki 1 item servis)
-           ▼
-     [ completed ]
-```
-- **Pembatalan (`cancelled`)**: Dapat dilakukan dari status `pending` atau `confirmed`. Jika servis telah mencapai `in_progress`, sistem mengunci pembatalan untuk mencegah inkonsistensi suku cadang dan jam kerja mekanik.
-- **Validasi Kuota**: Maksimal 3 kendaraan per slot jam (`slot_hour`) pada tanggal yang sama.
-- **Anti Double-Booking**: Plat nomor yang sama tidak dapat dibooking pada tanggal dan slot jam yang bersamaan.
-
-### B. Alur Status Pengajuan Test Drive (`TestDriveStatus`)
-
-```
-      [ requested ] ──► [ cancelled ] (Dibatalkan Customer / Admin)
-           │
-     ┌─────┴───────────────┐
-     │                     │
-     ▼ (Disetujui Sales)   ▼ (Ditolak Sales)
-[ approved ]          [ rejected ]
-     │
-     ├─────────────────────┐
-     ▼ (Pelaksanaan Selesai) ▼ (Dibatalkan Customer / Admin)
-[ completed ]         [ cancelled ]
-```
+> **Catatan Kejujuran Implementasi (`UserRole::Customer` Internal):** Di dalam skema database, enum `UserRole::Customer` tetap dipertahankan sebagai nilai relasi internal bagi fungsi `User::resolveGuestCustomer()`. Saat tamu mengirim booking tanpa akun, sistem menautkannya ke entitas kontak pasif dengan `is_active = false` agar integritas *foreign key* (`services.customer_id` dan `test_drives.customer_id`) terjaga tanpa membuka akses login pelanggan. `LoginRequest` dan `EnsureUserIsActive` otomatis menolak login apa pun dari akun berstatus `is_active = false`. Beberapa rute/policy warisan Laravel Breeze dan fitur internal tetap dijaga demi kompatibilitas pengujian regresi otomatis.
 
 ---
 
-## 4. Pipeline Notifikasi & WhatsApp Gateway
+## 3. Mesin Status (*State Machines*)
 
-Sistem mengadopsi pola asinkronus (`ShouldQueue`) untuk mencegah latensi jaringan pada transaksi pengguna:
+### A. Siklus Hidup Work Order Servis (`App\Enums\ServiceStatus`)
 
-1. **Observers**:
-   - `ServiceObserver`: Mendeteksi pembuatan dan transisi status servis, mencatat `ServiceStatusLog`, dan memicu event `ServiceStatusChanged`.
-   - `TestDriveObserver`: Memantau status pengajuan test drive dan memicu event `TestDriveStatusChanged`.
-2. **Queued Listeners**:
-   - `SendServiceStatusNotification`: Menangani notifikasi servis (`tries = 3`, `timeout = 30`).
-   - `SendTestDriveStatusNotification`: Menangani notifikasi test drive.
-3. **Multi-Channel Delivery**:
-   - `database`: Menghasilkan rekam in-app notification untuk Notification Center dan topbar badge.
-   - `mail`: Mengirim email berbasis template resmi Laravel MailMessage.
-   - `WhatsAppChannel`: Mengabstraksikan gateway pengiriman pesan instan WhatsApp melalui interface `WhatsAppGateway`.
-4. **Driver WhatsApp**:
-   - `log` (Default / Development): Menulis log payload pesan ke file storage.
-   - `fonnte`: Integrasi API Fonnte Indonesia.
-   - `twilio`: Integrasi API Twilio WhatsApp Messaging.
+```
+            (Submit Tamu / Booking)
+                       │
+                       ▼
+                 [ pending ]
+                 /         \
+   (Assign / Confirm)    (Cancel: sebelum in_progress)
+               /             \
+              ▼               ▼
+       [ confirmed ] ──► [ cancelled ]
+             │
+       (Mulai Kerjakan Mekanik)
+             ▼
+      [ in_progress ]  <── Tambah / Hapus Suku Cadang & Jasa (Stok Atomik DB)
+             │
+     (Selesai: wajib >= 1 service_item)
+             ▼
+       [ completed ]
+```
+
+**Penjaga Bisnis (*Business Rules*) Servis:**
+1. Pengisian `ServiceItem` tipe `Part` dikunci di dalam `DB::transaction` menggunakan `SparePart::lockForUpdate()`, memvalidasi ketersediaan `stock_quantity`, memaksa `unit_price` dari server, dan mengurangi stok secara atomik (dan mengembalikan stok saat item dihapus sebelum selesai).
+2. Status `completed` **ditolak** oleh `ServiceController::updateStatus()` jika `items()->count() === 0`.
+3. `in_progress`, `completed`, dan `cancelled` mengunci pembatalan serta perubahan item lebih lanjut (`ServiceStatus::canTransitionTo()`).
+4. Validasi slot membaca setting dinamis `booking.open_hour`, `booking.close_hour`, dan `booking.max_per_slot` lewat `BookingSlotValidator` dan `StoreServiceBookingRequest`.
+
+### B. Siklus Hidup Test Drive (`App\Enums\TestDriveStatus`)
+
+```
+    (Submit Tamu -> auto-assign Sales + generate tiket TD-YYYYMMDD-XXXX)
+                       │
+                       ▼
+                [ requested ] ──► [ cancelled ]
+                 /         \
+       (Approve Sales)   (Reject Sales + alasan)
+               /             \
+              ▼               ▼
+        [ approved ]      [ rejected ]
+         /         \
+(Test Drive Selesai) (Dibatalkan Sales / SuperAdmin)
+       /             \
+      ▼               ▼
+[ completed ]    [ cancelled ]
+```
 
 ---
 
-## 5. Pelacakan Real-time & Upgrade Path
+## 4. Event-Driven Notifications & Jejak Audit
 
-1. **Client Polling (Default)**:
-   - Pelacakan servis `/dashboard/my-services/{id}` menggunakan **Alpine.js** polling ke endpoint JSON `/dashboard/services/{id}/status-stream` setiap 30 detik.
-   - Topbar Notification Bell melakukan polling hitung pesan belum dibaca setiap 60 detik.
-2. **Upgrade Path Laravel Echo / Reverb**:
-   - Event `ServiceStatusChanged` dan `TestDriveStatusChanged` telah disiapkan untuk mengimplementasikan `ShouldBroadcast` dengan channel privat `private-service.{id}` dan `private-user.{id}` tanpa perlu mengubah struktur controller atau database.
+- **`ServiceObserver`** dan **`TestDriveObserver`** menangkap perubahan status (`wasChanged('status')`), mencatat log kronologis di `service_status_logs`, dan memancarkan event `ServiceStatusChanged` / `TestDriveStatusChanged`.
+- **`SendServiceStatusNotification`** dan **`SendTestDriveStatusNotification`** berjalan di background queue (`ShouldQueue`, `$tries = 3`, `$timeout = 30`) dan mengirim notifikasi ke kanal `database`, `mail`, serta `WhatsAppChannel` (driver `log`, `fonnte`, atau `twilio` sesuai `.env`) tanpa menggagalkan transaksi HTTP utama jika gateway eksternal bermasalah.
+- **`AuditObserver`** memantau `Car`, `Service`, dan `TestDrive` (`created`, `updated`, `deleted`) untuk dicatat ke tabel `audit_logs` beserta IP address dan user agent.
+
+---
+
+## 5. Alur Pengajuan Tamu, Lacak Tiket Publik & Polling
+
+1. **Pengajuan Tanpa Login & Nomor Tiket Ganda (`SRV-` / `TD-`)**:
+   - `TestDriveController::store()` memakai `TicketNumberGenerator::generateTestDrive()` (via `TestDrive::booted()`) untuk menerbitkan nomor tiket harian `TD-YYYYMMDD-XXXX`.
+   - `ServiceBookingController::store()` menerbitkan nomor tiket `SRV-YYYYMMDD-XXXX` via `TicketNumberGenerator::generate()`.
+   - Modal konfirmasi showroom segera menampilkan nomor tiket untuk disalin (`Salin Tiket`) atau langsung dilacak.
+2. **Lacak Tiket Publik (`GET /track-ticket`, `HomeController::trackTicket`)**:
+   - Dilindungi rate limiter `throttle:30,1`.
+   - Menerima nomor tiket `SRV-...` atau `TD-...`, lalu mengembalikan JSON status terkini, persentase progres, detail unit/kendaraan, jadwal, mekanik/sales penanggung jawab, rincian item/biaya servis, dan histori transisi `statusLogs`.
+3. **Notifikasi Real-Time Dasbor Staf**:
+   - Topbar dasbor staf melakukan polling JSON ke `GET /dashboard/notifications/unread-count` setiap **60 detik**.
+
+---
+
+## 6. Keamanan HTTP, Privasi Berkas & SEO
+
+- **`SecurityHeaders`**: Menetapkan header `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `X-XSS-Protection: 1; mode=block`, `Permissions-Policy`, `Content-Security-Policy`, dan HSTS (`Strict-Transport-Security`) pada koneksi aman / produksi.
+- **`EnsureUserIsActive`**: Memeriksa status `is_active` akun secara langsung ke database pada setiap request dan memutus sesi seketika saat akun dinonaktifkan (`User::revokeAccess()`).
+- **Penyimpanan Privat Foto SIM**: Berkas foto SIM A pendaftar Test Drive disimpan ke disk `local` (`storage/app/private/licenses/`) yang tidak dapat diakses via URL publik langsung, dan hanya dapat dilihat oleh `SuperAdmin` atau `Sales` berwenang lewat endpoint terotorisasi `GET /dashboard/test-drives/{testDrive}/license`.
+- **SEO & Privasi Mesin Pencari**: Seluruh halaman staf dan autentikasi (`layouts/dashboard`, `layouts/guest`, `layouts/app`) menyertakan `<meta name="robots" content="noindex, nofollow">`, didukung aturan blokir di `public/robots.txt`, serta hanya URL showroom publik yang dimuat ke `GET /sitemap.xml`.
