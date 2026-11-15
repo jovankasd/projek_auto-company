@@ -10,7 +10,9 @@ use App\Models\Service;
 use App\Models\SparePart;
 use App\Models\TestDrive;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 beforeEach(function () {
     // Seed sample cars
@@ -77,22 +79,33 @@ test('showroom page renders successfully with available cars and full website ca
     $response->assertDontSee('Masuk ke Portal Pelanggan');
 });
 
-test('guest submitting test drive redirects to login with session retention', function () {
+test('guest submitting test drive creates booking without login and returns ticket number', function () {
     $car = Car::first();
     $tomorrow = Carbon::now()->addDays(2)->format('Y-m-d H:i:s');
 
-    $response = $this->post('/test-drive', [
+    $response = $this->postJson('/test-drive', [
+        'customer_name' => 'Rina Tamu',
+        'customer_phone' => '081299887766',
         'car_id' => $car->id,
         'preferred_date' => $tomorrow,
         'driver_license_id' => '123456789',
         'pickup_location' => 'Showroom Pusat',
     ]);
 
-    $response->assertRedirect(route('login'));
-    $response->assertSessionHas('pending_test_drive');
-    $response->assertSessionHas('info');
+    $response->assertStatus(200);
+    $response->assertJsonPath('success', true);
 
-    $this->assertDatabaseCount('test_drives', 0);
+    $testDrive = TestDrive::first();
+    expect($testDrive)->not->toBeNull();
+    expect($testDrive->ticket_number)->toMatch('/^TD-\d{8}-\d{4}$/');
+
+    // Public ticket tracker returns the test drive status without login
+    $trackResponse = $this->getJson(route('ticket.track', ['ticket' => $testDrive->ticket_number]));
+    $trackResponse->assertStatus(200)
+        ->assertJsonPath('found', true)
+        ->assertJsonPath('type', 'test_drive')
+        ->assertJsonPath('ticket_number', $testDrive->ticket_number)
+        ->assertJsonPath('customer_name', 'Rina Tamu');
 });
 
 test('authenticated customer can submit test drive and sales is assigned round robin', function () {
@@ -128,10 +141,12 @@ test('authenticated customer can submit test drive and sales is assigned round r
     expect($testDrive->sales_id)->not->toBeNull();
 });
 
-test('guest submitting service booking redirects to login with session retention', function () {
+test('guest submitting service booking creates booking without login and returns ticket number', function () {
     $tomorrow = Carbon::now()->addDays(2)->format('Y-m-d 10:00:00');
 
-    $response = $this->post('/service-booking', [
+    $response = $this->postJson('/service-booking', [
+        'customer_name' => 'Andi Tamu',
+        'customer_phone' => '081233445566',
         'vehicle_plate_number' => 'B 1234 ABC',
         'vehicle_model' => 'Mustang GT',
         'vehicle_year' => 2024,
@@ -141,11 +156,21 @@ test('guest submitting service booking redirects to login with session retention
         'complaint_notes' => 'Ganti oli mesin dan periksa rem.',
     ]);
 
-    $response->assertRedirect(route('login'));
-    $response->assertSessionHas('pending_service_booking');
-    $response->assertSessionHas('info');
+    $response->assertStatus(200);
+    $response->assertJsonPath('success', true);
 
-    $this->assertDatabaseCount('services', 0);
+    $service = Service::first();
+    expect($service)->not->toBeNull();
+    expect($service->ticket_number)->toMatch('/^SRV-\d{8}-\d{4}$/');
+
+    // Public ticket tracker returns the service status without login
+    $trackResponse = $this->getJson(route('ticket.track', ['ticket' => $service->ticket_number]));
+    $trackResponse->assertStatus(200)
+        ->assertJsonPath('found', true)
+        ->assertJsonPath('type', 'service')
+        ->assertJsonPath('ticket_number', $service->ticket_number)
+        ->assertJsonPath('customer_name', 'Andi Tamu')
+        ->assertJsonPath('vehicle_plate_number', 'B 1234 ABC');
 });
 
 test('authenticated customer can submit service booking with unique ticket number', function () {
@@ -261,4 +286,140 @@ test('service booking rejects duplicate plate on same date and slot hour', funct
     ]);
 
     $response->assertSessionHasErrors(['vehicle_plate_number']);
+});
+
+test('public contact page renders without 500 error and inquiry can be submitted with honeypot guard', function () {
+    $renderResponse = $this->get('/contact');
+    $renderResponse->assertStatus(200);
+    $renderResponse->assertSee('Hubungi Konsultan Dealer');
+
+    // Bot submission with honeypot filled
+    $botResponse = $this->postJson(route('contact.store'), [
+        'name' => 'Spam Bot',
+        'email' => 'bot@spammer.com',
+        'phone' => '081234567890',
+        'subject' => 'Spam Title',
+        'message' => 'Spam message test bot',
+        'website_url' => 'http://spamlink.com',
+    ]);
+    $botResponse->assertStatus(200);
+
+    // Valid inquiry submission
+    $validResponse = $this->postJson(route('contact.store'), [
+        'name' => 'Budi Pelanggan',
+        'email' => 'budi@domain.com',
+        'phone' => '081234567890',
+        'subject' => 'Pembelian & Konsultasi Unit Mobil Baru',
+        'message' => 'Saya tertarik dengan unit Ford Mustang GT terbaru.',
+    ]);
+    $validResponse->assertStatus(200);
+    $validResponse->assertJsonFragment(['success' => true]);
+});
+
+test('driving license photo is private and strictly protected from guest or unassigned sales', function () {
+    Storage::fake('local');
+
+    $salesA = User::where('role', UserRole::Sales)->first();
+    $salesB = User::create([
+        'name' => 'Sales B',
+        'email' => 'salesb@xyzmotors.com',
+        'password' => bcrypt('password'),
+        'role' => UserRole::Sales,
+        'phone_number' => '081234567899',
+        'is_active' => true,
+    ]);
+
+    $customer = User::create([
+        'name' => 'Customer SIM',
+        'email' => 'sim@gmail.com',
+        'password' => bcrypt('password'),
+        'role' => UserRole::Customer,
+        'phone_number' => '081277778888',
+        'is_active' => true,
+    ]);
+
+    $file = UploadedFile::fake()->create('sim.jpg', 100, 'image/jpeg');
+    $path = $file->store('licenses', 'local');
+
+    $car = Car::first();
+    $testDrive = TestDrive::create([
+        'customer_id' => $customer->id,
+        'car_id' => $car->id,
+        'sales_id' => $salesA->id,
+        'preferred_date' => now()->addDays(2),
+        'driver_license_id' => 'SIM-12345678',
+        'driver_license_image' => $path,
+        'status' => TestDriveStatus::Requested,
+    ]);
+
+    // 1. Guest blocked (redirects to login)
+    $this->get(route('test-drives.license', $testDrive))->assertRedirect(route('login'));
+
+    // 2. Unassigned Sales B blocked (403 Forbidden)
+    $this->actingAs($salesB)->get(route('test-drives.license', $testDrive))->assertStatus(403);
+
+    // 3. Customer owner can view their own license
+    $this->actingAs($customer)->get(route('test-drives.license', $testDrive))->assertStatus(200);
+
+    // 4. Assigned Sales A can view license
+    $this->actingAs($salesA)->get(route('test-drives.license', $testDrive))->assertStatus(200);
+
+    // 5. Super Admin can view license
+    $admin = User::where('role', UserRole::SuperAdmin)->first();
+    $this->actingAs($admin)->get(route('test-drives.license', $testDrive))->assertStatus(200);
+});
+
+test('test drive status transition is guarded and rejects invalid transitions', function () {
+    $sales = User::where('role', UserRole::Sales)->first();
+    $customer = User::create([
+        'name' => 'Customer TD Guard',
+        'email' => 'tdguard@gmail.com',
+        'password' => bcrypt('password'),
+        'role' => UserRole::Customer,
+        'phone_number' => '081255554444',
+        'is_active' => true,
+    ]);
+
+    $car = Car::first();
+    $testDrive = TestDrive::create([
+        'customer_id' => $customer->id,
+        'car_id' => $car->id,
+        'sales_id' => $sales->id,
+        'preferred_date' => now()->addDays(2),
+        'driver_license_id' => 'SIM-55554444',
+        'status' => TestDriveStatus::Rejected,
+        'rejection_reason' => 'Ditolak awal',
+    ]);
+
+    // Already rejected, cannot be approved (must return 422)
+    $response = $this->actingAs($sales)->patch(route('test-drives.approve', $testDrive), [
+        'sales_notes' => 'Mencoba approve dari status rejected',
+    ]);
+    $response->assertStatus(422);
+});
+
+test('cars reorder endpoint is protected and only allows sales or admin', function () {
+    $sales = User::where('role', UserRole::Sales)->first();
+    $customer = User::create([
+        'name' => 'Customer Reorder',
+        'email' => 'reorder@gmail.com',
+        'password' => bcrypt('password'),
+        'role' => UserRole::Customer,
+        'phone_number' => '081211112222',
+        'is_active' => true,
+    ]);
+
+    $car = Car::first();
+
+    // Customer gets 403
+    $this->actingAs($customer)->postJson(route('cars.reorder'), [
+        'order' => [['id' => $car->id, 'sort_order' => 1]],
+    ])->assertStatus(403);
+
+    // Sales gets 200
+    $this->actingAs($sales)->postJson(route('cars.reorder'), [
+        'order' => [['id' => $car->id, 'sort_order' => 5]],
+    ])->assertStatus(200);
+
+    expect($car->fresh()->sort_order)->toBe(5);
 });

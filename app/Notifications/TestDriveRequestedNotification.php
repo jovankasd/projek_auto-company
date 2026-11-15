@@ -28,7 +28,7 @@ class TestDriveRequestedNotification extends Notification
         return (new MailMessage)
             ->subject('Pengajuan Test Drive Baru: '.($this->testDrive->car->model_name ?? 'Unit Mobil'))
             ->line('Ada pengajuan test drive baru dari pelanggan '.($this->testDrive->customer->name ?? 'Pelanggan').'.')
-            ->action('Lihat Detail', url('/dashboard/test-drives/'.$this->testDrive->id))
+            ->action('Lihat Detail', route('dashboard'))
             ->line('Silakan tinjau dan tindak lanjuti jadwal test drive tersebut.');
     }
 

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Service;
+use App\Models\Setting;
 use Illuminate\Support\Carbon;
 
 class BookingSlotValidator
@@ -24,7 +25,7 @@ class BookingSlotValidator
             ->whereNotIn('status', ['cancelled'])
             ->count();
 
-        return max(0, self::MAX_PER_SLOT - $count);
+        return max(0, $this->getMaxPerSlot() - $count);
     }
 
     /**
@@ -51,6 +52,6 @@ class BookingSlotValidator
 
     public function getMaxPerSlot(): int
     {
-        return self::MAX_PER_SLOT;
+        return max(1, (int) Setting::get('booking.max_per_slot', self::MAX_PER_SLOT));
     }
 }

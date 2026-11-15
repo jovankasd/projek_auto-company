@@ -14,6 +14,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 
 class ReportController extends Controller
@@ -134,6 +135,10 @@ class ReportController extends Controller
                     summary: $summary
                 ));
             } catch (\Throwable $e) {
+                Log::warning('[ReportController::submitToOwner] Gagal mengirim notifikasi laporan eksekutif ke Owner.', [
+                    'owner_id' => $owner->id,
+                    'error' => $e->getMessage(),
+                ]);
             }
         }
 

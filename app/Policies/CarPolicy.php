@@ -27,6 +27,11 @@ class CarPolicy
         return $user->isSales() || $user->isSuperAdmin();
     }
 
+    public function reorder(User $user): bool
+    {
+        return $user->isSales() || $user->isSuperAdmin();
+    }
+
     public function delete(User $user, Car $car): bool
     {
         return $user->isSales() || $user->isSuperAdmin();

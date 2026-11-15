@@ -40,7 +40,7 @@ enum SparePartCategory: string
             self::Electrical => 'bg-blue-100 text-blue-700 border-blue-200',
             self::Body => 'bg-slate-100 text-slate-700 border-slate-200',
             self::Interior => 'bg-stone-100 text-stone-700 border-stone-200',
-            self::Transmission => 'bg-purple-100 text-purple-700 border-purple-200',
+            self::Transmission => 'bg-blue-50 text-blue-700 border-blue-200',
             self::Exhaust => 'bg-zinc-100 text-zinc-700 border-zinc-200',
             self::Cooling => 'bg-cyan-100 text-cyan-700 border-cyan-200',
             self::Accessories => 'bg-pink-100 text-pink-700 border-pink-200',

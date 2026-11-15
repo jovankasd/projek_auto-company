@@ -16,11 +16,22 @@ class UserController extends Controller
 {
     use AuthorizesRequests;
 
+    /**
+     * @return array<int, UserRole>
+     */
+    private function staffRoles(): array
+    {
+        return array_values(array_filter(
+            UserRole::cases(),
+            fn (UserRole $role): bool => $role !== UserRole::Customer
+        ));
+    }
+
     public function index(Request $request): View
     {
         $this->authorize('viewAny', User::class);
 
-        $query = User::query();
+        $query = User::query()->where('role', '!=', UserRole::Customer->value);
 
         if ($search = $request->input('search')) {
             $query->where(function ($q) use ($search) {
@@ -39,7 +50,7 @@ class UserController extends Controller
         }
 
         $users = $query->latest()->paginate(15)->withQueryString();
-        $roles = UserRole::cases();
+        $roles = $this->staffRoles();
 
         return view('dashboard.users.index', compact('users', 'roles'));
     }
@@ -48,7 +59,7 @@ class UserController extends Controller
     {
         $this->authorize('create', User::class);
 
-        $roles = UserRole::cases();
+        $roles = $this->staffRoles();
 
         return view('dashboard.users.create', compact('roles'));
     }
@@ -72,7 +83,7 @@ class UserController extends Controller
             'phone_number' => $validated['phone_number'],
             'role' => $validated['role'],
             'password' => Hash::make($validated['password']),
-            'is_active' => (bool) ($validated['is_active'] ?? true),
+            'is_active' => $request->has('is_active') ? $request->boolean('is_active') : true,
             'email_verified_at' => now(),
         ]);
 
@@ -85,7 +96,7 @@ class UserController extends Controller
     {
         $this->authorize('update', $user);
 
-        $roles = UserRole::cases();
+        $roles = $this->staffRoles();
 
         return view('dashboard.users.edit', compact('user', 'roles'));
     }

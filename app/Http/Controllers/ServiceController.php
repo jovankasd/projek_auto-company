@@ -8,6 +8,7 @@ use App\Enums\UserRole;
 use App\Models\Service;
 use App\Models\ServiceItem;
 use App\Models\ServiceStatusLog;
+use App\Models\SparePart;
 use App\Models\User;
 use App\Services\ServiceCostCalculator;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -15,6 +16,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
@@ -52,7 +54,11 @@ class ServiceController extends Controller
 
         $service->load(['customer', 'mechanic', 'items.addedBy', 'statusLogs.changedBy']);
 
-        return view('dashboard.services.show', compact('service'));
+        $mechanics = auth()->user()?->isSuperAdmin()
+            ? User::where('role', UserRole::Mekanik)->where('is_active', true)->orderBy('name')->get()
+            : collect();
+
+        return view('dashboard.services.show', compact('service', 'mechanics'));
     }
 
     /**
@@ -139,11 +145,57 @@ class ServiceController extends Controller
     }
 
     /**
+     * Batalkan booking servis oleh Pelanggan (hanya saat Pending) atau Super Admin.
+     */
+    public function cancel(Request $request, Service $service): JsonResponse|RedirectResponse
+    {
+        $this->authorize('cancel', $service);
+
+        $currentStatus = $service->status instanceof ServiceStatus ? $service->status : ServiceStatus::from((string) $service->status);
+
+        if (! $currentStatus->canTransitionTo(ServiceStatus::Cancelled)) {
+            $message = "Tiket servis dengan status {$currentStatus->label()} tidak dapat dibatalkan.";
+            if ($request->wantsJson()) {
+                return response()->json(['message' => $message], 422);
+            }
+
+            return back()->with('error', $message);
+        }
+
+        $validated = $request->validate([
+            'cancellation_reason' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $actorName = $request->user()->name ?? 'Pelanggan';
+        $service->cancelled_at = now();
+        $service->cancellation_reason = $validated['cancellation_reason'] ?? 'Dibatalkan oleh '.$actorName;
+        $service->status_change_notes = 'Booking servis dibatalkan oleh '.$actorName;
+        $service->status = ServiceStatus::Cancelled;
+        $service->save();
+
+        $message = "Booking servis tiket {$service->ticket_number} berhasil dibatalkan.";
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'service' => $service->fresh(['statusLogs.changedBy']),
+            ]);
+        }
+
+        return back()->with('success', $message);
+    }
+
+    /**
      * Tambah item suku cadang / jasa pada Work Order servis.
      */
     public function addItem(Request $request, Service $service, ServiceCostCalculator $calculator): JsonResponse|RedirectResponse
     {
         $this->authorize('addItem', $service);
+
+        if (in_array($service->status, [ServiceStatus::Completed, ServiceStatus::Cancelled], true)) {
+            abort(422, 'Tidak dapat menambahkan item pada servis yang telah selesai atau dibatalkan.');
+        }
 
         $validated = $request->validate([
             'item_type' => ['required', Rule::enum(ServiceItemType::class)],
@@ -157,19 +209,67 @@ class ServiceController extends Controller
             'unit_price.required' => 'Harga satuan wajib diisi.',
         ]);
 
-        $subtotal = $calculator->calculateSubtotal((float) $validated['quantity'], (float) $validated['unit_price']);
+        if ($validated['item_type'] === ServiceItemType::Part->value
+            && floor((float) $validated['quantity']) !== (float) $validated['quantity']) {
+            $errorMsg = 'Jumlah kuantitas suku cadang harus berupa bilangan bulat.';
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $errorMsg], 422);
+            }
 
-        $item = $service->items()->create([
-            'item_type' => $validated['item_type'],
-            'name' => $validated['name'],
-            'part_number' => $validated['part_number'] ?? null,
-            'quantity' => $validated['quantity'],
-            'unit_price' => $validated['unit_price'],
-            'subtotal' => $subtotal,
-            'added_by' => auth()->id(),
-        ]);
+            return back()->withErrors(['quantity' => $errorMsg]);
+        }
 
-        $calculator->recalculate($service);
+        $unitPrice = (float) $validated['unit_price'];
+        $quantity = $validated['item_type'] === ServiceItemType::Part->value
+            ? (int) $validated['quantity']
+            : (float) $validated['quantity'];
+
+        $result = DB::transaction(function () use ($service, $validated, $unitPrice, $quantity, $calculator) {
+            // Integritas harga dan stok suku cadang dari database server
+            if ($validated['item_type'] === ServiceItemType::Part->value && ! empty($validated['part_number'])) {
+                $sparePart = SparePart::where('part_number', $validated['part_number'])->lockForUpdate()->first();
+                if ($sparePart) {
+                    if ($sparePart->stock_quantity < (int) $quantity) {
+                        return [
+                            'error' => "Stok suku cadang {$sparePart->name} tidak mencukupi (sisa {$sparePart->stock_quantity}).",
+                            'item' => null,
+                        ];
+                    }
+
+                    $unitPrice = (float) $sparePart->price;
+                    $sparePart->decrement('stock_quantity', (int) $quantity);
+                }
+            }
+
+            $subtotal = $calculator->calculateSubtotal((float) $quantity, $unitPrice);
+
+            $item = $service->items()->create([
+                'item_type' => $validated['item_type'],
+                'name' => $validated['name'],
+                'part_number' => $validated['part_number'] ?? null,
+                'quantity' => $quantity,
+                'unit_price' => $unitPrice,
+                'subtotal' => $subtotal,
+                'added_by' => auth()->id(),
+            ]);
+
+            $calculator->recalculate($service);
+
+            return [
+                'error' => null,
+                'item' => $item,
+            ];
+        });
+
+        if ($result['error'] !== null) {
+            if ($request->wantsJson()) {
+                return response()->json(['success' => false, 'message' => $result['error']], 422);
+            }
+
+            return back()->withErrors(['quantity' => $result['error']]);
+        }
+
+        $item = $result['item'];
 
         $message = 'Item berhasil ditambahkan ke work order.';
 
@@ -192,12 +292,26 @@ class ServiceController extends Controller
     {
         $this->authorize('removeItem', $service);
 
+        if (in_array($service->status, [ServiceStatus::Completed, ServiceStatus::Cancelled], true)) {
+            abort(422, 'Tidak dapat menghapus item pada servis yang telah selesai atau dibatalkan.');
+        }
+
         if ($item->service_id !== $service->id) {
             abort(404, 'Item tidak ditemukan pada servis ini.');
         }
 
-        $item->delete();
-        $calculator->recalculate($service);
+        DB::transaction(function () use ($item, $service, $calculator) {
+            // Kembalikan stok suku cadang jika yang dihapus adalah onderdil
+            if ($item->item_type === ServiceItemType::Part && ! empty($item->part_number)) {
+                $sparePart = SparePart::where('part_number', $item->part_number)->lockForUpdate()->first();
+                if ($sparePart) {
+                    $sparePart->increment('stock_quantity', (int) $item->quantity);
+                }
+            }
+
+            $item->delete();
+            $calculator->recalculate($service);
+        });
 
         $message = 'Item berhasil dihapus dari work order.';
 
@@ -219,13 +333,17 @@ class ServiceController extends Controller
     {
         $this->authorize('assignMechanic', $service);
 
+        if (in_array($service->status, [ServiceStatus::Completed, ServiceStatus::Cancelled], true)) {
+            abort(422, 'Tidak dapat menugaskan mekanik pada servis yang telah selesai atau dibatalkan.');
+        }
+
         $validated = $request->validate([
             'assigned_mechanic_id' => [
                 'required',
                 'exists:users,id',
                 function ($attribute, $value, $fail) {
                     $mechanic = User::find($value);
-                    if (! $mechanic || $mechanic->role !== UserRole::Mekanik) {
+                    if (! $mechanic || $mechanic->role !== UserRole::Mekanik || ! $mechanic->is_active) {
                         $fail('Pengguna yang dipilih bukan mekanik aktif.');
                     }
                 },

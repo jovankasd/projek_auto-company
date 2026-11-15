@@ -38,9 +38,18 @@ class NotificationController extends Controller
         /** @var DatabaseNotification|null $notification */
         $notification = $request->user()->notifications()->where('id', $id)->first();
 
-        if ($notification) {
-            $notification->markAsRead();
+        if (! $notification) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Pemberitahuan tidak ditemukan.',
+                ], 404);
+            }
+
+            return redirect()->route('notifications.index')->with('error', 'Pemberitahuan tidak ditemukan.');
         }
+
+        $notification->markAsRead();
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -49,9 +58,9 @@ class NotificationController extends Controller
             ]);
         }
 
-        $targetUrl = $notification?->data['url'] ?? null;
-        if ($targetUrl && $request->has('redirect')) {
-            return redirect($targetUrl);
+        $targetUrl = $this->resolveSafeTargetUrl($request, $notification->data['url'] ?? null);
+        if ($request->isMethod('GET') || $request->has('redirect')) {
+            return redirect($targetUrl ?? route('notifications.index'));
         }
 
         return back()->with('success', 'Pemberitahuan ditandai telah dibaca.');
@@ -81,16 +90,79 @@ class NotificationController extends Controller
     {
         return response()->json([
             'count' => $request->user()->unreadNotifications()->count(),
-            'recent' => $request->user()->notifications()->take(5)->get()->map(fn ($n) => [
-                'id' => $n->id,
-                'title' => $n->data['title'] ?? 'Pemberitahuan',
-                'message' => $n->data['message'] ?? '',
-                'url' => $n->data['url'] ?? '#',
-                'icon' => $n->data['icon'] ?? 'bell',
-                'color' => $n->data['color'] ?? 'slate',
-                'read' => $n->read(),
-                'created_at_human' => $n->created_at->diffForHumans(),
-            ]),
+            'recent' => $request->user()->notifications()->take(5)->get()->map(function ($n) use ($request) {
+                $safeUrl = $this->resolveSafeTargetUrl($request, $n->data['url'] ?? null);
+
+                return [
+                    'id' => $n->id,
+                    'title' => $n->data['title'] ?? 'Pemberitahuan',
+                    'message' => $n->data['message'] ?? '',
+                    'url' => $safeUrl ?? route('notifications.index', [], false),
+                    'read_url' => route('notifications.read', ['id' => $n->id, 'redirect' => 1], false),
+                    'icon' => $n->data['icon'] ?? 'bell',
+                    'color' => $n->data['color'] ?? 'slate',
+                    'read' => $n->read(),
+                    'created_at_human' => $n->created_at->diffForHumans(),
+                ];
+            }),
         ]);
+    }
+
+    /**
+     * Validasi dan normalisasi URL tujuan notifikasi agar aman dari open-redirect atau tautan usang.
+     */
+    private function resolveSafeTargetUrl(Request $request, mixed $rawUrl): ?string
+    {
+        if (! is_string($rawUrl)) {
+            return null;
+        }
+
+        $url = trim($rawUrl);
+        if ($url === '' || $url === '#' || str_starts_with($url, '//')) {
+            return null;
+        }
+
+        $parsed = parse_url($url);
+        if ($parsed === false) {
+            return null;
+        }
+
+        if (isset($parsed['scheme'])) {
+            $scheme = strtolower($parsed['scheme']);
+            if (! in_array($scheme, ['http', 'https'], true)) {
+                return null;
+            }
+
+            $host = strtolower((string) ($parsed['host'] ?? ''));
+            $appHost = parse_url((string) config('app.url'), PHP_URL_HOST);
+            $allowedHosts = array_filter(array_unique([
+                strtolower($request->getHost()),
+                is_string($appHost) ? strtolower($appHost) : null,
+                'localhost',
+                '127.0.0.1',
+            ]));
+
+            if ($host === '' || ! in_array($host, $allowedHosts, true)) {
+                return null;
+            }
+
+            $path = $parsed['path'] ?? '/';
+            $query = isset($parsed['query']) ? '?'.$parsed['query'] : '';
+            $fragment = isset($parsed['fragment']) ? '#'.$parsed['fragment'] : '';
+            $normalized = $path.$query.$fragment;
+        } else {
+            $normalized = str_starts_with($url, '/') ? $url : '/'.ltrim($url, '/');
+        }
+
+        $pathOnly = (string) (parse_url($normalized, PHP_URL_PATH) ?? '');
+        if (preg_match('#^/dashboard/test-drives(?:/\d+)?$#', $pathOnly) === 1) {
+            $user = $request->user();
+
+            return $user && $user->isCustomer()
+                ? route('test-drives.my', [], false)
+                : route('dashboard', [], false);
+        }
+
+        return $normalized;
     }
 }

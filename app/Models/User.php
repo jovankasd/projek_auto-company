@@ -11,6 +11,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * @property int $id
@@ -116,6 +117,39 @@ class User extends Authenticatable
         return $this->role === UserRole::Owner;
     }
 
+    /**
+     * Resolve atau buat entitas pemesan (guest customer) tanpa akun login aktif.
+     */
+    public static function resolveGuestCustomer(?string $name = null, ?string $phone = null, ?string $email = null): self
+    {
+        $cleanName = trim((string) $name) !== '' ? trim((string) $name) : 'Pelanggan Showroom';
+        $cleanPhone = trim((string) $phone) !== '' ? trim((string) $phone) : '081200000000';
+        $cleanEmail = trim((string) $email) !== '' ? strtolower(trim((string) $email)) : null;
+
+        if ($cleanEmail) {
+            $existingByEmail = self::withTrashed()->where('email', $cleanEmail)->first();
+            if ($existingByEmail) {
+                if ($existingByEmail->trashed()) {
+                    $existingByEmail->restore();
+                }
+
+                return $existingByEmail;
+            }
+        }
+
+        $digits = preg_replace('/\D+/', '', $cleanPhone) ?: '0000';
+        $generatedEmail = $cleanEmail ?: 'pelanggan.'.$digits.'.'.strtolower(Str::random(6)).'@guest.xyzmotors.id';
+
+        return self::create([
+            'name' => $cleanName,
+            'email' => $generatedEmail,
+            'phone_number' => $cleanPhone,
+            'password' => Str::random(32),
+            'role' => UserRole::Customer,
+            'is_active' => false,
+        ]);
+    }
+
     public function revokeAccess(): void
     {
         $this->forceFill([
@@ -133,16 +167,5 @@ class User extends Authenticatable
                 ->where('user_id', $this->getKey())
                 ->delete();
         }
-    }
-
-    public function getRedirectRoute(): string
-    {
-        return match ($this->role) {
-            UserRole::SuperAdmin => 'dashboard',
-            UserRole::Sales => 'dashboard',
-            UserRole::Mekanik => 'dashboard',
-            UserRole::Customer => 'dashboard',
-            UserRole::Owner => 'dashboard',
-        };
     }
 }

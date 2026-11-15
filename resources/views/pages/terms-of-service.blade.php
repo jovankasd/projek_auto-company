@@ -5,43 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Syarat dan Ketentuan — Dealer Pro (XYZ Motors)</title>
+    <title>Syarat dan Ketentuan | Dealer Pro (XYZ Motors)</title>
     <meta name="description" content="Syarat dan Ketentuan resmi penggunaan layanan showroom mobil, pengajuan test drive, dan pemesanan booking servis di bengkel resmi Dealer Pro XYZ Motors.">
     <link rel="canonical" href="{{ route('terms-of-service') }}">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="article">
     <meta property="og:url" content="{{ route('terms-of-service') }}">
-    <meta property="og:title" content="Syarat dan Ketentuan — Dealer Pro XYZ Motors">
+    <meta property="og:title" content="Syarat dan Ketentuan | Dealer Pro XYZ Motors">
     <meta property="og:description" content="Syarat dan Ketentuan resmi penggunaan layanan showroom mobil, pengajuan test drive, dan pemesanan booking servis di bengkel resmi Dealer Pro XYZ Motors.">
     <meta property="og:image" content="{{ asset('images/logo.jpg') }}">
 
+    <x-font-head />
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-full font-sans antialiased text-slate-800 bg-slate-50 selection:bg-black selection:text-white">
-    <!-- Header Navigasi -->
-    <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <a href="{{ route('home') }}" class="flex items-center gap-3 group">
-                <img src="{{ asset('images/logo.jpg') }}" alt="Dealer Pro" class="h-8 w-auto object-contain">
-                <span class="font-extrabold text-base tracking-tight text-slate-900 uppercase">Dealer Pro</span>
-            </a>
-            <div class="flex items-center gap-4 text-xs sm:text-sm font-semibold">
-                <a href="{{ route('home') }}" class="text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-                    Kembali ke Showroom
-                </a>
-            </div>
-        </div>
-    </header>
+<body class="min-h-full font-sans antialiased text-slate-800 bg-slate-50 selection:bg-blue-600 selection:text-white">
+    <x-public-navbar />
 
     <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
         <!-- Breadcrumbs -->
         <nav aria-label="Breadcrumb" class="mb-6">
-            <ol class="flex items-center space-x-2 text-xs font-mono text-slate-500">
+            <ol class="flex items-center space-x-2 text-xs font-mono text-slate-600">
                 <li><a href="{{ route('home') }}" class="hover:text-slate-900 transition">Beranda</a></li>
-                <li><span class="text-slate-400">/</span></li>
-                <li class="text-slate-800 font-semibold" aria-current="page">Syarat dan Ketentuan</li>
+                <li><span class="text-slate-500">/</span></li>
+                <li class="text-slate-900 font-semibold" aria-current="page">Syarat dan Ketentuan</li>
             </ol>
         </nav>
 
@@ -127,8 +115,6 @@
         </article>
     </main>
 
-    <footer class="border-t border-slate-200 bg-white py-8 text-center text-xs text-slate-500">
-        <p>&copy; {{ date('Y') }} Dealer Pro (XYZ Motors Indonesia). Seluruh hak cipta dilindungi.</p>
-    </footer>
+    <x-public-footer />
 </body>
 </html>

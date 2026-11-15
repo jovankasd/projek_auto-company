@@ -10,12 +10,12 @@ class ServicePolicy
 {
     public function viewAny(User $user): bool
     {
-        return $user->isMekanik() || $user->isSuperAdmin() || $user->isCustomer();
+        return $user->isMekanik() || $user->isSuperAdmin() || $user->isOwner() || $user->isCustomer();
     }
 
     public function view(User $user, Service $service): bool
     {
-        if ($user->isSuperAdmin() || $user->isMekanik()) {
+        if ($user->isSuperAdmin() || $user->isMekanik() || $user->isOwner()) {
             return true;
         }
 
@@ -29,21 +29,49 @@ class ServicePolicy
 
     public function updateStatus(User $user, Service $service): bool
     {
-        return $user->isMekanik() || $user->isSuperAdmin();
+        if (in_array($service->status, [ServiceStatus::Completed, ServiceStatus::Cancelled], true)) {
+            return false;
+        }
+
+        if ($user->isSuperAdmin()) {
+            return true;
+        }
+
+        return $user->isMekanik() && ($service->assigned_mechanic_id === $user->id || is_null($service->assigned_mechanic_id));
     }
 
     public function addItem(User $user, Service $service): bool
     {
-        return $user->isMekanik() || $user->isSuperAdmin();
+        if (in_array($service->status, [ServiceStatus::Completed, ServiceStatus::Cancelled], true)) {
+            return false;
+        }
+
+        if ($user->isSuperAdmin()) {
+            return true;
+        }
+
+        return $user->isMekanik() && ($service->assigned_mechanic_id === $user->id || is_null($service->assigned_mechanic_id));
     }
 
     public function removeItem(User $user, Service $service): bool
     {
-        return $user->isMekanik() || $user->isSuperAdmin();
+        if (in_array($service->status, [ServiceStatus::Completed, ServiceStatus::Cancelled], true)) {
+            return false;
+        }
+
+        if ($user->isSuperAdmin()) {
+            return true;
+        }
+
+        return $user->isMekanik() && ($service->assigned_mechanic_id === $user->id || is_null($service->assigned_mechanic_id));
     }
 
     public function assignMechanic(User $user, Service $service): bool
     {
+        if (in_array($service->status, [ServiceStatus::Completed, ServiceStatus::Cancelled], true)) {
+            return false;
+        }
+
         return $user->isSuperAdmin();
     }
 

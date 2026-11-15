@@ -40,7 +40,7 @@ class TestDriveRequested extends Notification implements ShouldQueue
             ->greeting('Halo, '.$notifiable->name.'!')
             ->line('Ada pengajuan test drive baru untuk unit '.$carModel.' dari '.$customerName.'.')
             ->line('Jadwal Permintaan: '.$this->testDrive->preferred_date->translatedFormat('l, d F Y'))
-            ->action('Lihat Detail Pengajuan', url('/dashboard/test-drives/'.$this->testDrive->id))
+            ->action('Lihat Detail Pengajuan', route('dashboard'))
             ->line('Silakan hubungi pelanggan dan proses persetujuan jadwal.');
     }
 

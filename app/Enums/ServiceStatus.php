@@ -25,7 +25,7 @@ enum ServiceStatus: string
     {
         return match ($this) {
             self::Pending => 'bg-amber-100 text-amber-700 border-amber-200',
-            self::Confirmed => 'bg-indigo-100 text-indigo-700 border-indigo-200',
+            self::Confirmed => 'bg-blue-50 text-blue-700 border-blue-200',
             self::InProgress => 'bg-blue-100 text-blue-700 border-blue-200',
             self::Completed => 'bg-green-100 text-green-700 border-green-200',
             self::Cancelled => 'bg-red-100 text-red-700 border-red-200',
