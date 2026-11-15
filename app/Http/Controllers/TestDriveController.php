@@ -12,7 +12,9 @@ use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\Response;
 
 class TestDriveController extends Controller
 {
@@ -20,38 +22,30 @@ class TestDriveController extends Controller
 
     public function store(StoreTestDriveRequest $request): JsonResponse|RedirectResponse
     {
-        // 1. Session Retention & Guest redirect
-        if (! auth()->check()) {
-            session()->put('pending_test_drive', $request->validated());
-
-            if ($request->wantsJson()) {
-                return response()->json([
-                    'status' => 'unauthenticated',
-                    'redirect' => route('login'),
-                    'message' => 'Silakan masuk untuk melanjutkan. Data Anda sudah kami simpan.',
-                ], 401);
-            }
-
-            return redirect()->route('login')->with('info', 'Silakan masuk untuk melanjutkan. Data Anda sudah kami simpan.');
+        if (auth()->check()) {
+            $this->authorize('create', TestDrive::class);
+            /** @var User $user */
+            $user = auth()->user();
+        } else {
+            $user = User::resolveGuestCustomer(
+                $request->input('customer_name'),
+                $request->input('customer_phone'),
+                $request->input('customer_email'),
+            );
         }
 
         $validated = $request->validated();
 
-        // 2. Round-robin sales assignment
+        // Round-robin sales assignment
         $salesList = User::where('role', UserRole::Sales)->where('is_active', true)->get();
-        $assignedSales = $salesList->sortBy(function (User $user) {
-            return $user->assignedTestDrives()->count();
+        $assignedSales = $salesList->sortBy(function (User $salesUser) {
+            return $salesUser->assignedTestDrives()->count();
         })->first();
 
-        // 3. Driver license image upload
         $imagePath = null;
         if ($request->hasFile('driver_license_image')) {
-            $imagePath = $request->file('driver_license_image')->store('licenses', 'public');
+            $imagePath = $request->file('driver_license_image')->store('licenses', 'local');
         }
-
-        // 4. Create Test Drive record
-        /** @var User $user */
-        $user = auth()->user();
 
         $testDrive = TestDrive::create([
             'customer_id' => $user->id,
@@ -65,24 +59,28 @@ class TestDriveController extends Controller
             'sales_notes' => $validated['notes'] ?? null,
         ]);
 
-        // 5. Send notification to Sales
+        // Send notification to Sales
         if ($assignedSales) {
             $assignedSales->notify(new TestDriveRequestedNotification($testDrive));
         }
 
         session()->forget('pending_test_drive');
 
-        $message = 'Pengajuan test drive terkirim. Tim sales akan menghubungi Anda.';
+        $ticketNumber = (string) $testDrive->ticket_number;
+        $message = "Pengajuan test drive terkirim! Nomor tiket Anda: {$ticketNumber}";
 
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
+                'ticket_number' => $ticketNumber,
                 'message' => $message,
                 'data' => $testDrive,
             ]);
         }
 
-        return redirect()->back()->with('success', $message);
+        return redirect()->back()
+            ->with('success', $message)
+            ->with('booking_ticket', $ticketNumber);
     }
 
     /**
@@ -107,6 +105,10 @@ class TestDriveController extends Controller
     {
         $this->authorize('approve', $testDrive);
 
+        if (! $testDrive->status->canTransitionTo(TestDriveStatus::Approved)) {
+            abort(422, 'Transisi status ke Disetujui tidak diizinkan untuk status saat ini.');
+        }
+
         $validated = $request->validate([
             'sales_notes' => ['nullable', 'string', 'max:500'],
         ]);
@@ -117,7 +119,8 @@ class TestDriveController extends Controller
             'sales_notes' => $validated['sales_notes'] ?? $testDrive->sales_notes,
         ]);
 
-        $message = "Test drive untuk {$testDrive->customer->name} berhasil disetujui.";
+        $customerName = $testDrive->customer->name ?? 'Pelanggan';
+        $message = "Test drive untuk {$customerName} berhasil disetujui.";
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -137,6 +140,10 @@ class TestDriveController extends Controller
     {
         $this->authorize('reject', $testDrive);
 
+        if (! $testDrive->status->canTransitionTo(TestDriveStatus::Rejected)) {
+            abort(422, 'Transisi status ke Ditolak tidak diizinkan untuk status saat ini.');
+        }
+
         $validated = $request->validate([
             'rejection_reason' => ['required', 'string', 'max:500'],
         ], [
@@ -148,7 +155,8 @@ class TestDriveController extends Controller
             'rejection_reason' => $validated['rejection_reason'],
         ]);
 
-        $message = "Test drive untuk {$testDrive->customer->name} telah ditolak.";
+        $customerName = $testDrive->customer->name ?? 'Pelanggan';
+        $message = "Test drive untuk {$customerName} telah ditolak.";
 
         if ($request->wantsJson()) {
             return response()->json([
@@ -159,5 +167,82 @@ class TestDriveController extends Controller
         }
 
         return back()->with('success', $message);
+    }
+
+    /**
+     * Tandai test drive telah selesai dilaksanakan oleh Sales atau Super Admin.
+     */
+    public function complete(Request $request, TestDrive $testDrive): JsonResponse|RedirectResponse
+    {
+        $this->authorize('complete', $testDrive);
+
+        if (! $testDrive->status->canTransitionTo(TestDriveStatus::Completed)) {
+            abort(422, 'Transisi status ke Selesai tidak diizinkan untuk status saat ini.');
+        }
+
+        $validated = $request->validate([
+            'sales_notes' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $testDrive->update([
+            'status' => TestDriveStatus::Completed,
+            'completed_at' => now(),
+            'sales_notes' => $validated['sales_notes'] ?? $testDrive->sales_notes,
+        ]);
+
+        $customerName = $testDrive->customer->name ?? 'Pelanggan';
+        $message = "Test drive untuk {$customerName} ditandai selesai.";
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'test_drive' => $testDrive->fresh(['car', 'customer', 'sales']),
+            ]);
+        }
+
+        return back()->with('success', $message);
+    }
+
+    /**
+     * Batalkan pengajuan test drive oleh Pelanggan pemilik pengajuan atau Super Admin.
+     */
+    public function cancel(Request $request, TestDrive $testDrive): JsonResponse|RedirectResponse
+    {
+        $this->authorize('cancel', $testDrive);
+
+        if (! $testDrive->status->canTransitionTo(TestDriveStatus::Cancelled)) {
+            abort(422, 'Pengajuan test drive pada status saat ini tidak dapat dibatalkan.');
+        }
+
+        $testDrive->update([
+            'status' => TestDriveStatus::Cancelled,
+        ]);
+
+        $message = 'Pengajuan test drive berhasil dibatalkan.';
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'test_drive' => $testDrive->fresh(['car', 'customer', 'sales']),
+            ]);
+        }
+
+        return back()->with('success', $message);
+    }
+
+    /**
+     * Akses dokumen foto SIM yang dilindungi hak akses.
+     */
+    public function viewLicense(TestDrive $testDrive): Response
+    {
+        $this->authorize('viewLicense', $testDrive);
+
+        if (! $testDrive->driver_license_image || ! Storage::disk('local')->exists($testDrive->driver_license_image)) {
+            abort(404, 'Dokumen SIM tidak ditemukan.');
+        }
+
+        return Storage::disk('local')->response($testDrive->driver_license_image);
     }
 }

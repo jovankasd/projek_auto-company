@@ -6,10 +6,12 @@ use App\Enums\ServiceStatus;
 use App\Enums\UserRole;
 use App\Http\Requests\StoreServiceBookingRequest;
 use App\Models\Service;
+use App\Models\Setting;
 use App\Models\User;
 use App\Notifications\ServiceBookingCreatedNotification;
 use App\Services\BookingSlotValidator;
 use App\Services\TicketNumberGenerator;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Carbon;
@@ -19,6 +21,8 @@ use Illuminate\Validation\ValidationException;
 
 class ServiceBookingController extends Controller
 {
+    use AuthorizesRequests;
+
     public function __construct(
         private BookingSlotValidator $slotValidator,
         private TicketNumberGenerator $ticketGenerator,
@@ -26,19 +30,16 @@ class ServiceBookingController extends Controller
 
     public function store(StoreServiceBookingRequest $request): JsonResponse|RedirectResponse
     {
-        // 1. Session Retention & Guest redirect
-        if (! auth()->check()) {
-            session()->put('pending_service_booking', $request->validated());
-
-            if ($request->wantsJson()) {
-                return response()->json([
-                    'status' => 'unauthenticated',
-                    'redirect' => route('login'),
-                    'message' => 'Silakan masuk untuk melanjutkan. Data Anda sudah kami simpan.',
-                ], 401);
-            }
-
-            return redirect()->route('login')->with('info', 'Silakan masuk untuk melanjutkan. Data Anda sudah kami simpan.');
+        if (auth()->check()) {
+            $this->authorize('create', Service::class);
+            /** @var User $user */
+            $user = auth()->user();
+        } else {
+            $user = User::resolveGuestCustomer(
+                $request->input('customer_name'),
+                $request->input('customer_phone'),
+                $request->input('customer_email'),
+            );
         }
 
         $validated = $request->validated();
@@ -48,16 +49,27 @@ class ServiceBookingController extends Controller
             ? (int) $validated['slot_hour']
             : (int) $serviceDateTime->hour;
 
-        if ($slotHour < 8 || $slotHour > 17) {
-            $slotHour = 9; // Jam operasional default 09:00
+        $openHour = (int) Setting::get('booking.open_hour', 8);
+        $closeHour = (int) Setting::get('booking.close_hour', 17);
+        if ($closeHour < $openHour) {
+            $openHour = 8;
+            $closeHour = 17;
+        }
+
+        if ($slotHour < $openHour || $slotHour > $closeHour) {
+            throw ValidationException::withMessages([
+                'service_date' => 'Jam operasional servis adalah '.sprintf('%02d:00 - %02d:00 WIB.', $openHour, $closeHour),
+            ]);
         }
 
         $cleanPlate = strtoupper(preg_replace('/\s+/', ' ', trim($validated['vehicle_plate_number'])));
 
-        // 2. Booking slot quota validation (maks 3 / jam)
+        // 2. Booking slot quota validation
         if (! $this->slotValidator->isSlotAvailable($serviceDateTime->toDateString(), $slotHour)) {
+            $maxPerSlot = $this->slotValidator->getMaxPerSlot();
+
             throw ValidationException::withMessages([
-                'service_date' => 'Kuota servis untuk slot jam '.sprintf('%02d:00', $slotHour).' sudah penuh (maksimal 3 kendaraan). Silakan pilih jam lain.',
+                'service_date' => 'Kuota servis untuk slot jam '.sprintf('%02d:00', $slotHour)." sudah penuh (maksimal {$maxPerSlot} kendaraan). Silakan pilih jam lain.",
             ]);
         }
 
@@ -70,9 +82,6 @@ class ServiceBookingController extends Controller
 
         // 4. Generate unique ticket number with transaction
         $ticketNumber = $this->ticketGenerator->generate();
-
-        /** @var User $user */
-        $user = auth()->user();
 
         // 5. Create service in transaction
         $service = DB::transaction(function () use ($user, $ticketNumber, $validated, $cleanPlate, $serviceDateTime, $slotHour) {
@@ -105,11 +114,14 @@ class ServiceBookingController extends Controller
         if ($request->wantsJson()) {
             return response()->json([
                 'success' => true,
+                'ticket_number' => $ticketNumber,
                 'message' => $message,
                 'data' => $service,
             ]);
         }
 
-        return redirect()->back()->with('success', $message);
+        return redirect()->back()
+            ->with('success', $message)
+            ->with('booking_ticket', $ticketNumber);
     }
 }

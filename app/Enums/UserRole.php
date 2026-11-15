@@ -24,11 +24,11 @@ enum UserRole: string
     public function color(): string
     {
         return match ($this) {
-            self::Customer => 'bg-blue-100 text-blue-700 border-blue-200',
-            self::Sales => 'bg-green-100 text-green-700 border-green-200',
-            self::Mekanik => 'bg-amber-100 text-amber-700 border-amber-200',
-            self::SuperAdmin => 'bg-slate-900 text-white border-slate-700',
-            self::Owner => 'bg-purple-100 text-purple-800 border-purple-200',
+            self::Customer => 'bg-blue-50 text-blue-700 border-blue-200',
+            self::Sales => 'bg-emerald-50 text-emerald-700 border-emerald-200',
+            self::Mekanik => 'bg-amber-50 text-amber-800 border-amber-200',
+            self::SuperAdmin => 'bg-slate-900 text-white border-slate-900',
+            self::Owner => 'bg-slate-100 text-slate-900 border-slate-300',
         };
     }
 }

@@ -46,6 +46,18 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
+        if ($request->session()->has('pending_test_drive')) {
+            return redirect()->route('home')
+                ->with('open_modal', 'test_drive')
+                ->with('info', 'Data test drive Anda telah dipulihkan. Silakan klik konfirmasi untuk melanjutkan.');
+        }
+
+        if ($request->session()->has('pending_service_booking')) {
+            return redirect()->route('home')
+                ->with('open_modal', 'service_booking')
+                ->with('info', 'Data booking servis Anda telah dipulihkan. Silakan klik konfirmasi untuk melanjutkan.');
+        }
+
         return redirect(route('dashboard', absolute: false));
     }
 }

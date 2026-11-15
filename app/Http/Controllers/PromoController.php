@@ -93,7 +93,7 @@ class PromoController extends Controller
             'starts_at' => $validated['starts_at'],
             'ends_at' => $validated['ends_at'],
             'max_usage' => $validated['max_usage'] ?? null,
-            'is_active' => $request->boolean('is_active', true),
+            'is_active' => $request->boolean('is_active'),
             'banner_image' => $bannerPath,
         ]);
 
@@ -150,7 +150,7 @@ class PromoController extends Controller
             'starts_at' => $validated['starts_at'],
             'ends_at' => $validated['ends_at'],
             'max_usage' => $validated['max_usage'] ?? null,
-            'is_active' => $request->boolean('is_active', true),
+            'is_active' => $request->boolean('is_active'),
             'banner_image' => $bannerPath,
         ]);
 
@@ -165,5 +165,15 @@ class PromoController extends Controller
         $promo->delete();
 
         return redirect()->route('promos.index')->with('success', "Promo {$code} berhasil dihapus.");
+    }
+
+    public function restore(int $id): RedirectResponse
+    {
+        $promo = Promo::onlyTrashed()->findOrFail($id);
+        $this->authorize('restore', $promo);
+
+        $promo->restore();
+
+        return redirect()->route('promos.index')->with('success', "Promo {$promo->code} berhasil dipulihkan.");
     }
 }

@@ -3,9 +3,7 @@
 namespace App\Listeners;
 
 use App\Enums\ServiceStatus;
-use App\Enums\UserRole;
 use App\Events\ServiceStatusChanged;
-use App\Models\User;
 use App\Notifications\ServiceCancelled;
 use App\Notifications\ServiceCompleted;
 use App\Notifications\ServiceConfirmed;
@@ -14,7 +12,6 @@ use App\Notifications\ServiceStarted;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Notification;
 use Throwable;
 
 class SendServiceStatusNotification implements ShouldQueue
@@ -36,11 +33,6 @@ class SendServiceStatusNotification implements ShouldQueue
                 case ServiceStatus::Pending:
                     if ($customer) {
                         $customer->notify(new ServiceCreated($service));
-                    }
-                    // Beritahu juga Super Admin mengenai booking baru
-                    $superAdmins = User::where('role', UserRole::SuperAdmin)->where('is_active', true)->get();
-                    if ($superAdmins->isNotEmpty()) {
-                        Notification::send($superAdmins, new ServiceCreated($service));
                     }
                     break;
 

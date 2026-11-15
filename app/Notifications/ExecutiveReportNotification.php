@@ -31,7 +31,7 @@ class ExecutiveReportNotification extends Notification
             'message' => $this->message,
             'url' => $this->url ?? route('dashboard'),
             'icon' => 'document-report',
-            'color' => 'purple',
+            'color' => 'blue',
             'summary' => $this->summary,
         ];
     }

@@ -1,2 +1,25 @@
 User-agent: *
-Disallow:
+Allow: /
+Allow: /cars/
+Allow: /spare-parts/
+Allow: /privacy-policy
+Allow: /kebijakan-privasi
+Allow: /terms-of-service
+Allow: /syarat-dan-ketentuan
+Allow: /contact
+Allow: /kontak
+
+Disallow: /dashboard/
+Disallow: /dashboard
+Disallow: /login
+Disallow: /register
+Disallow: /password/
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /verify-email
+Disallow: /confirm-password
+Disallow: /profile
+Disallow: /storage/licenses/
+Disallow: /storage/private/
+
+Sitemap: http://localhost/sitemap.xml

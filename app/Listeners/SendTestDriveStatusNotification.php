@@ -5,9 +5,9 @@ namespace App\Listeners;
 use App\Enums\TestDriveStatus;
 use App\Events\TestDriveStatusChanged;
 use App\Notifications\TestDriveApproved;
+use App\Notifications\TestDriveCancelled;
 use App\Notifications\TestDriveCompleted;
 use App\Notifications\TestDriveRejected;
-use App\Notifications\TestDriveRequested;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
@@ -31,12 +31,7 @@ class SendTestDriveStatusNotification implements ShouldQueue
         try {
             switch ($toStatus) {
                 case TestDriveStatus::Requested:
-                    if ($sales) {
-                        $sales->notify(new TestDriveRequested($testDrive));
-                    }
-                    if ($customer) {
-                        $customer->notify(new TestDriveRequested($testDrive));
-                    }
+                    // Sales telah dinotifikasi oleh TestDriveController::store via TestDriveRequestedNotification.
                     break;
 
                 case TestDriveStatus::Approved:
@@ -59,7 +54,7 @@ class SendTestDriveStatusNotification implements ShouldQueue
 
                 case TestDriveStatus::Cancelled:
                     if ($sales) {
-                        $sales->notify(new TestDriveRejected($testDrive));
+                        $sales->notify(new TestDriveCancelled($testDrive));
                     }
                     break;
             }

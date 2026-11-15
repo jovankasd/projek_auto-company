@@ -99,15 +99,16 @@ Platform menerapkan 5 peran pengguna berbasis enum `UserRole`:
 ### B. Alur Status Pengajuan Test Drive (`TestDriveStatus`)
 
 ```
-      [ requested ]
+      [ requested ] ──► [ cancelled ] (Dibatalkan Customer / Admin)
            │
      ┌─────┴───────────────┐
      │                     │
      ▼ (Disetujui Sales)   ▼ (Ditolak Sales)
 [ approved ]          [ rejected ]
      │
-     ▼ (Pelaksanaan Selesai)
-[ completed ]
+     ├─────────────────────┐
+     ▼ (Pelaksanaan Selesai) ▼ (Dibatalkan Customer / Admin)
+[ completed ]         [ cancelled ]
 ```
 
 ---

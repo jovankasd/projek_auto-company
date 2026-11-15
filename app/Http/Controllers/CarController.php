@@ -135,8 +135,8 @@ class CarController extends Controller
             'color_hex' => $validated['color_hex'],
             'price' => $validated['price'],
             'stock_quantity' => $validated['stock_quantity'],
-            'is_available' => $request->boolean('is_available', true),
-            'is_featured' => $request->boolean('is_featured', false),
+            'is_available' => $request->boolean('is_available'),
+            'is_featured' => $request->boolean('is_featured'),
             'sort_order' => $validated['sort_order'] ?? (Car::max('sort_order') + 1),
             'description' => $validated['description'] ?? null,
             'engine_specs' => $validated['engine_specs'] ?? null,
@@ -235,8 +235,8 @@ class CarController extends Controller
             'color_hex' => $validated['color_hex'],
             'price' => $validated['price'],
             'stock_quantity' => $validated['stock_quantity'],
-            'is_available' => $request->boolean('is_available', true),
-            'is_featured' => $request->boolean('is_featured', false),
+            'is_available' => $request->boolean('is_available'),
+            'is_featured' => $request->boolean('is_featured'),
             'sort_order' => $validated['sort_order'] ?? $car->sort_order,
             'description' => $validated['description'] ?? null,
             'engine_specs' => $validated['engine_specs'] ?? $car->engine_specs,
@@ -272,7 +272,7 @@ class CarController extends Controller
 
     public function reorder(Request $request): JsonResponse
     {
-        $this->authorize('update', Car::class);
+        $this->authorize('reorder', Car::class);
 
         $validated = $request->validate([
             'order' => ['required', 'array'],

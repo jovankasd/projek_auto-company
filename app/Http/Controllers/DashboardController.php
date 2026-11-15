@@ -119,8 +119,12 @@ class DashboardController extends Controller
         // Ambil suku cadang mobil (sparepart) visual untuk perbaikan
         $spareParts = SparePart::available()->ordered()->get();
 
-        // Ambil tiket servis aktif untuk pilihan modal pasang sparepart
+        // Ambil tiket servis aktif yang dapat dikerjakan mekanik untuk pilihan modal pasang sparepart
         $activeServicesList = Service::whereIn('status', [ServiceStatus::Confirmed, ServiceStatus::InProgress])
+            ->where(function ($q) use ($user) {
+                $q->where('assigned_mechanic_id', $user->id)
+                    ->orWhereNull('assigned_mechanic_id');
+            })
             ->latest('service_date')
             ->get();
 
@@ -303,7 +307,13 @@ class DashboardController extends Controller
         $totalCarStockQty = (int) Car::available()->sum('stock_quantity');
         $testDriveLeadsThisMonth = TestDrive::whereBetween('created_at', [$startOfMonth, $endOfMonth])->count();
         $testDriveCompletedThisMonth = TestDrive::where('status', TestDriveStatus::Completed)
-            ->whereBetween('updated_at', [$startOfMonth, $endOfMonth])
+            ->where(function ($query) use ($startOfMonth, $endOfMonth) {
+                $query->whereBetween('completed_at', [$startOfMonth, $endOfMonth])
+                    ->orWhere(function ($fallback) use ($startOfMonth, $endOfMonth) {
+                        $fallback->whereNull('completed_at')
+                            ->whereBetween('updated_at', [$startOfMonth, $endOfMonth]);
+                    });
+            })
             ->count();
 
         // 3. Metrik Suku Cadang & Kinerja Servis (Divisi Admin Mekanik)

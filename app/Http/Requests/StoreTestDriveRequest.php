@@ -18,6 +18,9 @@ class StoreTestDriveRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'customer_name' => ['nullable', 'string', 'max:255'],
+            'customer_phone' => ['nullable', 'string', 'max:20'],
+            'customer_email' => ['nullable', 'email', 'max:255'],
             'car_id' => ['required', 'integer', 'exists:cars,id,is_available,1'],
             'preferred_date' => ['required', 'date', 'after:now', 'before:+90 days'],
             'driver_license_id' => ['required', 'string', 'min:5', 'max:50'],

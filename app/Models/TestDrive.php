@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\TestDriveStatus;
+use App\Services\TicketNumberGenerator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -12,6 +13,7 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
+ * @property string|null $ticket_number
  * @property int $customer_id
  * @property int $car_id
  * @property int|null $sales_id
@@ -35,12 +37,21 @@ class TestDrive extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'customer_id', 'car_id', 'sales_id',
+        'ticket_number', 'customer_id', 'car_id', 'sales_id',
         'preferred_date', 'driver_license_id',
         'driver_license_image', 'pickup_location',
         'status', 'sales_notes', 'rejection_reason',
         'approved_at', 'completed_at',
     ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (TestDrive $testDrive) {
+            if (empty($testDrive->ticket_number)) {
+                $testDrive->ticket_number = app(TicketNumberGenerator::class)->generateTestDrive();
+            }
+        });
+    }
 
     protected function casts(): array
     {

@@ -44,3 +44,21 @@ test('ServiceStatus state machine strictly enforces valid transitions', function
     expect(ServiceStatus::Completed->canTransitionTo(ServiceStatus::Pending))->toBeFalse();
     expect(ServiceStatus::Cancelled->canTransitionTo(ServiceStatus::Confirmed))->toBeFalse();
 });
+
+test('TestDriveStatus state machine strictly enforces valid transitions', function () {
+    // Requested transitions
+    expect(TestDriveStatus::Requested->canTransitionTo(TestDriveStatus::Approved))->toBeTrue();
+    expect(TestDriveStatus::Requested->canTransitionTo(TestDriveStatus::Rejected))->toBeTrue();
+    expect(TestDriveStatus::Requested->canTransitionTo(TestDriveStatus::Cancelled))->toBeTrue();
+    expect(TestDriveStatus::Requested->canTransitionTo(TestDriveStatus::Completed))->toBeFalse();
+
+    // Approved transitions
+    expect(TestDriveStatus::Approved->canTransitionTo(TestDriveStatus::Completed))->toBeTrue();
+    expect(TestDriveStatus::Approved->canTransitionTo(TestDriveStatus::Cancelled))->toBeTrue();
+    expect(TestDriveStatus::Approved->canTransitionTo(TestDriveStatus::Requested))->toBeFalse();
+
+    // Terminal states cannot transition
+    expect(TestDriveStatus::Completed->canTransitionTo(TestDriveStatus::Requested))->toBeFalse();
+    expect(TestDriveStatus::Rejected->canTransitionTo(TestDriveStatus::Approved))->toBeFalse();
+    expect(TestDriveStatus::Cancelled->canTransitionTo(TestDriveStatus::Requested))->toBeFalse();
+});

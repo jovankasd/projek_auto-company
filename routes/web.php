@@ -11,12 +11,37 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ServiceBookingController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\SettingController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\SparePartController;
 use App\Http\Controllers\TestDriveController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
+// Halaman Publik
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/track-ticket', [HomeController::class, 'trackTicket'])->middleware('throttle:30,1')->name('ticket.track');
+Route::get('/cars/{car:slug}', [HomeController::class, 'showCar'])->name('cars.public.show');
+Route::get('/contact', [HomeController::class, 'contact'])->name('contact.index');
+Route::get('/kontak', [HomeController::class, 'contact']);
+Route::post('/contact', [HomeController::class, 'storeContact'])->middleware('throttle:5,1')->name('contact.store');
+
+// Halaman Kepercayaan & Legal
+Route::get('/privacy-policy', [HomeController::class, 'privacyPolicy'])->name('privacy-policy');
+Route::get('/kebijakan-privasi', [HomeController::class, 'privacyPolicy']);
+Route::get('/terms-of-service', [HomeController::class, 'termsOfService'])->name('terms-of-service');
+Route::get('/syarat-dan-ketentuan', [HomeController::class, 'termsOfService']);
+
+// SEO Sitemap & Robots
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
+Route::get('/robots.txt', function () {
+    $content = file_exists(public_path('robots.txt'))
+        ? file_get_contents(public_path('robots.txt'))
+        : "User-agent: *\nDisallow: /dashboard\nSitemap: ".url('/sitemap.xml');
+
+    $content = str_replace('http://localhost/sitemap.xml', url('/sitemap.xml'), $content);
+
+    return response($content, 200, ['Content-Type' => 'text/plain']);
+});
 
 Route::post('/test-drive', [TestDriveController::class, 'store'])
     ->middleware('throttle:10,1')
@@ -28,25 +53,31 @@ Route::post('/service-booking', [ServiceBookingController::class, 'store'])
 
 Route::middleware(['auth', 'verified'])->prefix('dashboard')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('my-services', [ServiceController::class, 'myServices'])->name('services.my');
+    Route::get('my-services', [ServiceController::class, 'myServices'])->middleware('role:customer')->name('services.my');
     Route::get('my-services/{service}', [ServiceController::class, 'track'])->name('services.track');
-    Route::get('my-test-drives', [TestDriveController::class, 'myTestDrives'])->name('test-drives.my');
+    Route::get('my-test-drives', [TestDriveController::class, 'myTestDrives'])->middleware('role:customer')->name('test-drives.my');
     Route::get('services/{service}', [ServiceController::class, 'show'])->name('services.show');
     Route::get('services/{service}/status-stream', [ServiceController::class, 'statusStream'])->name('services.status-stream');
+    Route::patch('services/{service}/cancel', [ServiceController::class, 'cancel'])->name('services.cancel');
+    Route::patch('test-drives/{testDrive}/cancel', [TestDriveController::class, 'cancel'])->name('test-drives.cancel');
 
     // Notification Center Routes
     Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
-    Route::patch('notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::match(['GET', 'PATCH'], 'notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
     Route::post('notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
     Route::get('notifications/unread-count', [NotificationController::class, 'unreadCount'])->name('notifications.unread-count');
+
+    Route::get('test-drives/{testDrive}/license', [TestDriveController::class, 'viewLicense'])->name('test-drives.license');
 
     Route::middleware('role:sales,super_admin')->group(function () {
         Route::post('cars/reorder', [CarController::class, 'reorder'])->name('cars.reorder');
         Route::patch('cars/{slug}/restore', [CarController::class, 'restore'])->name('cars.restore');
         Route::resource('cars', CarController::class);
-        Route::resource('promos', PromoController::class);
+        Route::patch('promos/{id}/restore', [PromoController::class, 'restore'])->name('promos.restore');
+        Route::resource('promos', PromoController::class)->except(['show']);
         Route::patch('test-drives/{testDrive}/approve', [TestDriveController::class, 'approve'])->name('test-drives.approve');
         Route::patch('test-drives/{testDrive}/reject', [TestDriveController::class, 'reject'])->name('test-drives.reject');
+        Route::patch('test-drives/{testDrive}/complete', [TestDriveController::class, 'complete'])->name('test-drives.complete');
     });
 
     Route::middleware('role:sales,super_admin,mekanik')->group(function () {
@@ -64,7 +95,7 @@ Route::middleware(['auth', 'verified'])->prefix('dashboard')->group(function () 
     Route::post('reports/submit-to-owner', [ReportController::class, 'submitToOwner'])->middleware('role:super_admin')->name('reports.submit-to-owner');
 
     Route::middleware('role:super_admin')->group(function () {
-        Route::resource('users', UserController::class);
+        Route::resource('users', UserController::class)->except(['show']);
         Route::get('audit-logs', [AuditLogController::class, 'index'])->name('audit.index');
         Route::get('settings', [SettingController::class, 'edit'])->name('settings.edit');
         Route::patch('settings', [SettingController::class, 'update'])->name('settings.update');

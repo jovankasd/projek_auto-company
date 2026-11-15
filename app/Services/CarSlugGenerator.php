@@ -10,13 +10,13 @@ class CarSlugGenerator
     /**
      * Generate slug unik untuk mobil dari brand + model + year.
      */
-    public function generate(string $brand, string $modelName, int $year): string
+    public function generate(string $brand, string $modelName, int $year, ?int $excludeId = null): string
     {
         $base = Str::slug("{$brand} {$modelName} {$year}");
         $slug = $base;
         $counter = 1;
 
-        while (Car::withTrashed()->where('slug', $slug)->exists()) {
+        while (Car::withTrashed()->where('slug', $slug)->when($excludeId, fn ($q) => $q->where('id', '!=', $excludeId))->exists()) {
             $slug = "{$base}-{$counter}";
             $counter++;
         }
@@ -29,15 +29,6 @@ class CarSlugGenerator
      */
     public function generateForUpdate(string $brand, string $modelName, int $year, int $excludeId): string
     {
-        $base = Str::slug("{$brand} {$modelName} {$year}");
-        $slug = $base;
-        $counter = 1;
-
-        while (Car::withTrashed()->where('slug', $slug)->where('id', '!=', $excludeId)->exists()) {
-            $slug = "{$base}-{$counter}";
-            $counter++;
-        }
-
-        return $slug;
+        return $this->generate($brand, $modelName, $year, $excludeId);
     }
 }
