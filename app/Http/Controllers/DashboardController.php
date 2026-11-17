@@ -128,6 +128,77 @@ class DashboardController extends Controller
             ->latest('service_date')
             ->get();
 
+        // Grafik beban kerja & penyelesaian 7 hari terakhir
+        $sevenDaysAgo = Carbon::now()->subDays(6)->startOfDay();
+        $mechanicScope = fn () => Service::where(function ($q) use ($user) {
+            $q->where('assigned_mechanic_id', $user->id)
+                ->orWhereNull('assigned_mechanic_id');
+        });
+
+        $dailyJobs = $mechanicScope()
+            ->select(DB::raw('DATE(service_date) as date'), DB::raw('count(*) as count'))
+            ->where('service_date', '>=', $sevenDaysAgo)
+            ->groupBy(DB::raw('DATE(service_date)'))
+            ->pluck('count', 'date');
+
+        $dailyCompleted = $mechanicScope()
+            ->select(DB::raw('DATE(COALESCE(completed_at, service_date)) as date'), DB::raw('count(*) as count'))
+            ->where('status', ServiceStatus::Completed)
+            ->where(DB::raw('COALESCE(completed_at, service_date)'), '>=', $sevenDaysAgo)
+            ->groupBy(DB::raw('DATE(COALESCE(completed_at, service_date))'))
+            ->pluck('count', 'date');
+
+        $weeklyWorkChart = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $day = Carbon::now()->subDays($i);
+            $dateKey = $day->toDateString();
+            $weeklyWorkChart[] = [
+                'date_label' => $day->format('d M'),
+                'day_name' => $day->translatedFormat('D'),
+                'total_jobs' => (int) $dailyJobs->get($dateKey, 0),
+                'completed_jobs' => (int) $dailyCompleted->get($dateKey, 0),
+            ];
+        }
+
+        $statusBreakdown = [
+            ['label' => 'Sedang Dikerjakan', 'count' => $stats['active_jobs'], 'hex' => '#2563eb'],
+            ['label' => 'Siap Dikerjakan', 'count' => $stats['pending_confirmed'], 'hex' => '#f59e0b'],
+            [
+                'label' => 'Menunggu Penugasan',
+                'count' => Service::whereNull('assigned_mechanic_id')
+                    ->whereIn('status', [ServiceStatus::Pending, ServiceStatus::Confirmed])
+                    ->count(),
+                'hex' => '#64748b',
+            ],
+            ['label' => 'Selesai Bulan Ini', 'count' => $stats['completed_month'], 'hex' => '#059669'],
+        ];
+
+        $monthOrdersDenominator = $mechanicScope()
+            ->whereBetween('service_date', [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()])
+            ->where('status', '!=', ServiceStatus::Cancelled)
+            ->count();
+
+        $completionRateMonth = $monthOrdersDenominator > 0
+            ? min(100, (int) round(($stats['completed_month'] / $monthOrdersDenominator) * 100))
+            : ($stats['completed_month'] > 0 ? 100 : 0);
+
+        $totalSpareParts = (int) $stats['total_spare_parts'];
+        $lowStockPartsCount = (int) $stats['low_stock_parts'];
+        $healthyStockParts = max(0, $totalSpareParts - $lowStockPartsCount);
+        $stockHealthRate = $totalSpareParts > 0
+            ? (int) round(($healthyStockParts / $totalSpareParts) * 100)
+            : 100;
+
+        $workshopMetrics = [
+            'completion_rate' => $completionRateMonth,
+            'completed_month' => (int) $stats['completed_month'],
+            'month_target' => $monthOrdersDenominator,
+            'stock_health_rate' => $stockHealthRate,
+            'healthy_parts' => $healthyStockParts,
+            'low_stock_parts' => $lowStockPartsCount,
+            'total_parts' => $totalSpareParts,
+        ];
+
         return view('dashboard.index', [
             'role' => 'mekanik',
             'workOrders' => $workOrders,
@@ -135,6 +206,9 @@ class DashboardController extends Controller
             'stats' => $stats,
             'spareParts' => $spareParts,
             'activeServicesList' => $activeServicesList,
+            'weeklyWorkChart' => $weeklyWorkChart,
+            'statusBreakdown' => $statusBreakdown,
+            'workshopMetrics' => $workshopMetrics,
         ]);
     }
 
@@ -142,13 +216,16 @@ class DashboardController extends Controller
     {
         $statusFilter = $request->input('status', 'all');
 
-        $query = TestDrive::with(['customer', 'car', 'sales']);
-
-        // Sales melihat lead miliknya atau yang belum di-assign (kecuali Super Admin)
-        $query->where(function ($q) use ($user) {
+        $leadScope = fn () => TestDrive::where(function ($q) use ($user) {
             $q->where('sales_id', $user->id)
                 ->orWhereNull('sales_id');
         });
+
+        $query = TestDrive::with(['customer', 'car', 'sales'])
+            ->where(function ($q) use ($user) {
+                $q->where('sales_id', $user->id)
+                    ->orWhereNull('sales_id');
+            });
 
         if ($statusFilter !== 'all') {
             $query->where('status', $statusFilter);
@@ -157,13 +234,76 @@ class DashboardController extends Controller
         $testDrives = $query->latest('preferred_date')->paginate(15)->withQueryString();
 
         $stats = [
-            'requested_leads' => TestDrive::where('sales_id', $user->id)->where('status', TestDriveStatus::Requested)->count(),
-            'approved_this_month' => TestDrive::where('sales_id', $user->id)
+            'requested_leads' => $leadScope()->where('status', TestDriveStatus::Requested)->count(),
+            'approved_this_month' => $leadScope()
                 ->where('status', TestDriveStatus::Approved)
                 ->whereBetween('approved_at', [Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth()])
                 ->count(),
-            'completed_leads' => TestDrive::where('sales_id', $user->id)->where('status', TestDriveStatus::Completed)->count(),
+            'completed_leads' => $leadScope()->where('status', TestDriveStatus::Completed)->count(),
             'available_cars' => Car::available()->count(),
+        ];
+
+        // Grafik tren pengajuan & konversi Test Drive 6 bulan terakhir
+        $now = Carbon::now();
+        $monthlyLeadChart = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $monthDate = $now->copy()->subMonths($i);
+            $mStart = $monthDate->copy()->startOfMonth();
+            $mEnd = $monthDate->copy()->endOfMonth();
+
+            $totalLeads = $leadScope()->whereBetween('preferred_date', [$mStart, $mEnd])->count();
+            $completedLeads = $leadScope()
+                ->where('status', TestDriveStatus::Completed)
+                ->whereBetween('preferred_date', [$mStart, $mEnd])
+                ->count();
+
+            $monthlyLeadChart[] = [
+                'month_label' => $monthDate->translatedFormat('M Y'),
+                'total_leads' => $totalLeads,
+                'completed_leads' => $completedLeads,
+            ];
+        }
+
+        $carInterestChart = Car::withCount(['testDrives' => function ($q) use ($user) {
+            $q->where(function ($sub) use ($user) {
+                $sub->where('sales_id', $user->id)
+                    ->orWhereNull('sales_id');
+            });
+        }])->orderByDesc('test_drives_count')->take(5)->get();
+
+        $leadStatusBreakdown = [
+            ['label' => 'Menunggu', 'count' => $stats['requested_leads'], 'badge' => 'bg-amber-50 text-amber-800 border-amber-200'],
+            ['label' => 'Disetujui', 'count' => $leadScope()->where('status', TestDriveStatus::Approved)->count(), 'badge' => 'bg-blue-50 text-blue-800 border-blue-200'],
+            ['label' => 'Selesai', 'count' => $stats['completed_leads'], 'badge' => 'bg-emerald-50 text-emerald-800 border-emerald-200'],
+            ['label' => 'Ditolak', 'count' => $leadScope()->where('status', TestDriveStatus::Rejected)->count(), 'badge' => 'bg-red-50 text-red-800 border-red-200'],
+        ];
+
+        $totalLeadsAll = $leadScope()->count();
+        $approvedOrCompletedLeads = $leadScope()
+            ->whereIn('status', [TestDriveStatus::Approved, TestDriveStatus::Completed])
+            ->count();
+        $completedLeadsAll = (int) $stats['completed_leads'];
+
+        $leadFunnel = [
+            'stages' => [
+                [
+                    'name' => 'Pengajuan Masuk',
+                    'value' => $totalLeadsAll,
+                    'rate' => $totalLeadsAll > 0 ? 100.0 : 0.0,
+                ],
+                [
+                    'name' => 'Lolos & Disetujui',
+                    'value' => $approvedOrCompletedLeads,
+                    'rate' => $totalLeadsAll > 0 ? round(($approvedOrCompletedLeads / $totalLeadsAll) * 100, 1) : 0.0,
+                ],
+                [
+                    'name' => 'Selesai Test Drive',
+                    'value' => $completedLeadsAll,
+                    'rate' => $totalLeadsAll > 0 ? round(($completedLeadsAll / $totalLeadsAll) * 100, 1) : 0.0,
+                ],
+            ],
+            'approval_rate' => $totalLeadsAll > 0 ? round(($approvedOrCompletedLeads / $totalLeadsAll) * 100, 1) : 0.0,
+            'completion_rate' => $totalLeadsAll > 0 ? round(($completedLeadsAll / $totalLeadsAll) * 100, 1) : 0.0,
         ];
 
         return view('dashboard.index', [
@@ -171,6 +311,10 @@ class DashboardController extends Controller
             'testDrives' => $testDrives,
             'statusFilter' => $statusFilter,
             'stats' => $stats,
+            'monthlyLeadChart' => $monthlyLeadChart,
+            'carInterestChart' => $carInterestChart,
+            'leadStatusBreakdown' => $leadStatusBreakdown,
+            'leadFunnel' => $leadFunnel,
         ]);
     }
 
@@ -201,6 +345,64 @@ class DashboardController extends Controller
             $chartDates[] = Carbon::parse($d)->format('d M');
             $chartCounts[] = $dailyBookings->get($d, 0);
         }
+
+        $avgDailyBookings = count($chartCounts) > 0
+            ? round(array_sum($chartCounts) / count($chartCounts), 1)
+            : 0.0;
+
+        // Heatmap kepadatan slot servis 7 hari terakhir (jam 08-17)
+        $heatmapStart = Carbon::now()->subDays(6)->startOfDay();
+        $heatmapEnd = Carbon::now()->endOfDay();
+        $recentHeatmapServices = Service::whereBetween('service_date', [$heatmapStart, $heatmapEnd])
+            ->where('status', '!=', ServiceStatus::Cancelled)
+            ->get(['service_date', 'slot_hour']);
+
+        $slotLabels = ['08-09', '10-11', '12-13', '14-15', '16-17'];
+        $dayKeys = [];
+        $dayLabels = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $day = Carbon::now()->subDays($i);
+            $dayKeys[] = $day->toDateString();
+            $dayLabels[] = $day->translatedFormat('D d');
+        }
+
+        $slotCounts = [];
+        foreach ($recentHeatmapServices as $srv) {
+            $dateStr = $srv->service_date?->toDateString();
+            $dayIdx = array_search($dateStr, $dayKeys, true);
+            if ($dayIdx === false) {
+                continue;
+            }
+            $hour = (int) $srv->slot_hour;
+            $slotIdx = match (true) {
+                $hour <= 9 => 0,
+                $hour <= 11 => 1,
+                $hour <= 13 => 2,
+                $hour <= 15 => 3,
+                default => 4,
+            };
+            $slotCounts[$dayIdx][$slotIdx] = ($slotCounts[$dayIdx][$slotIdx] ?? 0) + 1;
+        }
+
+        $heatmapPoints = [];
+        $heatmapMax = 1;
+        foreach ($dayKeys as $dIdx => $_) {
+            foreach ($slotLabels as $sIdx => $_slot) {
+                $val = $slotCounts[$dIdx][$sIdx] ?? 0;
+                if ($val > $heatmapMax) {
+                    $heatmapMax = $val;
+                }
+                $heatmapPoints[] = [$dIdx, $sIdx, $val];
+            }
+        }
+
+        $slotHeatmap = [
+            'days' => $dayLabels,
+            'slots' => $slotLabels,
+            'points' => $heatmapPoints,
+            'maxCount' => $heatmapMax,
+            'total7d' => $recentHeatmapServices->count(),
+        ];
 
         $recentServices = Service::with(['customer', 'mechanic'])
             ->latest('created_at')
@@ -250,6 +452,8 @@ class DashboardController extends Controller
             'kpis' => $kpis,
             'chartDates' => $chartDates,
             'chartCounts' => $chartCounts,
+            'avgDailyBookings' => $avgDailyBookings,
+            'slotHeatmap' => $slotHeatmap,
             'recentServices' => $recentServices,
             'recentTestDrives' => $recentTestDrives,
             'mechanics' => $mechanics,
@@ -338,25 +542,54 @@ class DashboardController extends Controller
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->count();
 
-        // 5. Tren Pemasukan 6 Bulan Terakhir
+        // 5. Tren Pemasukan 6 Bulan Terakhir (Breakdown Stacked + Jumlah Unit)
+        $sixMonthsStart = $now->copy()->subMonths(5)->startOfMonth();
+        $sixMonthsEnd = $now->copy()->endOfMonth();
+
+        $sixMonthServices = Service::where('status', ServiceStatus::Completed)
+            ->whereBetween('completed_at', [$sixMonthsStart, $sixMonthsEnd])
+            ->with('items')
+            ->get();
+
+        $groupedServices = $sixMonthServices->groupBy(fn (Service $service) => $service->completed_at?->format('Y-m'));
+
         $monthlyRevenueChart = [];
         for ($i = 5; $i >= 0; $i--) {
             $monthDate = $now->copy()->subMonths($i);
-            $mStart = $monthDate->copy()->startOfMonth();
-            $mEnd = $monthDate->copy()->endOfMonth();
+            $monthKey = $monthDate->format('Y-m');
+            $servicesInMonth = $groupedServices->get($monthKey, collect());
 
-            $rev = (float) Service::where('status', ServiceStatus::Completed)
-                ->whereBetween('completed_at', [$mStart, $mEnd])
-                ->sum('total_cost');
+            $parts = 0.0;
+            $labor = 0.0;
+            $consumable = 0.0;
 
-            $servicesCount = Service::where('status', ServiceStatus::Completed)
-                ->whereBetween('completed_at', [$mStart, $mEnd])
-                ->count();
+            foreach ($servicesInMonth as $service) {
+                if ($service->items->isEmpty()) {
+                    $labor += (float) $service->total_cost;
+
+                    continue;
+                }
+
+                foreach ($service->items as $item) {
+                    $sub = (float) $item->subtotal;
+                    match ($item->item_type) {
+                        ServiceItemType::Part => $parts += $sub,
+                        ServiceItemType::Labor => $labor += $sub,
+                        ServiceItemType::Consumable => $consumable += $sub,
+                        default => $labor += $sub,
+                    };
+                }
+            }
+
+            $rev = (float) $servicesInMonth->sum('total_cost');
 
             $monthlyRevenueChart[] = [
                 'month_label' => $monthDate->translatedFormat('M Y'),
                 'revenue' => $rev,
-                'count' => $servicesCount,
+                'parts' => round($parts, 2),
+                'labor' => round($labor, 2),
+                'consumable' => round($consumable, 2),
+                'count' => $servicesInMonth->count(),
             ];
         }
 

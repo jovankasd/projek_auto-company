@@ -327,41 +327,80 @@
         </div>
     </div>
 
-    <!-- 30-Day Service Trend Visual Chart -->
-    <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 sm:p-8">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-slate-100 gap-2">
-            <div>
-                <h2 class="text-lg font-black text-slate-900">Tren Pemesanan Servis 30 Hari Terakhir</h2>
-                <p class="text-xs text-slate-600 mt-0.5">Grafik volume kendaraan yang masuk ke bengkel resmi harian.</p>
+    <!-- 30-Day Service Trend & Workshop Slot Heatmap -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 sm:p-8 flex flex-col justify-between">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-slate-100 gap-2">
+                <div>
+                    <h2 class="text-lg font-black text-slate-900">Tren Pemesanan Servis 30 Hari Terakhir</h2>
+                    <p class="text-xs text-slate-600 mt-0.5">Grafik kurva harian volume kendaraan yang masuk ke bengkel resmi.</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2 self-start sm:self-center">
+                    <span class="text-xs font-mono tabular-nums font-bold text-amber-800 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl">
+                        Avg: {{ number_format($avgDailyBookings ?? 0, 1, ',', '.') }}/hari
+                    </span>
+                    <span class="text-xs font-mono tabular-nums font-bold text-slate-700 bg-slate-100 px-3 py-1.5 rounded-xl">
+                        Total: {{ array_sum($chartCounts) }} Kendaraan
+                    </span>
+                </div>
             </div>
-            <span class="text-xs font-mono tabular-nums font-bold text-slate-700 bg-slate-100 px-3 py-1.5 rounded-xl self-start sm:self-center">
-                Total: {{ array_sum($chartCounts) }} Kendaraan
-            </span>
+
+            @php
+                $saChartPayload = [
+                    'type' => 'superadmin-area',
+                    'labels' => array_values($chartDates),
+                    'counts' => array_map('intval', array_values($chartCounts)),
+                    'avg' => (float) ($avgDailyBookings ?? 0),
+                ];
+            @endphp
+
+            <div class="mt-5">
+                <div role="img"
+                     aria-label="Grafik Tren Pemesanan Servis 30 Hari Terakhir"
+                     class="relative h-72 w-full"
+                     data-echarts-config='@json($saChartPayload)'></div>
+            </div>
         </div>
 
-        @php
-            $maxCount = max($chartCounts) > 0 ? max($chartCounts) : 1;
-        @endphp
+        <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 sm:p-8 flex flex-col justify-between">
+            <div class="flex items-start justify-between pb-4 border-b border-slate-100 gap-2">
+                <div>
+                    <h2 class="text-lg font-black text-slate-900">Kepadatan Slot Bengkel</h2>
+                    <p class="text-xs text-slate-600 mt-0.5">Distribusi jam booking 7 hari terakhir.</p>
+                </div>
+                <span class="text-xs font-mono tabular-nums font-bold text-blue-800 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-xl shrink-0">
+                    {{ $slotHeatmap['total7d'] ?? 0 }} Slot
+                </span>
+            </div>
 
-        <div class="mt-6">
-            <div class="h-48 flex items-end gap-1 sm:gap-1.5 pt-6">
-                @foreach($chartCounts as $i => $val)
-                    @php
-                        $heightPercent = max(8, round(($val / $maxCount) * 100));
-                        $dateLabel = $chartDates[$i];
-                    @endphp
-                    <div class="flex-1 flex flex-col items-center gap-1 group relative" title="{{ $dateLabel }}: {{ $val }} unit">
-                        <div class="opacity-0 group-hover:opacity-100 pointer-events-none hidden sm:block absolute -top-8 bg-slate-900 text-white text-[10px] font-mono tabular-nums px-2 py-0.5 rounded-lg shadow transition duration-200 z-10 whitespace-nowrap">
-                            {{ $dateLabel }}: {{ $val }} unit
-                        </div>
-                        <div class="w-full group-hover:bg-blue-600 rounded-t-lg transition-all duration-300 {{ $val > 0 ? 'bg-slate-800' : 'bg-slate-200' }}"
-                             style="height: {{ $heightPercent }}%">
-                        </div>
-                        <span class="text-[10px] text-slate-600 font-mono hidden md:block truncate mt-1">
-                            {{ $i % 5 === 0 ? $dateLabel : '' }}
-                        </span>
-                    </div>
-                @endforeach
+            @php
+                $saHeatmapPayload = [
+                    'type' => 'superadmin-heatmap',
+                    'days' => $slotHeatmap['days'] ?? [],
+                    'slots' => $slotHeatmap['slots'] ?? [],
+                    'points' => $slotHeatmap['points'] ?? [],
+                    'maxCount' => (int) ($slotHeatmap['maxCount'] ?? 1),
+                ];
+            @endphp
+
+            <div class="my-4">
+                <div role="img"
+                     aria-label="Heatmap Kepadatan Slot Bengkel 7 Hari Terakhir"
+                     class="relative h-60 w-full"
+                     data-echarts-config='@json($saHeatmapPayload)'></div>
+            </div>
+
+            <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-600">
+                <span>Intensitas Antrean:</span>
+                <div class="flex items-center gap-1.5 font-medium">
+                    <span>Sepi</span>
+                    <span class="w-3 h-3 rounded bg-slate-100 border border-slate-200"></span>
+                    <span class="w-3 h-3 rounded bg-blue-100"></span>
+                    <span class="w-3 h-3 rounded bg-blue-300"></span>
+                    <span class="w-3 h-3 rounded bg-blue-600"></span>
+                    <span class="w-3 h-3 rounded bg-blue-900"></span>
+                    <span>Padat</span>
+                </div>
             </div>
         </div>
     </div>

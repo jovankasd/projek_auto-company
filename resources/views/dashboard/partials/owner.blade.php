@@ -76,7 +76,7 @@
             <button type="button" 
                     role="tab"
                     :aria-selected="(activeTab === 'summary').toString()"
-                    @click="activeTab = 'summary'" 
+                    @click="activeTab = 'summary'; $nextTick(() => window.dispatchEvent(new Event('resize')))" 
                     :class="activeTab === 'summary' ? 'bg-white text-slate-900 font-bold shadow-sm' : 'text-slate-600 font-semibold hover:text-slate-900'"
                     class="min-h-[44px] px-4 py-2 rounded-xl transition inline-flex items-center gap-1.5">
                 <svg class="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -192,41 +192,35 @@
                 </div>
 
                 @php
-                    $maxRev = 0;
-                    foreach ($monthlyRevenueChart as $m) {
-                        if ($m['revenue'] > $maxRev) $maxRev = $m['revenue'];
-                    }
-                    if ($maxRev <= 0) $maxRev = 1;
+                    $ownerRevChartPayload = [
+                        'type' => 'owner-combo',
+                        'labels' => collect($monthlyRevenueChart)->pluck('month_label')->values()->all(),
+                        'revenues' => collect($monthlyRevenueChart)->pluck('revenue')->map(fn ($v) => (float) $v)->values()->all(),
+                        'parts' => collect($monthlyRevenueChart)->pluck('parts')->map(fn ($v) => (float) $v)->values()->all(),
+                        'labor' => collect($monthlyRevenueChart)->pluck('labor')->map(fn ($v) => (float) $v)->values()->all(),
+                        'consumable' => collect($monthlyRevenueChart)->pluck('consumable')->map(fn ($v) => (float) $v)->values()->all(),
+                        'counts' => collect($monthlyRevenueChart)->pluck('count')->map(fn ($v) => (int) $v)->values()->all(),
+                    ];
                 @endphp
 
                 <div class="mt-6">
-                    <div class="h-56 flex items-end gap-2 sm:gap-5 pt-6">
+                    <div role="img"
+                         aria-label="Grafik Tren Pemasukan Bersih 6 Bulan Terakhir"
+                         class="relative h-72 w-full"
+                         data-echarts-config='@json($ownerRevChartPayload)'></div>
+
+                    <!-- Ringkasan Angka Per Bulan -->
+                    <div class="mt-4 pt-4 border-t border-slate-100 grid grid-cols-3 sm:grid-cols-6 gap-2 text-center">
                         @foreach($monthlyRevenueChart as $mItem)
                             @php
-                                $hPct = max(10, round(($mItem['revenue'] / $maxRev) * 100));
                                 $shortJt = $mItem['revenue'] >= 1000000
                                     ? number_format($mItem['revenue'] / 1000000, 1, ',', '.') . ' Jt'
                                     : ($mItem['revenue'] > 0 ? number_format($mItem['revenue'] / 1000, 0, ',', '.') . ' Rb' : '0');
                             @endphp
-                            <div class="flex-1 flex flex-col items-center gap-1.5 group relative">
-                                <span class="text-[11px] font-mono tabular-nums font-bold text-slate-700 text-center">
-                                    {{ $shortJt }}
-                                </span>
-                                <!-- Tooltip desktop -->
-                                <div class="opacity-0 group-hover:opacity-100 pointer-events-none hidden sm:block absolute -top-12 bg-slate-900 text-white text-[11px] font-mono tabular-nums px-2.5 py-1.5 rounded-xl shadow-lg transition duration-200 z-10 whitespace-nowrap text-center">
-                                    <div class="font-bold">Rp {{ number_format($mItem['revenue'], 0, ',', '.') }}</div>
-                                    <div class="text-slate-300 text-[10px]">{{ $mItem['count'] }} Unit Servis</div>
-                                </div>
-
-                                <div class="w-full bg-slate-100 rounded-2xl transition-all duration-300 relative overflow-hidden"
-                                     style="height: {{ $hPct }}%">
-                                    <div class="absolute inset-0 bg-gradient-to-t from-blue-700 to-blue-500 group-hover:from-blue-800 group-hover:to-blue-600 rounded-2xl transition"></div>
-                                </div>
-
-                                <span class="text-[11px] font-bold text-slate-700 mt-1 truncate max-w-full">
-                                    {{ $mItem['month_label'] }}
-                                </span>
-                                <span class="text-[10px] text-slate-600 sm:hidden tabular-nums">{{ $mItem['count'] }} srv</span>
+                            <div class="px-2 py-2 rounded-xl bg-slate-50 border border-slate-200/70">
+                                <span class="block text-[10px] font-bold text-slate-600 truncate">{{ $mItem['month_label'] }}</span>
+                                <span class="block text-xs font-mono tabular-nums font-black text-slate-900 mt-0.5">{{ $shortJt }}</span>
+                                <span class="block text-[10px] font-mono tabular-nums text-emerald-700 font-semibold">{{ $mItem['count'] }} srv</span>
                             </div>
                         @endforeach
                     </div>
@@ -237,47 +231,72 @@
             <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 sm:p-8 flex flex-col justify-between">
                 <div>
                     <h2 class="text-lg font-black text-slate-900 pb-1">Komposisi Pemasukan</h2>
-                    <p class="text-xs text-slate-600 mb-6">Sumber pendapatan bengkel bulan ini.</p>
+                    <p class="text-xs text-slate-600 mb-4">Sumber pendapatan bengkel bulan ini.</p>
 
                     @php
                         $totalMonthPartsLabor = ($revenueParts + $revenueLabor + $revenueConsumable);
                         $partsPct = $totalMonthPartsLabor > 0 ? round(($revenueParts / $totalMonthPartsLabor) * 100) : 0;
                         $laborPct = $totalMonthPartsLabor > 0 ? round(($revenueLabor / $totalMonthPartsLabor) * 100) : 0;
                         $consumablePct = $totalMonthPartsLabor > 0 ? round(($revenueConsumable / $totalMonthPartsLabor) * 100) : 0;
+                        $compactMonthTotal = $totalMonthPartsLabor >= 1000000
+                            ? 'Rp ' . number_format($totalMonthPartsLabor / 1000000, 1, ',', '.') . ' Jt'
+                            : ($totalMonthPartsLabor > 0 ? 'Rp ' . number_format($totalMonthPartsLabor / 1000, 0, ',', '.') . ' Rb' : 'Rp 0');
+                        $ownerCompPayload = [
+                            'type' => 'owner-ring',
+                            'items' => [
+                                ['label' => 'Suku Cadang', 'value' => (float) $revenueParts, 'color' => '#0f172a'],
+                                ['label' => 'Jasa Mekanik', 'value' => (float) $revenueLabor, 'color' => '#2563eb'],
+                                ['label' => 'Bahan & Pelumas', 'value' => (float) $revenueConsumable, 'color' => '#f59e0b'],
+                            ],
+                        ];
                     @endphp
 
-                    <div class="space-y-4">
+                    <div class="relative h-48 w-full mb-5">
+                        <div role="img"
+                             aria-label="Grafik Komposisi Pemasukan Bulan Ini"
+                             class="w-full h-full"
+                             data-echarts-config='@json($ownerCompPayload)'></div>
+                        <div class="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center px-6">
+                            <span class="text-[10px] uppercase tracking-wider font-bold text-slate-500">Bulan Ini</span>
+                            <span class="font-mono tabular-nums text-base font-black text-slate-900 mt-0.5">{{ $compactMonthTotal }}</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2.5">
                         <!-- Sparepart -->
-                        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
-                            <div class="flex items-center justify-between text-xs font-bold text-slate-800 mb-1">
-                                <span>Suku Cadang (Sparepart)</span>
-                                <span class="font-mono tabular-nums text-slate-900">{{ $partsPct }}%</span>
+                        <div class="px-3.5 py-2.5 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="w-2.5 h-2.5 rounded-full bg-slate-900 shrink-0"></span>
+                                <span class="text-xs font-bold text-slate-800 truncate">Suku Cadang</span>
                             </div>
-                            <p class="font-mono tabular-nums text-lg font-black text-slate-900">
-                                Rp {{ number_format($revenueParts, 0, ',', '.') }}
-                            </p>
+                            <div class="text-right shrink-0">
+                                <span class="font-mono tabular-nums text-xs font-black text-slate-900">Rp {{ number_format($revenueParts, 0, ',', '.') }}</span>
+                                <span class="font-mono tabular-nums text-[11px] font-bold text-slate-600 ml-1">({{ $partsPct }}%)</span>
+                            </div>
                         </div>
 
                         <!-- Jasa Mekanik -->
-                        <div class="p-4 rounded-2xl bg-blue-50/70 border border-blue-100">
-                            <div class="flex items-center justify-between text-xs font-bold text-blue-950 mb-1">
-                                <span>Jasa Mekanik (Labor)</span>
-                                <span class="font-mono tabular-nums text-blue-950">{{ $laborPct }}%</span>
+                        <div class="px-3.5 py-2.5 rounded-2xl bg-blue-50/70 border border-blue-100 flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="w-2.5 h-2.5 rounded-full bg-blue-600 shrink-0"></span>
+                                <span class="text-xs font-bold text-blue-950 truncate">Jasa Mekanik</span>
                             </div>
-                            <p class="font-mono tabular-nums text-lg font-black text-blue-950">
-                                Rp {{ number_format($revenueLabor, 0, ',', '.') }}
-                            </p>
+                            <div class="text-right shrink-0">
+                                <span class="font-mono tabular-nums text-xs font-black text-blue-950">Rp {{ number_format($revenueLabor, 0, ',', '.') }}</span>
+                                <span class="font-mono tabular-nums text-[11px] font-bold text-blue-800 ml-1">({{ $laborPct }}%)</span>
+                            </div>
                         </div>
 
                         <!-- Bahan & Oli -->
-                        <div class="p-4 rounded-2xl bg-amber-50/70 border border-amber-100">
-                            <div class="flex items-center justify-between text-xs font-bold text-amber-950 mb-1">
-                                <span>Bahan & Pelumas (Consumable)</span>
-                                <span class="font-mono tabular-nums text-amber-950">{{ $consumablePct }}%</span>
+                        <div class="px-3.5 py-2.5 rounded-2xl bg-amber-50/70 border border-amber-100 flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0"></span>
+                                <span class="text-xs font-bold text-amber-950 truncate">Bahan &amp; Pelumas</span>
                             </div>
-                            <p class="font-mono tabular-nums text-lg font-black text-amber-950">
-                                Rp {{ number_format($revenueConsumable, 0, ',', '.') }}
-                            </p>
+                            <div class="text-right shrink-0">
+                                <span class="font-mono tabular-nums text-xs font-black text-amber-950">Rp {{ number_format($revenueConsumable, 0, ',', '.') }}</span>
+                                <span class="font-mono tabular-nums text-[11px] font-bold text-amber-800 ml-1">({{ $consumablePct }}%)</span>
+                            </div>
                         </div>
                     </div>
                 </div>

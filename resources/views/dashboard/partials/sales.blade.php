@@ -56,6 +56,102 @@
         </div>
     </div>
 
+    <!-- Grafik Analitik Sales & Minat Unit -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Funnel Konversi & Tren 6 Bulan Test Drive -->
+        <div class="lg:col-span-2 bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 sm:p-8 flex flex-col justify-between">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-slate-100 gap-3">
+                <div>
+                    <h2 class="text-lg font-black text-slate-900">Tren Pengajuan &amp; Konversi Test Drive (6 Bulan Terakhir)</h2>
+                    <p class="text-xs text-slate-600 mt-0.5">Tahapan konversi prospek dari pengajuan hingga selesai uji berkendara.</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2 self-start sm:self-center">
+                    <span class="text-xs font-mono tabular-nums font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl">
+                        Konversi: {{ number_format($leadFunnel['completion_rate'] ?? 0, 1, ',', '.') }}%
+                    </span>
+                    <div class="inline-flex p-1 rounded-xl bg-slate-100 border border-slate-200/80 text-xs" data-echarts-toggle-group>
+                        <button type="button"
+                                data-echarts-toggle="funnel"
+                                data-echarts-target="#sales-lead-chart"
+                                aria-pressed="true"
+                                class="px-3 py-1.5 rounded-lg bg-white text-slate-900 font-bold shadow-sm transition">
+                            Funnel Konversi
+                        </button>
+                        <button type="button"
+                                data-echarts-toggle="trend"
+                                data-echarts-target="#sales-lead-chart"
+                                aria-pressed="false"
+                                class="px-3 py-1.5 rounded-lg text-slate-600 font-semibold hover:text-slate-900 transition">
+                            Tren 6 Bulan
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            @php
+                $salesFunnelPayload = [
+                    'type' => 'sales-funnel',
+                    'stages' => $leadFunnel['stages'] ?? [],
+                    'monthly' => collect($monthlyLeadChart ?? [])->values()->all(),
+                ];
+            @endphp
+
+            <div class="mt-5">
+                <div id="sales-lead-chart"
+                     role="img"
+                     aria-label="Grafik Funnel Konversi dan Tren Test Drive 6 Bulan Terakhir"
+                     class="relative h-64 w-full"
+                     data-echarts-mode="funnel"
+                     data-echarts-config='@json($salesFunnelPayload)'></div>
+
+                <div class="mt-4 pt-4 border-t border-slate-100 grid grid-cols-3 gap-2.5">
+                    @foreach($leadFunnel['stages'] ?? [] as $idx => $stage)
+                        <div class="px-3 py-2.5 rounded-2xl bg-slate-50 border border-slate-200/70">
+                            <span class="block text-[11px] font-bold text-slate-600 truncate">{{ $idx + 1 }}. {{ $stage['name'] }}</span>
+                            <div class="flex items-baseline justify-between gap-2 mt-1">
+                                <span class="font-mono tabular-nums text-base font-black text-slate-900">{{ $stage['value'] }}</span>
+                                <span class="font-mono tabular-nums text-[11px] font-bold text-blue-700">{{ number_format($stage['rate'], 0) }}%</span>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+
+        <!-- Minat Unit Mobil & Status Lead -->
+        <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 sm:p-8 flex flex-col justify-between gap-5">
+            <div>
+                <h2 class="text-lg font-black text-slate-900">Minat Unit Test Drive</h2>
+                <p class="text-xs text-slate-600 mt-0.5 mb-3">Popularitas model kendaraan di mata prospek.</p>
+
+                @php
+                    $salesInterestPayload = [
+                        'type' => 'sales-lollipop',
+                        'items' => collect($carInterestChart ?? [])->map(fn ($c) => [
+                            'label' => trim($c->brand.' '.$c->model_name),
+                            'value' => (int) $c->test_drives_count,
+                            'category' => $c->category?->label() ?? '',
+                        ])->values()->all(),
+                    ];
+                @endphp
+
+                <div role="img"
+                     aria-label="Grafik Minat Unit Test Drive per Model"
+                     class="relative h-56 w-full"
+                     data-echarts-config='@json($salesInterestPayload)'></div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-100 grid grid-cols-2 gap-2">
+                @foreach($leadStatusBreakdown ?? [] as $stItem)
+                    <div class="px-3 py-2 rounded-xl border text-xs flex items-center justify-between {{ $stItem['badge'] }}">
+                        <span class="font-semibold truncate">{{ $stItem['label'] }}</span>
+                        <span class="font-mono tabular-nums font-black">{{ $stItem['count'] }}</span>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+
     <!-- Table of Leads -->
     <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
         <div class="p-6 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2">

@@ -15,6 +15,12 @@ use App\Models\Setting;
 use App\Models\SparePart;
 use App\Models\TestDrive;
 use App\Models\User;
+use Database\Seeders\CarSeeder;
+use Database\Seeders\PromoSeeder;
+use Database\Seeders\ServiceSeeder;
+use Database\Seeders\SettingSeeder;
+use Database\Seeders\SparePartSeeder;
+use Database\Seeders\TestDriveSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -446,5 +452,59 @@ class DashboardTest extends TestCase
         $dashboardResponse->assertSee('SRV-20261109-0099');
         $dashboardResponse->assertSee('B 9999 MEK');
         $dashboardResponse->assertSee('Porsche 911 Carrera');
+    }
+
+    public function test_all_staff_dashboards_render_charts_and_auto_company_branding(): void
+    {
+        $owner = User::factory()->create([
+            'role' => UserRole::Owner,
+            'email_verified_at' => now(),
+            'is_active' => true,
+        ]);
+
+        $this->seed(SettingSeeder::class);
+        $this->seed(CarSeeder::class);
+        $this->seed(SparePartSeeder::class);
+        $this->seed(PromoSeeder::class);
+        $this->seed(ServiceSeeder::class);
+        $this->seed(TestDriveSeeder::class);
+
+        $this->actingAs($owner)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('Tren Pemasukan Bersih (6 Bulan Terakhir)')
+            ->assertSee('data-echarts-config', false)
+            ->assertDontSee('data-chart-config', false);
+
+        $this->actingAs($this->superAdmin)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('Tren Pemesanan Servis 30 Hari Terakhir')
+            ->assertSee('Kepadatan Slot Bengkel')
+            ->assertSee('data-echarts-config', false)
+            ->assertDontSee('data-chart-config', false);
+
+        $this->actingAs($this->sales)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSeeText('Tren Pengajuan & Konversi Test Drive (6 Bulan Terakhir)')
+            ->assertSee('Funnel Konversi')
+            ->assertSee('Minat Unit Test Drive')
+            ->assertSee('data-echarts-config', false)
+            ->assertDontSee('data-chart-config', false);
+
+        $this->actingAs($this->mekanik)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSeeText('Grafik Beban Kerja & Penyelesaian Servis (7 Hari Terakhir)')
+            ->assertSee('Distribusi Status Work Order')
+            ->assertSee('Kesiapan Stok')
+            ->assertSee('data-echarts-config', false)
+            ->assertDontSee('data-chart-config', false);
+
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('AUTO COMPANY')
+            ->assertDontSee('XYZ Motors');
     }
 }

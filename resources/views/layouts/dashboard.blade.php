@@ -12,7 +12,7 @@
     <x-font-head />
 
     <!-- Scripts & Styles -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/js/app.js', 'resources/js/dashboard-charts.js'])
 </head>
 <body class="h-full font-sans antialiased text-slate-800 bg-slate-50" x-data="{ sidebarOpen: false }" @keydown.escape.window="sidebarOpen = false">
     @php

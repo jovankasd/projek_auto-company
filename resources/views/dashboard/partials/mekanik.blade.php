@@ -73,6 +73,110 @@
         </div>
     </div>
 
+    <!-- Grafik Beban Kerja Bengkel & Distribusi Status -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Grafik 7 Hari Terakhir -->
+        <div class="lg:col-span-2 bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 sm:p-8 flex flex-col justify-between">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-slate-100 gap-2">
+                <div>
+                    <h2 class="text-lg font-black text-slate-900">Grafik Beban Kerja &amp; Penyelesaian Servis (7 Hari Terakhir)</h2>
+                    <p class="text-xs text-slate-600 mt-0.5">Volume unit masuk dibanding unit yang berhasil diselesaikan per hari.</p>
+                </div>
+                <span class="text-xs font-mono tabular-nums font-bold text-slate-700 bg-slate-100 px-3 py-1.5 rounded-xl self-start sm:self-center">
+                    7 Hari: {{ collect($weeklyWorkChart ?? [])->sum('total_jobs') }} Unit
+                </span>
+            </div>
+
+            @php
+                $mekanikWeeklyPayload = [
+                    'type' => 'mekanik-throughput',
+                    'labels' => collect($weeklyWorkChart ?? [])->map(fn ($w) => $w['day_name'].', '.$w['date_label'])->values()->all(),
+                    'totalJobs' => collect($weeklyWorkChart ?? [])->pluck('total_jobs')->map(fn ($v) => (int) $v)->values()->all(),
+                    'completedJobs' => collect($weeklyWorkChart ?? [])->pluck('completed_jobs')->map(fn ($v) => (int) $v)->values()->all(),
+                ];
+            @endphp
+
+            <div class="mt-5">
+                <div role="img"
+                     aria-label="Grafik Beban Kerja dan Penyelesaian Servis 7 Hari Terakhir"
+                     class="relative h-72 w-full"
+                     data-echarts-config='@json($mekanikWeeklyPayload)'></div>
+            </div>
+        </div>
+
+        <!-- Distribusi Status Work Order & Kesehatan Stok (Clean White Card) -->
+        <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 sm:p-8 flex flex-col justify-between gap-5">
+            <div>
+                <h2 class="text-lg font-black text-slate-900">Distribusi Status Work Order</h2>
+                <p class="text-xs text-slate-600 mt-0.5 mb-4">Indikator penyelesaian &amp; kesiapan suku cadang bulan ini.</p>
+
+                @php
+                    $totalPartsStat = (int) ($stats['total_spare_parts'] ?? 0);
+                    $lowPartsStat = (int) ($stats['low_stock_parts'] ?? 0);
+                    $healthyPartsStat = max(0, $totalPartsStat - $lowPartsStat);
+                    $completionGaugePayload = [
+                        'type' => 'mekanik-gauge',
+                        'value' => (int) ($workshopMetrics['completion_rate'] ?? 0),
+                        'color' => '#059669',
+                    ];
+                    $stockGaugeRate = (int) ($workshopMetrics['stock_health_rate'] ?? 100);
+                    $stockGaugePayload = [
+                        'type' => 'mekanik-gauge',
+                        'value' => $stockGaugeRate,
+                        'color' => $stockGaugeRate >= 75 ? '#2563eb' : '#f59e0b',
+                    ];
+                @endphp
+
+                <div class="grid grid-cols-2 gap-3 mb-4">
+                    <div class="rounded-2xl bg-slate-50 border border-slate-200/80 p-3 text-center">
+                        <div role="img"
+                             aria-label="Persentase Penyelesaian Servis Bulan Ini"
+                             class="relative h-24 w-full"
+                             data-echarts-config='@json($completionGaugePayload)'></div>
+                        <span class="block text-[11px] font-bold text-slate-800 -mt-1">Selesai Bulan Ini</span>
+                        <span class="block text-[10px] font-mono tabular-nums text-emerald-700 font-semibold mt-0.5">
+                            {{ $workshopMetrics['completed_month'] ?? 0 }}/{{ $workshopMetrics['month_target'] ?? 0 }} unit
+                        </span>
+                    </div>
+
+                    <div class="rounded-2xl bg-slate-50 border border-slate-200/80 p-3 text-center">
+                        <div role="img"
+                             aria-label="Persentase Kesiapan Stok Suku Cadang"
+                             class="relative h-24 w-full"
+                             data-echarts-config='@json($stockGaugePayload)'></div>
+                        <span class="block text-[11px] font-bold text-slate-800 -mt-1">Kesiapan Stok</span>
+                        <span class="block text-[10px] font-mono tabular-nums text-blue-700 font-semibold mt-0.5">
+                            {{ $healthyPartsStat }}/{{ $totalPartsStat }} SKU aman
+                        </span>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    @foreach($statusBreakdown ?? [] as $sb)
+                        <div class="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center justify-between text-xs">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: {{ $sb['hex'] ?? '#64748b' }}"></span>
+                                <span class="font-bold text-slate-800 truncate">{{ $sb['label'] }}</span>
+                            </div>
+                            <span class="font-mono tabular-nums font-black text-slate-900 shrink-0">{{ $sb['count'] }} unit</span>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="pt-4 border-t border-slate-100 grid grid-cols-2 gap-2 text-xs">
+                <div class="px-3 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex items-center justify-between">
+                    <span class="font-semibold">Stok Aman</span>
+                    <span class="font-mono tabular-nums font-black">{{ $healthyPartsStat }} SKU</span>
+                </div>
+                <div class="px-3 py-2.5 rounded-xl bg-red-50 border border-red-200 text-red-900 flex items-center justify-between">
+                    <span class="font-semibold">Perlu Restock</span>
+                    <span class="font-mono tabular-nums font-black">{{ $lowPartsStat }} SKU</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- SEKSI 1: GALERI GAMBAR SUKU CADANG / ONDERDIL MOBIL UNTUK PERBAIKAN -->
     <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm p-6 sm:p-8 space-y-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
