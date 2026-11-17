@@ -1,11 +1,11 @@
-# Dealer Pro — XYZ Motors Portal Otomotif & Manajemen Bengkel
+# Dealer Pro — AUTO COMPANY Portal Otomotif & Manajemen Bengkel
 
 [![Laravel 11](https://img.shields.io/badge/Laravel-11.x-FF2D20?logo=laravel&logoColor=white)](https://laravel.com)
 [![PHP 8.2+](https://img.shields.io/badge/PHP-8.2%2B-777BB4?logo=php&logoColor=white)](https://www.php.net)
 [![Pest Tests](https://img.shields.io/badge/Pest-131%20passed-brightgreen.svg)](https://pestphp.com)
 [![PHPStan](https://img.shields.io/badge/PHPStan-Level%206-2B5B84.svg)](https://phpstan.org)
 
-**Dealer Pro (XYZ Motors)** adalah platform portal otomotif monolith berbasis **Laravel 11**, **Blade**, **Tailwind CSS**, dan **Alpine.js** yang menyatukan showroom kendaraan interaktif 2.5D (**Swiper** + **GSAP**), katalog suku cadang OEM, pengajuan **Test Drive** dan **Booking Servis** tanpa akun/login dengan pelacakan tiket publik (`TD-` dan `SRV-`), manajemen *work order* bengkel dengan penguncian stok atomik, dasbor operasional khusus **4 peran staf internal**, serta notifikasi asinkron multi-kanal (Database, Email, dan WhatsApp).
+**Dealer Pro (AUTO COMPANY)** adalah platform portal otomotif monolith berbasis **Laravel 11**, **Blade**, **Tailwind CSS**, dan **Alpine.js** yang menyatukan showroom kendaraan interaktif 2.5D (**Swiper** + **GSAP**), katalog suku cadang OEM, pengajuan **Test Drive** dan **Booking Servis** tanpa akun/login dengan pelacakan tiket publik (`TD-` dan `SRV-`), manajemen *work order* bengkel dengan penguncian stok atomik, dasbor operasional khusus **4 peran staf internal**, serta notifikasi asinkron multi-kanal (Database, Email, dan WhatsApp).
 
 Untuk panduan menjalankan proyek di Windows lokal (SQLite maupun MySQL XAMPP/Laragon), lihat [CARA_MENJALANKAN.md](CARA_MENJALANKAN.md).
 

@@ -41,7 +41,7 @@ class TestDriveApproved extends Notification implements ShouldQueue
             ->line('Selamat! Pengajuan test drive Anda untuk unit '.$carModel.' telah disetujui.')
             ->line('Jadwal Pelaksanaan: '.$this->testDrive->preferred_date->translatedFormat('l, d F Y'))
             ->line('Sales Pendamping: '.$salesName)
-            ->line('Lokasi: '.($this->testDrive->pickup_location ?? 'Showroom Resmi XYZ Motors'))
+            ->line('Lokasi: '.($this->testDrive->pickup_location ?? 'Showroom Resmi AUTO COMPANY'))
             ->action('Lihat Detail Jadwal', url('/dashboard/my-test-drives'))
             ->line('Harap membawa SIM A asli yang masih berlaku saat kehadiran.');
     }

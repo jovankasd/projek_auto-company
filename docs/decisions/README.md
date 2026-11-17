@@ -1,6 +1,6 @@
 # Architecture Decision Records (ADRs)
 
-Direktori ini menyimpan catatan keputusan arsitektural utama yang membentuk sistem **Dealer Pro (XYZ Motors)**. Setiap ADR mengikuti format ringkas: konteks, keputusan, alternatif yang dipertimbangkan, dan konsekuensi.
+Direktori ini menyimpan catatan keputusan arsitektural utama yang membentuk sistem **Dealer Pro (AUTO COMPANY)**. Setiap ADR mengikuti format ringkas: konteks, keputusan, alternatif yang dipertimbangkan, dan konsekuensi.
 
 ## Daftar ADR
 

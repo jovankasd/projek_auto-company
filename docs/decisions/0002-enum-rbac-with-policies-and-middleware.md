@@ -7,7 +7,7 @@ Superseded in part by [ADR-008](0008-staff-only-portal-and-guest-ticket-tracking
 2026-10-01
 
 ## Context
-Sistem **XYZ Motors** melayani lima aktor dengan tanggung jawab yang berbeda:
+Sistem **AUTO COMPANY** melayani lima aktor dengan tanggung jawab yang berbeda:
 - **Customer**: Mengajukan test drive, booking servis, dan melacak progres kendaraan miliknya.
 - **Sales**: Mengelola katalog mobil, promo, spare part, dan memproses persetujuan/penolakan test drive.
 - **Mekanik**: Mengelola antrean work order, status pengerjaan servis, dan rincian item pekerjaan/suku cadang.

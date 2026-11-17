@@ -42,7 +42,7 @@ class ServiceCompleted extends Notification implements ShouldQueue
             ->line('Kendaraan: '.$this->service->vehicle_model.' ('.$this->service->vehicle_plate_number.')')
             ->line('Total Biaya: Rp'.number_format((float) $this->service->total_cost, 0, ',', '.'))
             ->action('Lihat Rincian & Nota Servis', $url)
-            ->line('Kendaraan siap diambil di bengkel resmi XYZ Motors. Terima kasih atas kepercayaan Anda!');
+            ->line('Kendaraan siap diambil di bengkel resmi AUTO COMPANY. Terima kasih atas kepercayaan Anda!');
     }
 
     /**

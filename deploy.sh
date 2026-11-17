@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# XYZ Motors - Zero-Downtime Production Deployment Script
+# AUTO COMPANY - Zero-Downtime Production Deployment Script
 # Reference: PRD §8 & PROMPT 4
 # ==============================================================================
 
 set -e
 
-echo "🚀 [XYZ Motors] Memulai proses deployment produksi..."
+echo "🚀 [AUTO COMPANY] Memulai proses deployment produksi..."
 
 # 1. Pindah ke direktori root aplikasi
 DEPLOY_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -65,4 +65,4 @@ php artisan queue:restart
 echo "🔓 Menonaktifkan Maintenance Mode..."
 php artisan up
 
-echo "✅ [XYZ Motors] Deployment selesai dengan sukses dan aplikasi siap melayani lalu lintas pengguna!"
+echo "✅ [AUTO COMPANY] Deployment selesai dengan sukses dan aplikasi siap melayani lalu lintas pengguna!"

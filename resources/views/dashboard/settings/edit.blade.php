@@ -75,7 +75,7 @@
                     <div>
                         <label for="setting_contact_email" class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Email Layanan Pelanggan</label>
                         <input id="setting_contact_email" type="email" name="contact_email"
-                               value="{{ old('contact_email', \App\Models\Setting::get('contact.email', 'info@xyzmotors.id')) }}" required
+                               value="{{ old('contact_email', \App\Models\Setting::get('contact.email', 'info@autocompany.id')) }}" required
                                class="w-full min-h-[44px] px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
                         @error('contact_email') <p class="text-xs text-red-700 mt-1">{{ $message }}</p> @enderror
                     </div>

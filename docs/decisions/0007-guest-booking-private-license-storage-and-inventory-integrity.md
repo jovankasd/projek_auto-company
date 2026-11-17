@@ -7,7 +7,7 @@ Accepted
 2026-11-15
 
 ## Context
-Pada pemeriksaan akhir lintas alur (*Final Release Gate*), aplikasi **XYZ Motors (Dealer Pro)** membutuhkan beberapa penyempurnaan arsitektural agar alur pelanggan publik mudah digunakan sekaligus aman secara data dan operasional bengkel:
+Pada pemeriksaan akhir lintas alur (*Final Release Gate*), aplikasi **AUTO COMPANY (Dealer Pro)** membutuhkan beberapa penyempurnaan arsitektural agar alur pelanggan publik mudah digunakan sekaligus aman secara data dan operasional bengkel:
 
 1. **Hambatan Konversi Pengunjung Publik**: Mewajibkan pengunjung membuat akun dan login sebelum mengajukan test drive atau booking servis menimbulkan friksi tinggi di showroom, padahal pengunjung tetap perlu memantau status pengajuan secara mandiri.
 2. **Keamanan Data Identitas Sensitif (Foto SIM A)**: Foto SIM yang sebelumnya tersimpan pada disk `public` berisiko diakses langsung lewat URL publik tanpa pemeriksaan otorisasi, serta seluruh *Sales* berpotensi melihat prospek milik rekan lain (*horizontal IDOR*).

@@ -259,7 +259,7 @@
                             Pusat Penjualan Kendaraan, Bengkel Resmi, dan Gudang Suku Cadang Orisinal.
                         </h2>
                         <p class="text-slate-600 text-base leading-relaxed mt-4">
-                            <strong>Dealer Pro (XYZ Motors)</strong> mengoperasikan fasilitas showroom kendaraan performa tinggi, bengkel perawatan berkala dengan kuota terjadwal, serta penyediaan suku cadang OEM dalam satu sistem terintegrasi di Jakarta Selatan.
+                            <strong>Dealer Pro (AUTO COMPANY)</strong> mengoperasikan fasilitas showroom kendaraan performa tinggi, bengkel perawatan berkala dengan kuota terjadwal, serta penyediaan suku cadang OEM dalam satu sistem terintegrasi di Jakarta Selatan.
                         </p>
                     </div>
 

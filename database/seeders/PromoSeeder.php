@@ -20,9 +20,9 @@ class PromoSeeder extends Seeder
 
         $promos = [
             [
-                'code' => 'XYZSUPER2024',
+                'code' => 'AUTOSUPER2026',
                 'title' => 'Promo Diskon Servis Berkala 20%',
-                'description' => 'Dapatkan potongan 20% untuk seluruh paket servis berkala di bengkel resmi XYZ Motors.',
+                'description' => 'Dapatkan potongan 20% untuk seluruh paket servis berkala di bengkel resmi AUTO COMPANY.',
                 'discount_type' => DiscountType::Percentage,
                 'discount_value' => 20.00,
                 'car_id' => null,

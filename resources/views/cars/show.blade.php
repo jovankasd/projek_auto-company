@@ -6,7 +6,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>{{ $car->meta_title ?: "{$car->brand} {$car->model_name} ({$car->year}) - Spesifikasi & Harga Resmi | Dealer Pro" }}</title>
-    <meta name="description" content="{{ $car->meta_description ?: ($car->description ?: "Spesifikasi resmi {$car->brand} {$car->model_name} tahun {$car->year}. Cek harga OTR, performa mesin, dan jadwalkan test drive di Dealer Pro XYZ Motors.") }}">
+    <meta name="description" content="{{ $car->meta_description ?: ($car->description ?: "Spesifikasi resmi {$car->brand} {$car->model_name} tahun {$car->year}. Cek harga OTR, performa mesin, dan jadwalkan test drive di Dealer Pro AUTO COMPANY.") }}">
     <link rel="canonical" href="{{ url()->current() }}">
 
     <!-- Open Graph / Facebook -->
@@ -34,7 +34,7 @@
             ],
             'model' => $car->model_name,
             'modelDate' => (string) $car->year,
-            'description' => $car->description ?: 'Unit kendaraan premium resmi Dealer Pro XYZ Motors.',
+            'description' => $car->description ?: 'Unit kendaraan premium resmi Dealer Pro AUTO COMPANY.',
             'image' => $car->hero_image_url,
             'offers' => [
                 '@type' => 'Offer',

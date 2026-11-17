@@ -1,6 +1,6 @@
-# Arsitektur Sistem — Dealer Pro (XYZ Motors)
+# Arsitektur Sistem — Dealer Pro (AUTO COMPANY)
 
-Dokumen ini menjelaskan arsitektur perangkat lunak, pola desain, alur data tamu (*guest-first*), mesin status (*state machine*), dan matriks otorisasi staf yang berjalan pada platform portal otomotif **Dealer Pro (XYZ Motors)**.
+Dokumen ini menjelaskan arsitektur perangkat lunak, pola desain, alur data tamu (*guest-first*), mesin status (*state machine*), dan matriks otorisasi staf yang berjalan pada platform portal otomotif **Dealer Pro (AUTO COMPANY)**.
 
 ## 1. Gambaran Umum Monolith Berlapis
 

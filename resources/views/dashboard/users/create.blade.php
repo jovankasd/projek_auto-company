@@ -24,7 +24,7 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
                     <label for="user_email" class="block text-xs font-bold uppercase text-slate-600 mb-1.5">Alamat Email <span class="text-red-600">*</span></label>
-                    <input id="user_email" type="email" name="email" value="{{ old('email') }}" required placeholder="budi@xyzmotors.id"
+                    <input id="user_email" type="email" name="email" value="{{ old('email') }}" required placeholder="budi@autocompany.id"
                            class="w-full min-h-[44px] px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none">
                     @error('email') <p class="text-xs text-red-700 mt-1">{{ $message }}</p> @enderror
                 </div>

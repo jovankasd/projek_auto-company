@@ -34,8 +34,8 @@ class CarSeeder extends Seeder
                 'description' => 'Ikon otomotif Amerika dengan mesin V8 5.0L Coyote yang menggelegar. Perpaduan sempurna antara performa, desain agresif, dan teknologi modern.',
                 'hero_image_transparent' => null,
                 'hero_image_alt' => 'Ford Mustang GT 2024 Race Red tampak samping',
-                'meta_title' => 'Ford Mustang GT 2024 | XYZ Motors',
-                'meta_description' => 'Beli Ford Mustang GT 2024 di XYZ Motors. V8 450HP, 0-100 4.3 detik. Test drive sekarang.',
+                'meta_title' => 'Ford Mustang GT 2024 | AUTO COMPANY',
+                'meta_description' => 'Beli Ford Mustang GT 2024 di AUTO COMPANY. V8 450HP, 0-100 4.3 detik. Test drive sekarang.',
                 'stock_quantity' => 3,
                 'is_available' => true,
                 'is_featured' => true,
@@ -60,8 +60,8 @@ class CarSeeder extends Seeder
                 'description' => 'Puncak rekayasa M GmbH. Twin-turbo inline-6 S58 dengan teknologi M xDrive untuk grip sempurna di segala kondisi.',
                 'hero_image_transparent' => null,
                 'hero_image_alt' => 'BMW M4 Competition 2024 Brooklyn Grey tampak samping',
-                'meta_title' => 'BMW M4 Competition 2024 | XYZ Motors',
-                'meta_description' => 'Beli BMW M4 Competition 2024 di XYZ Motors. 510HP, xDrive AWD. Test drive sekarang.',
+                'meta_title' => 'BMW M4 Competition 2024 | AUTO COMPANY',
+                'meta_description' => 'Beli BMW M4 Competition 2024 di AUTO COMPANY. 510HP, xDrive AWD. Test drive sekarang.',
                 'stock_quantity' => 2,
                 'is_available' => true,
                 'is_featured' => true,
@@ -86,8 +86,8 @@ class CarSeeder extends Seeder
                 'description' => 'Kemewahan tanpa kompromi dalam balutan MPV premium. Kabin luas dengan executive lounge seat dan teknologi keselamatan terdepan.',
                 'hero_image_transparent' => null,
                 'hero_image_alt' => 'Toyota Alphard 2024 Precious Black tampak samping',
-                'meta_title' => 'Toyota Alphard 2024 | XYZ Motors',
-                'meta_description' => 'Beli Toyota Alphard 2024 di XYZ Motors. MPV premium dengan executive lounge. Test drive sekarang.',
+                'meta_title' => 'Toyota Alphard 2024 | AUTO COMPANY',
+                'meta_description' => 'Beli Toyota Alphard 2024 di AUTO COMPANY. MPV premium dengan executive lounge. Test drive sekarang.',
                 'stock_quantity' => 4,
                 'is_available' => true,
                 'is_featured' => false,
@@ -112,8 +112,8 @@ class CarSeeder extends Seeder
                 'description' => 'Revolusi kendaraan listrik. Autopilot canggih, update OTA, dan akses ke jaringan Supercharger terluas di dunia.',
                 'hero_image_transparent' => null,
                 'hero_image_alt' => 'Tesla Model 3 2024 Pearl White tampak samping',
-                'meta_title' => 'Tesla Model 3 2024 | XYZ Motors',
-                'meta_description' => 'Beli Tesla Model 3 2024 di XYZ Motors. EV 358HP, Autopilot. Test drive sekarang.',
+                'meta_title' => 'Tesla Model 3 2024 | AUTO COMPANY',
+                'meta_description' => 'Beli Tesla Model 3 2024 di AUTO COMPANY. EV 358HP, Autopilot. Test drive sekarang.',
                 'stock_quantity' => 5,
                 'is_available' => true,
                 'is_featured' => true,
@@ -138,8 +138,8 @@ class CarSeeder extends Seeder
                 'description' => 'Raja off-road dengan suspensi Fox Racing dan ban BF Goodrich. Siap menaklukkan segala medan dengan gaya.',
                 'hero_image_transparent' => null,
                 'hero_image_alt' => 'Ford Ranger Raptor 2024 Meteor Grey tampak samping',
-                'meta_title' => 'Ford Ranger Raptor 2024 | XYZ Motors',
-                'meta_description' => 'Beli Ford Ranger Raptor 2024 di XYZ Motors. Off-road SUV 292HP, Fox Racing Shocks. Test drive sekarang.',
+                'meta_title' => 'Ford Ranger Raptor 2024 | AUTO COMPANY',
+                'meta_description' => 'Beli Ford Ranger Raptor 2024 di AUTO COMPANY. Off-road SUV 292HP, Fox Racing Shocks. Test drive sekarang.',
                 'stock_quantity' => 3,
                 'is_available' => true,
                 'is_featured' => true,
@@ -148,7 +148,7 @@ class CarSeeder extends Seeder
         ];
 
         foreach ($cars as $carData) {
-            Car::firstOrCreate(['slug' => $carData['slug']], $carData);
+            Car::updateOrCreate(['slug' => $carData['slug']], $carData);
         }
     }
 }

@@ -116,8 +116,8 @@ class SparePartController extends Controller
             'is_available' => $request->boolean('is_available'),
             'is_featured' => $request->boolean('is_featured'),
             'sort_order' => $validated['sort_order'] ?? (SparePart::max('sort_order') + 1),
-            'meta_title' => $validated['meta_title'] ?? "{$validated['name']} | XYZ Motors",
-            'meta_description' => $validated['meta_description'] ?? "Spare part {$validated['name']} tersedia di XYZ Motors.",
+            'meta_title' => $validated['meta_title'] ?? "{$validated['name']} | AUTO COMPANY",
+            'meta_description' => $validated['meta_description'] ?? "Spare part {$validated['name']} tersedia di AUTO COMPANY.",
         ]);
 
         return redirect()->route('spare-parts.index')->with('success', "Spare part {$sparePart->name} berhasil ditambahkan.");

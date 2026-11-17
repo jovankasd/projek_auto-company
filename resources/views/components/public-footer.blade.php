@@ -17,7 +17,7 @@
                             Dealer Pro
                         </span>
                         <span class="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-600 block mt-0.5">
-                            XYZ Motors Indonesia
+                            AUTO COMPANY Indonesia
                         </span>
                     </div>
                 </div>
@@ -104,7 +104,7 @@
         </div>
 
         <div class="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-600">
-            <p>&copy; {{ date('Y') }} Dealer Pro (XYZ Motors Indonesia). Seluruh hak cipta dilindungi.</p>
+            <p>&copy; {{ date('Y') }} Dealer Pro (AUTO COMPANY Indonesia). Seluruh hak cipta dilindungi.</p>
             <p class="font-mono text-[11px] uppercase tracking-wider text-slate-600">
                 Showroom Sales / Workshop Service / OEM Spare Parts
             </p>

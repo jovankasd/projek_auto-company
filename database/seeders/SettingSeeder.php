@@ -14,14 +14,14 @@ class SettingSeeder extends Seeder
             ['group' => 'booking', 'key' => 'booking.close_hour',  'value' => '17',                   'type' => 'integer'],
             ['group' => 'booking', 'key' => 'booking.max_per_slot', 'value' => '3',                    'type' => 'integer'],
             ['group' => 'contact', 'key' => 'contact.whatsapp',    'value' => '6281234567890',        'type' => 'string'],
-            ['group' => 'contact', 'key' => 'contact.email',       'value' => 'info@xyzmotors.id',    'type' => 'string'],
+            ['group' => 'contact', 'key' => 'contact.email',       'value' => 'info@autocompany.id',  'type' => 'string'],
             ['group' => 'contact', 'key' => 'contact.address',     'value' => 'Jl. Sudirman No.1, Jakarta', 'type' => 'string'],
-            ['group' => 'seo',    'key' => 'seo.site_name',        'value' => 'XYZ Motors',           'type' => 'string'],
+            ['group' => 'seo',    'key' => 'seo.site_name',        'value' => 'AUTO COMPANY',         'type' => 'string'],
             ['group' => 'seo',    'key' => 'seo.tagline',          'value' => 'Drive Your Dream',     'type' => 'string'],
         ];
 
         foreach ($settings as $setting) {
-            Setting::firstOrCreate(['key' => $setting['key']], $setting);
+            Setting::updateOrCreate(['key' => $setting['key']], $setting);
         }
     }
 }

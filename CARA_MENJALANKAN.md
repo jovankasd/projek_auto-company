@@ -1,6 +1,6 @@
-# Panduan Menjalankan Proyek Dealer Pro (XYZ Motors)
+# Panduan Menjalankan Proyek Dealer Pro (AUTO COMPANY)
 
-Panduan ini menjelaskan langkah menjalankan **Dealer Pro (XYZ Motors)** di komputer Windows lokal dengan dua pilihan database: **SQLite** (bawaan `.env.example`, langsung jalan tanpa aplikasi tambahan) atau **MySQL** (menggunakan **XAMPP** / **Laragon**).
+Panduan ini menjelaskan langkah menjalankan **Dealer Pro (AUTO COMPANY)** di komputer Windows lokal dengan dua pilihan database: **SQLite** (bawaan `.env.example`, langsung jalan tanpa aplikasi tambahan) atau **MySQL** (menggunakan **XAMPP** / **Laragon**).
 
 ---
 

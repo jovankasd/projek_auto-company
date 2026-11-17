@@ -5,15 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Syarat dan Ketentuan | Dealer Pro (XYZ Motors)</title>
-    <meta name="description" content="Syarat dan Ketentuan resmi penggunaan layanan showroom mobil, pengajuan test drive, dan pemesanan booking servis di bengkel resmi Dealer Pro XYZ Motors.">
+    <title>Syarat dan Ketentuan | Dealer Pro (AUTO COMPANY)</title>
+    <meta name="description" content="Syarat dan Ketentuan resmi penggunaan layanan showroom mobil, pengajuan test drive, dan pemesanan booking servis di bengkel resmi Dealer Pro AUTO COMPANY.">
     <link rel="canonical" href="{{ route('terms-of-service') }}">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="article">
     <meta property="og:url" content="{{ route('terms-of-service') }}">
-    <meta property="og:title" content="Syarat dan Ketentuan | Dealer Pro XYZ Motors">
-    <meta property="og:description" content="Syarat dan Ketentuan resmi penggunaan layanan showroom mobil, pengajuan test drive, dan pemesanan booking servis di bengkel resmi Dealer Pro XYZ Motors.">
+    <meta property="og:title" content="Syarat dan Ketentuan | Dealer Pro AUTO COMPANY">
+    <meta property="og:description" content="Syarat dan Ketentuan resmi penggunaan layanan showroom mobil, pengajuan test drive, dan pemesanan booking servis di bengkel resmi Dealer Pro AUTO COMPANY.">
     <meta property="og:image" content="{{ asset('images/logo.jpg') }}">
 
     <x-font-head />
@@ -42,14 +42,14 @@
                     Syarat dan Ketentuan
                 </h1>
                 <p class="text-xs sm:text-sm text-slate-500 font-mono">
-                    Terakhir diperbarui: 14 November 2026 &bull; XYZ Motors Indonesia
+                    Terakhir diperbarui: 14 November 2026 &bull; AUTO COMPANY Indonesia
                 </p>
             </header>
 
             <section class="space-y-4 text-sm leading-relaxed text-slate-700">
                 <h2 class="text-lg font-bold text-slate-900">1. Ketentuan Umum Portal</h2>
                 <p>
-                    Dengan mengakses portal Dealer Pro (XYZ Motors), pengguna menyetujui seluruh ketentuan operasional di bawah ini. Layanan digital mencakup penelusuran showroom visual, pemesanan jadwal uji coba kendaraan (test drive), pendaftaran booking perawatan servis berkala, serta pengecekan ketersediaan suku cadang resmi.
+                    Dengan mengakses portal Dealer Pro (AUTO COMPANY), pengguna menyetujui seluruh ketentuan operasional di bawah ini. Layanan digital mencakup penelusuran showroom visual, pemesanan jadwal uji coba kendaraan (test drive), pendaftaran booking perawatan servis berkala, serta pengecekan ketersediaan suku cadang resmi.
                 </p>
             </section>
 
@@ -60,7 +60,7 @@
                     <ul class="list-disc pl-5 space-y-1.5">
                         <li>Pemohon berusia minimal 17 tahun dan memiliki Surat Izin Mengemudi golongan A (SIM A) yang masih sah dan berlaku di wilayah Republik Indonesia.</li>
                         <li>Pemohon bersedia melampirkan foto dokumen fisik SIM A asli untuk proses verifikasi legalitas berkendara sebelum unit kendaraan dapat dicoba di jalan raya.</li>
-                        <li>Sesi test drive didampingi langsung oleh staf konsultan penjualan resmi XYZ Motors pada rute uji coba yang telah ditentukan demi alasan keselamatan bersama.</li>
+                        <li>Sesi test drive didampingi langsung oleh staf konsultan penjualan resmi AUTO COMPANY pada rute uji coba yang telah ditentukan demi alasan keselamatan bersama.</li>
                         <li>Pengemudi wajib mematuhi rambu-rambu lalu lintas, batas kecepatan jalan umum, serta petunjuk keselamatan dari pendamping teknis.</li>
                     </ul>
                 </div>

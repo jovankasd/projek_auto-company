@@ -1,6 +1,6 @@
-# Panduan Deployment Produksi XYZ Motors
+# Panduan Deployment Produksi AUTO COMPANY
 
-Dokumen ini memandu proses pemasangan, konfigurasi server, dan peluncuran (zero-downtime deployment) untuk aplikasi **XYZ Motors** pada lingkungan produksi Linux (Ubuntu 22.04 / 24.04 LTS).
+Dokumen ini memandu proses pemasangan, konfigurasi server, dan peluncuran (zero-downtime deployment) untuk aplikasi **AUTO COMPANY** pada lingkungan produksi Linux (Ubuntu 22.04 / 24.04 LTS).
 
 ---
 
@@ -40,7 +40,7 @@ nano .env
 ```
 Pastikan variabel lingkungan berikut disesuaikan untuk produksi:
 ```ini
-APP_NAME="XYZ Motors"
+APP_NAME="AUTO COMPANY"
 APP_ENV=production
 APP_DEBUG=false
 APP_URL=https://xyzmotors.com

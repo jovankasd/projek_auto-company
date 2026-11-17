@@ -21,7 +21,7 @@
                     <img src="{{ asset('images/logo.jpg') }}" alt="Dealer Pro" class="h-10 w-10 rounded-xl object-cover border border-slate-200 shadow-sm">
                     <div>
                         <span class="font-display font-extrabold text-xl tracking-tight text-slate-900 block leading-none">Dealer Pro</span>
-                        <span class="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-600 block mt-1">XYZ Motors Portal</span>
+                        <span class="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-600 block mt-1">AUTO COMPANY Portal</span>
                     </div>
                 </a>
             </div>

@@ -15,7 +15,7 @@
                     Dealer Pro
                 </span>
                 <span class="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-600 leading-none block mt-0.5">
-                    XYZ Motors
+                    AUTO COMPANY
                 </span>
             </div>
         </a>

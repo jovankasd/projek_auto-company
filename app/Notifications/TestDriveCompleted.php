@@ -37,7 +37,7 @@ class TestDriveCompleted extends Notification implements ShouldQueue
         return (new MailMessage)
             ->subject('Terima Kasih Telah Mencoba: '.$carModel)
             ->greeting('Halo, '.$notifiable->name.'!')
-            ->line('Terima kasih telah mencoba sesi test drive unit '.$carModel.' bersama XYZ Motors.')
+            ->line('Terima kasih telah mencoba sesi test drive unit '.$carModel.' bersama AUTO COMPANY.')
             ->line('Kami berharap Anda menikmati sensasi berkendara yang luar biasa.')
             ->action('Jelajahi Promo & Paket Pembelian', url('/'))
             ->line('Tim sales kami siap membantu Anda dengan informasi harga, simulasi kredit, dan penawaran terbaik.');
@@ -64,6 +64,6 @@ class TestDriveCompleted extends Notification implements ShouldQueue
     {
         $carModel = $this->testDrive->car->model_name ?? 'Mobil';
 
-        return "Halo {$notifiable->name},\nTerima kasih telah mencoba sesi test drive unit *{$carModel}* bersama XYZ Motors. Hubungi sales kami untuk penawaran dan promo spesial pembelian unit!";
+        return "Halo {$notifiable->name},\nTerima kasih telah mencoba sesi test drive unit *{$carModel}* bersama AUTO COMPANY. Hubungi sales kami untuk penawaran dan promo spesial pembelian unit!";
     }
 }

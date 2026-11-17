@@ -67,6 +67,6 @@ class ServiceConfirmed extends Notification implements ShouldQueue
     {
         $mechanicName = $this->service->mechanic ? $this->service->mechanic->name : 'Mekanik Resmi';
 
-        return "Halo {$notifiable->name},\nTiket servis *{$this->service->ticket_number}* telah dikonfirmasi oleh bengkel XYZ Motors. Mekanik: {$mechanicName}. Silakan datang pada {$this->service->service_date->translatedFormat('d M Y')} jam ".sprintf('%02d:00', $this->service->slot_hour).' WIB. Detail: '.url('/dashboard/services/'.$this->service->id);
+        return "Halo {$notifiable->name},\nTiket servis *{$this->service->ticket_number}* telah dikonfirmasi oleh bengkel AUTO COMPANY. Mekanik: {$mechanicName}. Silakan datang pada {$this->service->service_date->translatedFormat('d M Y')} jam ".sprintf('%02d:00', $this->service->slot_hour).' WIB. Detail: '.url('/dashboard/services/'.$this->service->id);
     }
 }

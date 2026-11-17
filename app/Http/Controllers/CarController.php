@@ -145,8 +145,8 @@ class CarController extends Controller
             'hero_image_transparent' => $heroImagePath,
             'hero_image_alt' => "{$validated['brand']} {$validated['model_name']} {$validated['year']} {$validated['color_name']}",
             'gallery_images' => $galleryPaths,
-            'meta_title' => $validated['meta_title'] ?? "{$validated['brand']} {$validated['model_name']} | XYZ Motors",
-            'meta_description' => $validated['meta_description'] ?? "Unit {$validated['brand']} {$validated['model_name']} {$validated['year']} tersedia di XYZ Motors.",
+            'meta_title' => $validated['meta_title'] ?? "{$validated['brand']} {$validated['model_name']} | AUTO COMPANY",
+            'meta_description' => $validated['meta_description'] ?? "Unit {$validated['brand']} {$validated['model_name']} {$validated['year']} tersedia di AUTO COMPANY.",
         ]);
 
         return redirect()->route('cars.index')->with('success', "Mobil {$car->brand} {$car->model_name} berhasil ditambahkan.");

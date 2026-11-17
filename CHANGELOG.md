@@ -1,6 +1,6 @@
 # Changelog
 
-Seluruh perubahan penting pada proyek **Dealer Pro (XYZ Motors)** didokumentasikan pada berkas ini. Format mengikuti standar [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) dan [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+Seluruh perubahan penting pada proyek **Dealer Pro (AUTO COMPANY)** didokumentasikan pada berkas ini. Format mengikuti standar [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) dan [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 

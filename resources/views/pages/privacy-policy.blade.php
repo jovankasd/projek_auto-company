@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Kebijakan Privasi | Dealer Pro (XYZ Motors)</title>
-    <meta name="description" content="Kebijakan Privasi resmi Dealer Pro XYZ Motors. Informasi transparan mengenai pengumpulan, perlindungan data booking servis, verifikasi foto SIM test drive, dan hak privasi pengguna.">
+    <title>Kebijakan Privasi | Dealer Pro (AUTO COMPANY)</title>
+    <meta name="description" content="Kebijakan Privasi resmi Dealer Pro AUTO COMPANY. Informasi transparan mengenai pengumpulan, perlindungan data booking servis, verifikasi foto SIM test drive, dan hak privasi pengguna.">
     <link rel="canonical" href="{{ route('privacy-policy') }}">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="article">
     <meta property="og:url" content="{{ route('privacy-policy') }}">
-    <meta property="og:title" content="Kebijakan Privasi | Dealer Pro XYZ Motors">
+    <meta property="og:title" content="Kebijakan Privasi | Dealer Pro AUTO COMPANY">
     <meta property="og:description" content="Informasi transparan mengenai pengumpulan, perlindungan data booking servis, verifikasi foto SIM test drive, dan hak privasi pengguna.">
     <meta property="og:image" content="{{ asset('images/logo.jpg') }}">
 
@@ -42,14 +42,14 @@
                     Kebijakan Privasi
                 </h1>
                 <p class="text-xs sm:text-sm text-slate-500 font-mono">
-                    Terakhir diperbarui: 14 November 2026 &bull; Berlaku untuk seluruh layanan digital XYZ Motors
+                    Terakhir diperbarui: 14 November 2026 &bull; Berlaku untuk seluruh layanan digital AUTO COMPANY
                 </p>
             </header>
 
             <section class="space-y-4 text-sm leading-relaxed text-slate-700">
                 <h2 class="text-lg font-bold text-slate-900">1. Pendahuluan</h2>
                 <p>
-                    Dealer Pro (XYZ Motors Indonesia) berkomitmen melindungi kerahasiaan dan keamanan data pribadi pelanggan. Kebijakan ini menjelaskan jenis informasi yang kami kumpulkan saat Anda menggunakan portal showroom, mengajukan uji coba kendaraan (test drive), menjadwalkan booking servis bengkel resmi, maupun mengirimkan pertanyaan melalui formulir kontak.
+                    Dealer Pro (AUTO COMPANY Indonesia) berkomitmen melindungi kerahasiaan dan keamanan data pribadi pelanggan. Kebijakan ini menjelaskan jenis informasi yang kami kumpulkan saat Anda menggunakan portal showroom, mengajukan uji coba kendaraan (test drive), menjadwalkan booking servis bengkel resmi, maupun mengirimkan pertanyaan melalui formulir kontak.
                 </p>
             </section>
 
@@ -107,7 +107,7 @@
             <section class="space-y-4 text-sm leading-relaxed text-slate-700">
                 <h2 class="text-lg font-bold text-slate-900">4. Pembatasan Berbagi Data Pihak Ketiga</h2>
                 <p>
-                    Data pribadi pelanggan digunakan semata-mata untuk penyelenggaraan transaksi, penyampaian notifikasi status tiket servis, konfirmasi jadwal test drive, dan layanan purnajual resmi. XYZ Motors tidak memperjualbelikan, menyewakan, atau mendistribusikan data pelanggan kepada jaringan pengiklan pihak ketiga mana pun.
+                    Data pribadi pelanggan digunakan semata-mata untuk penyelenggaraan transaksi, penyampaian notifikasi status tiket servis, konfirmasi jadwal test drive, dan layanan purnajual resmi. AUTO COMPANY tidak memperjualbelikan, menyewakan, atau mendistribusikan data pelanggan kepada jaringan pengiklan pihak ketiga mana pun.
                 </p>
             </section>
 
@@ -118,7 +118,7 @@
                 </p>
                 <div class="p-4 bg-slate-100 rounded-lg text-xs space-y-1 font-mono text-slate-700">
                     <p class="font-sans font-bold text-slate-900">Kontak Pengaduan Data Pribadi:</p>
-                    <p>Surel: privacy@xyzmotors.id</p>
+                    <p>Surel: privacy@autocompany.id</p>
                     <p>Telepon: +62-21-555-0199 (Senin – Sabtu, 08:00 – 18:00 WIB)</p>
                     <p>Alamat: Jl. Sudirman No. 88, Jakarta Selatan 12190</p>
                 </div>

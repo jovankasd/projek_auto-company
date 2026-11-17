@@ -7,7 +7,7 @@ Accepted
 2026-11-14
 
 ## Context
-Berdasarkan PRD §7.4 dan temuan audit #18, portal otomotif XYZ Motors memerlukan tata kelola mesin perayap (crawling) dan keterbukaan informasi legal yang jujur:
+Berdasarkan PRD §7.4 dan temuan audit #18, portal otomotif AUTO COMPANY memerlukan tata kelola mesin perayap (crawling) dan keterbukaan informasi legal yang jujur:
 1. Mesin pencari (Google, Bing) membutuhkan XML Sitemap (`/sitemap.xml`) yang hanya mencantumkan halaman publik yang valid dan aktif, tanpa mengekspos area autentikasi staf, panel kontrol internal, atau berkas privat (seperti foto kartu SIM).
 2. Area dasbor staf, alur autentikasi (login, register, forgot-password), dan direktori penyimpanan privat wajib dilindungi dari pengindeksan publik melalui kombinasi berkas `robots.txt` dan instruksi `<meta name="robots" content="noindex, nofollow">` pada layout Blade terotentikasi.
 3. Formulir publik mengumpulkan informasi sensitif (nomor telepon, nomor polisi kendaraan, nomor SIM A, dan unggahan foto kartu SIM). Pengguna berhak atas dokumen Kebijakan Privasi dan Syarat & Ketentuan resmi yang menjelaskan tata kelola, isolasi penyimpanan privat, serta pembatasan akses secara transparan tanpa klaim sertifikasi palsu.

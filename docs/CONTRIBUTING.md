@@ -1,6 +1,6 @@
-# Panduan Kontribusi XYZ Motors
+# Panduan Kontribusi AUTO COMPANY
 
-Terima kasih atas minat Anda untuk berkontribusi pada pengembangan platform otomotif **XYZ Motors**. Panduan ini memastikan standar kualitas kode, keamanan, dan konsistensi arsitektur tetap terjaga.
+Terima kasih atas minat Anda untuk berkontribusi pada pengembangan platform otomotif **AUTO COMPANY**. Panduan ini memastikan standar kualitas kode, keamanan, dan konsistensi arsitektur tetap terjaga.
 
 ---
 

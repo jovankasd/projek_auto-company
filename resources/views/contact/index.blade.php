@@ -5,20 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>Hubungi Tim Konsultan Showroom &amp; Bengkel | Dealer Pro XYZ Motors</title>
-    <meta name="description" content="Saluran kontak resmi Dealer Pro XYZ Motors. Hubungi kami untuk konsultasi unit kendaraan baru, ketersediaan suku cadang OEM, jadwal servis bengkel resmi, atau kunjungan langsung.">
+    <title>Hubungi Tim Konsultan Showroom &amp; Bengkel | Dealer Pro AUTO COMPANY</title>
+    <meta name="description" content="Saluran kontak resmi Dealer Pro AUTO COMPANY. Hubungi kami untuk konsultasi unit kendaraan baru, ketersediaan suku cadang OEM, jadwal servis bengkel resmi, atau kunjungan langsung.">
     <link rel="canonical" href="{{ url()->current() }}">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:url" content="{{ url()->current() }}">
     <meta property="og:title" content="Hubungi Tim Konsultan Showroom &amp; Bengkel | Dealer Pro">
-    <meta property="og:description" content="Saluran komunikasi langsung dengan konsultan penjualan dan tim teknis bengkel resmi Dealer Pro XYZ Motors.">
+    <meta property="og:description" content="Saluran komunikasi langsung dengan konsultan penjualan dan tim teknis bengkel resmi Dealer Pro AUTO COMPANY.">
     <meta property="og:image" content="{{ asset('images/logo.jpg') }}">
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="Hubungi Dealer Pro XYZ Motors">
+    <meta name="twitter:title" content="Hubungi Dealer Pro AUTO COMPANY">
     <meta name="twitter:description" content="Saluran komunikasi langsung dengan konsultan penjualan dan teknisi bengkel resmi Dealer Pro.">
 
     <x-font-head />
@@ -70,7 +70,7 @@
                             </span>
                             <div>
                                 <h2 class="font-display text-base font-bold text-slate-900">Showroom &amp; Workshop Resmi</h2>
-                                <p class="text-xs text-slate-600">Kantor Pusat XYZ Motors Indonesia</p>
+                                <p class="text-xs text-slate-600">Kantor Pusat AUTO COMPANY Indonesia</p>
                             </div>
                         </div>
 
@@ -130,7 +130,7 @@
                                 </span>
                                 <div class="min-w-0">
                                     <span class="block text-xs font-semibold text-slate-600">Email Resmi:</span>
-                                    <span class="font-mono font-bold text-slate-900 text-sm break-all">sales@dealerpro.xyzmotors.co.id</span>
+                                    <span class="font-mono font-bold text-slate-900 text-sm break-all">sales@dealerpro.autocompany.co.id</span>
                                 </div>
                             </div>
                         </div>
